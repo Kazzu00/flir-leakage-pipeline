@@ -3,6 +3,7 @@ from zipfile import ZIP_DEFLATED, ZipFile
 
 from flir_pipeline.data.inventory import (
     compare_archive_members,
+    cross_split_exact_duplicate_analysis,
     inspect_archive,
     match_images_labels,
     run_inventory,
@@ -99,3 +100,57 @@ def test_corrupt_zip_is_reported(tmp_path: Path) -> None:
     assert not inspection.readable
     assert inspection.error
     assert members == []
+
+
+def test_cross_split_exact_duplicate_analysis(tmp_path: Path) -> None:
+    archive_path = tmp_path / "Imagenes.zip"
+    _write_zip(
+        archive_path,
+        {
+            "Imagenes/train/v1_frame_000001.jpg": b"same",
+            "Imagenes/val/v1_frame_000001.jpg": b"same",
+            "Imagenes/test/v1_frame_000002.jpg": b"different",
+        },
+    )
+    _, members = inspect_archive(archive_path, hash_members=True)
+    neighbors = temporal_neighbors(members)
+
+    pairs, duplicates, summary = cross_split_exact_duplicate_analysis(
+        members, neighbors
+    )
+
+    zero_delta = next(row for row in pairs if row["delta_frame_index"] == 0)
+    assert zero_delta["exact_content_duplicate"] is True
+    assert zero_delta["size_bytes_a"] == 4
+    assert zero_delta["size_bytes_b"] == 4
+    assert len(duplicates) == 2
+    assert summary["same_split_duplicate_hashes"] == 0
+    assert summary["train_val_hashes"] == 1
+    assert summary["train_test_hashes"] == 0
+    assert summary["val_test_hashes"] == 0
+
+
+def test_cross_split_analysis_rejects_sequence_mismatch(tmp_path: Path) -> None:
+    archive_path = tmp_path / "Imagenes.zip"
+    _write_zip(
+        archive_path,
+        {
+            "Imagenes/train/v1_frame_000001.jpg": b"same",
+            "Imagenes/val/v2_frame_000001.jpg": b"same",
+        },
+    )
+    _, members = inspect_archive(archive_path, hash_members=True)
+    neighbors = [
+        {
+            "frame_a": "Imagenes/train/v1_frame_000001.jpg",
+            "split_a": "train",
+            "frame_b": "Imagenes/val/v2_frame_000001.jpg",
+            "split_b": "val",
+            "delta_frame_index": 0,
+        }
+    ]
+
+    pairs, _, _ = cross_split_exact_duplicate_analysis(members, neighbors)
+
+    assert pairs[0]["sequence_match"] is False
+    assert pairs[0]["exact_content_duplicate"] is False

@@ -72,7 +72,11 @@ Reports derived from real data are ignored by Git under
 records archive SHA256 values, optional streamed member hashes, structural
 counts, image-label basename matches, exploratory filename/frame features,
 possible cross-split temporal neighbors, and evidence-qualified archive
-relationships. It does not establish leakage or choose a canonical dataset.
+relationships. The follow-up exact-duplicate check writes
+`cross_split_temporal_pair_analysis.csv` and
+`cross_split_exact_duplicates.csv`; it requires matching inferred sequences and
+uses SHA256 before calling two images byte-identical. It does not establish
+leakage or choose a canonical dataset.
 
 ## Data and public repository policy
 

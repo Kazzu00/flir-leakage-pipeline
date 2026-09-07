@@ -433,6 +433,115 @@ def temporal_neighbors(members: list[ArchiveMember]) -> list[dict]:
     return sorted(neighbors, key=lambda row: row["delta_frame_index"])
 
 
+def cross_split_exact_duplicate_analysis(
+    members: list[ArchiveMember], neighbors: list[dict]
+) -> tuple[list[dict], list[dict], dict[str, int]]:
+    """Cross-check temporal candidates and exact image duplicates in Imagenes.zip."""
+    image_members = [
+        member
+        for member in members
+        if member.archive_name.casefold() == "imagenes.zip"
+        and member.file_type == "image"
+    ]
+    patterns = {
+        row["member_path"]: row for row in filename_patterns(image_members)
+    }
+    by_path = {member.member_path: member for member in image_members}
+    pair_rows: list[dict] = []
+    for neighbor in neighbors:
+        member_a = by_path.get(neighbor["frame_a"])
+        member_b = by_path.get(neighbor["frame_b"])
+        pattern_a = patterns.get(neighbor["frame_a"], {})
+        pattern_b = patterns.get(neighbor["frame_b"], {})
+        sequence_match = bool(
+            pattern_a.get("possible_sequence")
+            and pattern_a.get("possible_sequence")
+            == pattern_b.get("possible_sequence")
+        )
+        exact_duplicate = bool(
+            sequence_match
+            and member_a
+            and member_b
+            and member_a.sha256
+            and member_b.sha256
+            and member_a.sha256 == member_b.sha256
+        )
+        pair_rows.append(
+            {
+                "filename_a": member_a.filename if member_a else "",
+                "split_a": pattern_a.get("split", neighbor["split_a"]),
+                "possible_sequence_a": pattern_a.get("possible_sequence", ""),
+                "possible_frame_index_a": pattern_a.get("possible_frame_index", ""),
+                "filename_b": member_b.filename if member_b else "",
+                "split_b": pattern_b.get("split", neighbor["split_b"]),
+                "possible_sequence_b": pattern_b.get("possible_sequence", ""),
+                "possible_frame_index_b": pattern_b.get("possible_frame_index", ""),
+                "delta_frame_index": neighbor["delta_frame_index"],
+                "sha256_a": member_a.sha256 if member_a else "",
+                "sha256_b": member_b.sha256 if member_b else "",
+                "exact_content_duplicate": exact_duplicate,
+                "size_bytes_a": member_a.uncompressed_size if member_a else "",
+                "size_bytes_b": member_b.uncompressed_size if member_b else "",
+                "inference_confidence_a": pattern_a.get("inference_confidence", "unknown"),
+                "inference_confidence_b": pattern_b.get("inference_confidence", "unknown"),
+                "inference_confidence": (
+                    pattern_a.get("inference_confidence", "unknown")
+                    if pattern_a.get("inference_confidence")
+                    == pattern_b.get("inference_confidence")
+                    else "mixed"
+                ),
+                "sequence_match": sequence_match,
+                "member_path_a": neighbor["frame_a"],
+                "member_path_b": neighbor["frame_b"],
+            }
+        )
+
+    by_hash: dict[str, list[ArchiveMember]] = defaultdict(list)
+    for member in image_members:
+        if member.sha256:
+            by_hash[member.sha256].append(member)
+    duplicate_rows: list[dict] = []
+    for sha256, hash_members in sorted(by_hash.items()):
+        splits = {_split_for_path(member.member_path) for member in hash_members}
+        if len(splits) <= 1:
+            continue
+        for member in hash_members:
+            duplicate_rows.append(
+                {
+                    "sha256": sha256,
+                    "filename": member.filename,
+                    "split": _split_for_path(member.member_path),
+                    "member_path": member.member_path,
+                }
+            )
+    split_hashes = {
+        split: {
+            sha256
+            for sha256, hash_members in by_hash.items()
+            if any(_split_for_path(member.member_path) == split for member in hash_members)
+        }
+        for split in ("train", "val", "test")
+    }
+    within_split = sum(
+        any(
+            sum(_split_for_path(member.member_path) == split for member in hash_members)
+            > 1
+            for split in ("train", "val", "test")
+        )
+        for hash_members in by_hash.values()
+    )
+    summary = {
+        "same_split_duplicate_hashes": within_split,
+        "train_val_hashes": len(split_hashes["train"] & split_hashes["val"]),
+        "train_test_hashes": len(split_hashes["train"] & split_hashes["test"]),
+        "val_test_hashes": len(split_hashes["val"] & split_hashes["test"]),
+        "cross_split_duplicate_hashes": len(
+            [hash_members for hash_members in by_hash.values() if len({_split_for_path(member.member_path) for member in hash_members}) > 1]
+        ),
+    }
+    return pair_rows, duplicate_rows, summary
+
+
 def compare_archive_members(
     archive_members: dict[str, list[ArchiveMember]],
 ) -> tuple[list[dict], list[dict]]:
@@ -525,6 +634,9 @@ def run_inventory(
         if member.archive_name.casefold() == "imagenes.zip"
     ]
     neighbors = temporal_neighbors(image_split_members)
+    cross_split_pairs, exact_duplicate_rows, duplicate_summary = (
+        cross_split_exact_duplicate_analysis(members, neighbors)
+    )
     overlap, relationships = compare_archive_members(dict(members_by_archive))
     archive_rows = [asdict(inspection) for inspection in inspections.values()]
     extension_rows = [
@@ -622,6 +734,18 @@ def run_inventory(
             "possible_sequence",
         ],
     )
+    _write_csv(
+        output / "cross_split_temporal_pair_analysis.csv",
+        cross_split_pairs,
+        list(cross_split_pairs[0].keys())
+        if cross_split_pairs
+        else ["filename_a", "filename_b"],
+    )
+    _write_csv(
+        output / "cross_split_exact_duplicates.csv",
+        exact_duplicate_rows,
+        ["sha256", "filename", "split", "member_path"],
+    )
     summary = {
         "root_description": "external FLIR_DATA_ROOT; absolute path intentionally omitted",
         "file_count": len(files),
@@ -632,6 +756,7 @@ def run_inventory(
         "label_count": sum(member.file_type == "label" for member in members),
         "matching_rows": len(matching),
         "potential_temporal_neighbor_count": len(neighbors),
+        **duplicate_summary,
         "hash_members": hash_members,
         "read_only": True,
     }
