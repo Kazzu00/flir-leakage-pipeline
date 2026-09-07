@@ -26,8 +26,9 @@ reduction, clustering, splitting, detection, and evaluation conceptually separat
 Configuration lives in `configs/`; data manifests and samples live in `data/`;
 generated outputs belong in `artifacts/` and `reports/`.
 
-This iteration is scaffolding only. It does not inspect, download, extract, or
-process a dataset, and it does not train or run inference for any model.
+The initial scaffolding is now extended with a read-only dataset discovery phase.
+It does not extract archives, modify images or labels, download models, train, or
+run inference.
 
 ## Setup
 
@@ -44,6 +45,34 @@ uv run flir-pipeline --help
 Set `FLIR_DATA_ROOT` in a local, ignored `.env` file when the external dataset is
 available. Use repository-relative paths in versioned configuration; never commit
 absolute machine paths.
+
+## Dataset discovery
+
+Real archives live outside Git and are treated as read-only. The inventory uses
+Python `zipfile` and streams archive members directly; it never extracts, moves,
+renames, recompresses, or writes into `FLIR_DATA_ROOT`. The canonical dataset has
+not been defined yet.
+
+Run the audit with an explicit root or with `FLIR_DATA_ROOT` in the environment or
+local `.env` file:
+
+```powershell
+uv run flir-pipeline data inventory `
+	--root "C:/path/to/flir-data" `
+	--output reports/data_inventory `
+	--inspect-archives `
+	--hash-members
+
+uv run flir-pipeline data archive-tree "C:/path/to/flir-data/Imagenes.zip"
+uv run flir-pipeline data compare-archives --root "C:/path/to/flir-data"
+```
+
+Reports derived from real data are ignored by Git under
+`reports/data_inventory/` and must be reviewed before publication. The audit
+records archive SHA256 values, optional streamed member hashes, structural
+counts, image-label basename matches, exploratory filename/frame features,
+possible cross-split temporal neighbors, and evidence-qualified archive
+relationships. It does not establish leakage or choose a canonical dataset.
 
 ## Data and public repository policy
 

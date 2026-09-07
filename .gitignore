@@ -27,6 +27,7 @@ mlruns/
 reports/figures/*
 reports/tables/*
 reports/experiment_logs/*
+reports/data_inventory/
 !reports/figures/.gitkeep
 !reports/tables/.gitkeep
 !reports/experiment_logs/.gitkeep

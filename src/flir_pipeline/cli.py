@@ -1,18 +1,99 @@
 """Command-line entry point for the research pipeline."""
 
+import os
+from pathlib import Path
+
 import typer
 
 app = typer.Typer(help="Reproducible FLIR leakage research pipeline.")
+data_app = typer.Typer(help="Read-only dataset discovery and audit commands.")
+app.add_typer(data_app, name="data")
 
 
 def _placeholder(name: str) -> None:
     typer.echo(f"{name} is reserved for a future pipeline stage.")
 
 
-@app.command()
-def data() -> None:
-    """Data ingestion and audit commands."""
-    _placeholder("data")
+def _default_root() -> Path | None:
+    value = os.getenv("FLIR_DATA_ROOT", "").strip()
+    if not value:
+        env_path = Path(".env")
+        if env_path.is_file():
+            for line in env_path.read_text(encoding="utf-8").splitlines():
+                if line.startswith("FLIR_DATA_ROOT="):
+                    value = line.partition("=")[2].strip().strip('"\'')
+                    break
+    return Path(value) if value else None
+
+
+@data_app.command("inventory")
+def inventory(
+    root: Path | None = typer.Option(None, help="External FLIR_DATA_ROOT."),
+    output: Path = typer.Option(
+        Path("reports/data_inventory"), help="Report directory."
+    ),
+    inspect_archives: bool = typer.Option(
+        True, help="Inspect ZIP members without extraction."
+    ),
+    hash_members: bool = typer.Option(
+        False, help="Hash image and label members by streaming."
+    ),
+) -> None:
+    """Inventory files and inspect ZIP archives without modifying the data root."""
+    resolved_root = root or _default_root()
+    if resolved_root is None:
+        raise typer.BadParameter(
+            "Provide --root or set FLIR_DATA_ROOT.", param_hint="--root"
+        )
+    if not resolved_root.is_dir():
+        raise typer.BadParameter(f"Data root does not exist: {resolved_root}")
+    from flir_pipeline.data.inventory import run_inventory
+
+    summary = run_inventory(resolved_root, output, inspect_archives, hash_members)
+    typer.echo(
+        f"Inventory written to {output}: {summary['file_count']} files, {summary['archive_count']} archives."
+    )
+
+
+@data_app.command("archive-tree")
+def archive_tree(archive_path: Path) -> None:
+    """Print a normalized member tree for one ZIP without extracting it."""
+    if not archive_path.is_file():
+        raise typer.BadParameter(f"Archive does not exist: {archive_path}")
+    from flir_pipeline.data.inventory import archive_tree as build_archive_tree
+
+    for member in build_archive_tree(archive_path):
+        typer.echo(
+            f"{member['member_path']} [{member['file_type']}] {member['uncompressed_size']} bytes"
+        )
+
+
+@data_app.command("compare-archives")
+def compare_archives(
+    root: Path | None = typer.Option(None, help="External FLIR_DATA_ROOT."),
+    output: Path = typer.Option(
+        Path("reports/data_inventory"), help="Report directory."
+    ),
+    hash_members: bool = typer.Option(
+        True, help="Hash comparable image and label members."
+    ),
+) -> None:
+    """Compare archive content and write lineage reports without extraction."""
+    resolved_root = root or _default_root()
+    if resolved_root is None:
+        raise typer.BadParameter(
+            "Provide --root or set FLIR_DATA_ROOT.", param_hint="--root"
+        )
+    if not resolved_root.is_dir():
+        raise typer.BadParameter(f"Data root does not exist: {resolved_root}")
+    from flir_pipeline.data.inventory import run_inventory
+
+    summary = run_inventory(
+        resolved_root, output, inspect_archives=True, hash_members=hash_members
+    )
+    typer.echo(
+        f"Archive comparison written to {output}; hashed_members={summary['hash_members']}."
+    )
 
 
 @app.command()
