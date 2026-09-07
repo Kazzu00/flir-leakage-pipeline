@@ -23,7 +23,12 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-vision = ["open-clip-torch>=2.24", "torch>=2.2", "transformers>=4.40"]
+vision = [
+    "accelerate>=0.30",
+    "torch>=2.2",
+    "torchvision>=0.17",
+    "transformers>=4.40",
+]
 clustering = ["hdbscan>=0.8.33", "pacmap>=0.7.3", "umap-learn>=0.5.5"]
 yolo = ["ultralytics>=8.2"]
 tracking = ["opencv-python-headless>=4.9"]

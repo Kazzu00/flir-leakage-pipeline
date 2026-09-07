@@ -1,0 +1,9 @@
+extractor: dinov2
+model_id: facebook/dinov2-small
+pooling_strategy: cls_token
+device: cpu
+batch_size: 8
+dtype: float32
+mixed_precision: false
+store_raw: true
+store_l2_normalized: true

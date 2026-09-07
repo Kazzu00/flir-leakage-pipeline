@@ -21,6 +21,7 @@ data/raw/
 data/external/
 artifacts/
 !artifacts/.gitkeep
+artifacts/features/
 mlruns/
 
 # Generated reports and local tooling output
@@ -29,6 +30,7 @@ reports/tables/*
 reports/experiment_logs/*
 reports/data_inventory/
 reports/data_manifest*/
+reports/feature_engineering/
 data/manifests/*.parquet
 data/manifests/*.csv
 data/manifests/*.json

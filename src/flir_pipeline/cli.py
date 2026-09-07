@@ -8,7 +8,9 @@ import typer
 
 app = typer.Typer(help="Reproducible FLIR leakage research pipeline.")
 data_app = typer.Typer(help="Read-only dataset discovery and audit commands.")
+features_app = typer.Typer(help="Content-level visual feature extraction commands.")
 app.add_typer(data_app, name="data")
+app.add_typer(features_app, name="features")
 
 
 def _placeholder(name: str) -> None:
@@ -167,10 +169,126 @@ def manifest_summary_command(manifest: Path) -> None:
     typer.echo(json.dumps(manifest_summary(manifest), indent=2))
 
 
-@app.command()
-def features() -> None:
-    """Visual representation commands."""
-    _placeholder("features")
+def _load_yaml_config(path: Path | None) -> dict:
+    if path is None:
+        return {}
+    import yaml
+
+    data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    if not isinstance(data, dict):
+        raise typer.BadParameter("Feature config must contain a YAML mapping.")
+    return data
+
+
+def _feature_extractor(name: str, config: dict, device: str | None, local_files_only: bool):
+    from flir_pipeline.features.base import DeterministicFakeExtractor
+
+    options = dict(config)
+    options.pop("extractor", None)
+    pooling_strategy = options.pop("pooling_strategy", None)
+    options.pop("feature_type", None)
+    options.pop("dtype", None)
+    options.pop("store_raw", None)
+    options.pop("store_l2_normalized", None)
+    if name == "dinov2" and pooling_strategy not in {None, "cls_token"}:
+        raise typer.BadParameter("DINOv2 currently supports pooling_strategy=cls_token")
+    if device is not None:
+        options["device"] = device
+    options["local_files_only"] = local_files_only
+    if name == "fake":
+        return DeterministicFakeExtractor(options.get("embedding_dimension", 8))
+    if name == "dinov2":
+        from flir_pipeline.features.dinov2 import DinoV2Extractor
+
+        return DinoV2Extractor(**options)
+    if name == "clip":
+        from flir_pipeline.features.clip import CLIPExtractor
+
+        return CLIPExtractor(**options)
+    raise typer.BadParameter("extractor must be fake, dinov2, or clip")
+
+
+@features_app.command("extract")
+def features_extract(
+    manifest: Path = typer.Option(..., help="Candidate manifest Parquet."),
+    extractor: str = typer.Option("dinov2", help="fake, dinov2, or clip."),
+    config: Path | None = typer.Option(None, help="YAML extractor configuration."),
+    images_archive: Path | None = typer.Option(None, help="Imagenes.zip path."),
+    output_root: Path = typer.Option(Path("artifacts/features"), help="Artifact root."),
+    device: str | None = typer.Option(None, help="cpu, cuda, or auto."),
+    batch_size: int | None = typer.Option(None, help="Override batch size."),
+    limit_content: int | None = typer.Option(None, help="Maximum unique contents."),
+    seed: int = typer.Option(0, help="Deterministic content sample seed."),
+    local_files_only: bool = typer.Option(False, help="Do not access model downloads."),
+) -> None:
+    """Extract raw and L2 embeddings once per unique content_id."""
+    root = _default_root()
+    resolved_archive = images_archive or (root / "Imagenes.zip" if root else None)
+    if resolved_archive is None or not resolved_archive.is_file():
+        raise typer.BadParameter("Provide --images-archive or set FLIR_DATA_ROOT.")
+    settings = _load_yaml_config(config)
+    selected_name = settings.pop("extractor", extractor)
+    selected_extractor = _feature_extractor(
+        selected_name, settings, device, local_files_only
+    )
+    if batch_size is None:
+        batch_size = int(settings.get("batch_size", 8))
+    from flir_pipeline.features.storage import extract_to_store
+
+    feature_dir = extract_to_store(
+        manifest,
+        resolved_archive,
+        selected_extractor,
+        output_root=output_root,
+        batch_size=batch_size,
+        limit_content=limit_content,
+        seed=seed,
+    )
+    typer.echo(f"Features written to {feature_dir}")
+
+
+@features_app.command("diagnostics")
+def features_diagnostics(
+    manifest: Path = typer.Option(..., help="Candidate manifest Parquet."),
+    images_archive: Path | None = typer.Option(None, help="Imagenes.zip path."),
+    output_root: Path = typer.Option(
+        Path("artifacts/features/diagnostics"), help="Diagnostics artifact root."
+    ),
+    limit_content: int | None = typer.Option(None, help="Maximum unique contents."),
+    seed: int = typer.Option(0, help="Deterministic content sample seed."),
+) -> None:
+    """Compute independent content-level image quality diagnostics."""
+    root = _default_root()
+    resolved_archive = images_archive or (root / "Imagenes.zip" if root else None)
+    if resolved_archive is None or not resolved_archive.is_file():
+        raise typer.BadParameter("Provide --images-archive or set FLIR_DATA_ROOT.")
+    from flir_pipeline.features.diagnostics import run_diagnostics
+
+    output = run_diagnostics(
+        manifest, resolved_archive, output_root, limit_content=limit_content, seed=seed
+    )
+    typer.echo(f"Diagnostics written to {output}")
+
+
+@features_app.command("summary")
+def features_summary(feature_directory: Path) -> None:
+    """Print metadata and quality for a feature directory."""
+    if not feature_directory.is_dir():
+        raise typer.BadParameter(f"Feature directory does not exist: {feature_directory}")
+    from flir_pipeline.features.storage import summarize_feature_directory
+
+    typer.echo(json.dumps(summarize_feature_directory(feature_directory), indent=2))
+
+
+@features_app.command("verify")
+def features_verify(feature_directory: Path) -> None:
+    """Verify arrays and indexes in a feature directory."""
+    if not feature_directory.is_dir():
+        raise typer.BadParameter(f"Feature directory does not exist: {feature_directory}")
+    from flir_pipeline.features.storage import verify_feature_directory
+
+    result = verify_feature_directory(feature_directory)
+    typer.echo(json.dumps(result, indent=2))
 
 
 @app.command()

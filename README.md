@@ -97,6 +97,21 @@ uv run flir-pipeline data manifest-summary `
 	data/manifests/flir_canonical_candidate_v1.parquet
 ```
 
+## Feature representation
+
+Feature extraction is content-level: exact duplicate records share one computed
+embedding while the record index preserves every historical frame occurrence.
+The storage layer keeps raw and L2-normalized arrays separately, uses deterministic
+feature-space IDs, and supports CPU/CUDA selection, content limits, atomic
+checkpointing, and verification. DINOv2 uses the configured CLS token and CLIP
+uses only its image encoder. Neither extractor uses labels or `original_split`.
+
+The optional `vision` dependency group is intentionally excluded from base CI.
+Use `features diagnostics` or the offline `fake` extractor for local checks; the
+model smoke commands are documented in
+`reports/feature_engineering/feature_engineering_findings.md` and require an
+explicit `--extra vision` invocation.
+
 ## Data and public repository policy
 
 The repository is intended to be public, but real FLIR images, videos, datasets,

@@ -1,0 +1,9 @@
+extractor: clip
+model_id: openai/clip-vit-large-patch14
+feature_type: image_embedding
+device: auto
+batch_size: 8
+dtype: float32
+mixed_precision: false
+store_raw: true
+store_l2_normalized: true
