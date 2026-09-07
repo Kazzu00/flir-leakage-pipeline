@@ -78,6 +78,25 @@ relationships. The follow-up exact-duplicate check writes
 uses SHA256 before calling two images byte-identical. It does not establish
 leakage or choose a canonical dataset.
 
+The candidate manifest phase uses the 1,657 image occurrences from `Imagenes.zip`
+and their matched labels from `Etiquetas.zip`. It preserves historical
+`original_split`, separates occurrence `frame_id` from exact-byte `content_id`,
+validates YOLO labels, records orphan labels separately, and compares annotation
+consistency within duplicate image groups. Real Parquet manifests and reports
+remain ignored by Git.
+
+```powershell
+uv run flir-pipeline data build-manifest `
+	--images-archive "C:/path/to/Imagenes.zip" `
+	--labels-archive "C:/path/to/Etiquetas.zip"
+
+uv run flir-pipeline data validate-labels `
+	--labels-archive "C:/path/to/Etiquetas.zip"
+
+uv run flir-pipeline data manifest-summary `
+	data/manifests/flir_canonical_candidate_v1.parquet
+```
+
 ## Data and public repository policy
 
 The repository is intended to be public, but real FLIR images, videos, datasets,

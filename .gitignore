@@ -28,6 +28,10 @@ reports/figures/*
 reports/tables/*
 reports/experiment_logs/*
 reports/data_inventory/
+reports/data_manifest*/
+data/manifests/*.parquet
+data/manifests/*.csv
+data/manifests/*.json
 !reports/figures/.gitkeep
 !reports/tables/.gitkeep
 !reports/experiment_logs/.gitkeep
