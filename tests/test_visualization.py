@@ -8,6 +8,9 @@ import pandas as pd
 import pytest
 
 from flir_pipeline.features.visualization import (
+    _cross_split_duplicate_matrix,
+    _cross_split_overlap_values,
+    _laplacian_variance_figure,
     generate_feature_engineering_report,
     visualize_embedding_health,
 )
@@ -151,13 +154,37 @@ def test_visualize_embedding_health_handles_arbitrary_dimensions(tmp_path: Path)
         encoding="utf-8",
     )
 
-    result = visualize_embedding_health(feature_dir, tmp_path / "embeddings_report", label="smoke")
+    result = visualize_embedding_health(feature_dir, tmp_path / "embeddings_report", label="dinov2_smoke")
 
     assert result["label"] == "smoke"
     assert (tmp_path / "embeddings_report" / "figures" / "embedding_raw_norm_distribution_dinov2_smoke.png").exists()
     assert result["stats"]["dimension_std_min"] >= 0.0
     assert np.isfinite(result["stats"]["dimension_std_median"]).all()
     assert result["stats"]["l2_mean_near_one"]
+
+
+def test_cross_split_matrix_masks_diagonal(tmp_path: Path) -> None:
+    manifest = pd.concat(
+        [_manifest_df(), pd.DataFrame([{"content_id": "c1", "original_split": "val"}])],
+        ignore_index=True,
+    )
+    matrix = _cross_split_overlap_values(manifest)
+    np.testing.assert_array_equal(matrix, [[0, 1, 0], [1, 0, 0], [0, 0, 0]])
+    _cross_split_duplicate_matrix(manifest, tmp_path / "report")
+    assert (tmp_path / "report" / "figures" / "13_cross_split_duplicate_matrix.png").exists()
+
+
+def test_laplacian_figure_uses_log_transform(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    captured: list[np.ndarray] = []
+    original_hist = __import__("matplotlib.pyplot", fromlist=["hist"]).Axes.hist
+
+    def capture_hist(axis, values, *args, **kwargs):
+        captured.append(np.asarray(values))
+        return original_hist(axis, values, *args, **kwargs)
+
+    monkeypatch.setattr("matplotlib.axes.Axes.hist", capture_hist)
+    _laplacian_variance_figure(_diagnostics_df(), tmp_path / "report")
+    np.testing.assert_allclose(captured[0], np.log10(1 + np.array([100.0, 250.0])))
 
 
 def test_generate_feature_engineering_report_handles_empty_inputs(tmp_path: Path) -> None:

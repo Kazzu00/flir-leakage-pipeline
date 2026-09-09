@@ -118,6 +118,21 @@ model smoke commands are documented in
 `reports/feature_engineering/feature_engineering_findings.md` and require an
 explicit `--extra vision` invocation.
 
+## Feature-engineering progress review
+
+The academic review notebook is versioned without outputs at
+`notebooks/feature_engineering_jp_review.ipynb`. Local execution regenerates the
+descriptive figures, executes the notebook, and exports an HTML copy under the
+ignored `reports/feature_engineering/jp_review/` directory:
+
+```powershell
+uv run --extra dev python scripts/build_feature_engineering_review.py
+```
+
+The review separates full-dataset descriptive results from DINOv2/CLIP smoke
+validation. Similarity, dimensionality reduction, clustering, new splits, and
+detector training remain future work and are not executed by this command.
+
 ## Data and public repository policy
 
 The repository is intended to be public, but real FLIR images, videos, datasets,

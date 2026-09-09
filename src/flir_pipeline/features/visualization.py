@@ -175,15 +175,23 @@ def _dataset_overview_figure(manifest: pd.DataFrame, output_dir: Path) -> None:
             )
         ) if "classes_present" in manifest.columns else 0,
     }
-    fig, ax = plt.subplots(figsize=(8, 5))
-    labels = ["records", "unique content", "duplicate groups", "total objects", "classes"]
-    values = [summary["total_records"], summary["unique_content_ids"], summary["duplicate_groups"], summary["total_objects"], summary["classes"]]
-    ax.bar(labels, values, color=["#4C72B0", "#55A868", "#C44E52", "#8172B3", "#CCB974"])
-    ax.set_ylabel("Count")
-    ax.set_title("Dataset overview")
-    ax.grid(axis="y", alpha=0.2)
-    for tick in ax.get_xticklabels():
-        tick.set_rotation(20)
+    cards = [
+        (summary["total_records"], "Historical records"),
+        (summary["unique_content_ids"], "Unique contents"),
+        (summary["duplicate_groups"], "Exact duplicate groups"),
+        (summary["total_objects"], "Annotated objects"),
+        (summary["classes"], "Classes"),
+    ]
+    fig, axes = plt.subplots(1, len(cards), figsize=(12, 2.8))
+    fig.suptitle("Dataset overview", fontsize=14, y=1.04)
+    for axis, (value, label) in zip(axes, cards, strict=True):
+        axis.text(0.5, 0.58, f"{value:,}", ha="center", va="center", fontsize=22, fontweight="bold")
+        axis.text(0.5, 0.25, label, ha="center", va="center", fontsize=9, wrap=True)
+        axis.set_xticks([])
+        axis.set_yticks([])
+        for spine in axis.spines.values():
+            spine.set_color("#B8C2CC")
+            spine.set_linewidth(0.8)
     _savefig(output_dir / "figures" / "01_dataset_overview.png", fig)
 
 
@@ -200,6 +208,8 @@ def _original_split_distribution_figure(manifest: pd.DataFrame, output_dir: Path
     ax.set_xlabel("Original split")
     ax.set_ylabel("Records")
     ax.set_title("Original split distribution (descriptive metadata only)")
+    for index, value in enumerate(counts.values):
+        ax.text(index, value, f"{value:,}", ha="center", va="bottom")
     ax.text(
         0.5,
         -0.22,
@@ -320,8 +330,8 @@ def _pixel_statistics_figure(diagnostics: pd.DataFrame, output_dir: Path) -> Non
     if not x.empty and not y.empty:
         pairs = pd.concat([x.rename("pixel_mean"), y.rename("pixel_std")], axis=1).dropna()
         ax.scatter(pairs["pixel_mean"], pairs["pixel_std"], s=12, alpha=0.7)
-        ax.set_xlabel("pixel_mean")
-        ax.set_ylabel("pixel_std")
+        ax.set_xlabel("Mean normalized pixel intensity")
+        ax.set_ylabel("Pixel intensity standard deviation")
         ax.set_title("Pixel statistics")
         ax.grid(alpha=0.2)
     else:
@@ -352,10 +362,11 @@ def _laplacian_variance_figure(diagnostics: pd.DataFrame, output_dir: Path) -> N
         ax.text(0.5, 0.5, "No Laplacian variance data available", ha="center", va="center")
         ax.set_axis_off()
     else:
-        ax.hist(values, bins=30, color="#C44E52")
-        ax.set_xlabel("Laplacian variance")
+        transformed = np.log10(1.0 + values)
+        ax.hist(transformed, bins=30, color="#C44E52")
+        ax.set_xlabel("log10(1 + Laplacian variance)")
         ax.set_ylabel("Count")
-        ax.set_title("Laplacian variance distribution")
+        ax.set_title("Transformed Laplacian variance distribution")
         ax.grid(axis="y", alpha=0.2)
     _savefig(output_dir / "figures" / "11_laplacian_variance.png", fig)
 
@@ -367,8 +378,8 @@ def _unique_vs_records_figure(manifest: pd.DataFrame, output_dir: Path) -> None:
     fig, ax = plt.subplots(figsize=(6, 4))
     ax.bar(["historical records", "unique content"], [total_records, unique_content], color=["#4C72B0", "#55A868"])
     ax.set_ylabel("Count")
-    ax.set_title("Historical records vs unique content")
-    ax.text(0.5, 0.92, f"Difference: {diff} ({diff / max(total_records, 1) * 100:.1f}%)", transform=ax.transAxes, ha="center")
+    ax.set_title("Historical records vs. unique visual contents")
+    ax.text(0.5, 0.97, f"Difference: {diff} ({diff / max(total_records, 1) * 100:.1f}%)", transform=ax.transAxes, ha="center", va="top")
     _savefig(output_dir / "figures" / "12_unique_vs_records.png", fig)
 
 
@@ -380,23 +391,47 @@ def _cross_split_duplicate_matrix(manifest: pd.DataFrame, output_dir: Path) -> N
         _savefig(output_dir / "figures" / "13_cross_split_duplicate_matrix.png", fig)
         return
     splits = ["train", "val", "test"]
-    matrix = np.zeros((3, 3), dtype=int)
+    matrix = _cross_split_overlap_values(manifest)
     content_by_split = {split: set(manifest.loc[manifest["original_split"] == split, "content_id"]) for split in splits}
-    for i, left in enumerate(splits):
-        for j, right in enumerate(splits):
-            if i == j:
-                matrix[i, j] = len(content_by_split[left])
-            else:
-                matrix[i, j] = len(content_by_split[left] & content_by_split[right])
     fig, ax = plt.subplots(figsize=(5, 5))
-    image = ax.imshow(matrix, cmap="Blues")
+    display_matrix = np.ma.masked_where(np.eye(3, dtype=bool), matrix)
+    non_diagonal = matrix[~np.eye(3, dtype=bool)]
+    image = ax.imshow(display_matrix, cmap="Blues", vmin=0, vmax=max(1, int(non_diagonal.max(initial=0))))
     ax.set_xticks(range(3), labels=splits)
     ax.set_yticks(range(3), labels=splits)
-    ax.set_title("Exact duplicate content IDs by split")
+    ax.set_title("Exact content overlap across historical splits")
     for idx, value in np.ndenumerate(matrix):
-        ax.text(idx[1], idx[0], str(value), ha="center", va="center", color="black")
+        if idx[0] != idx[1]:
+            ax.text(idx[1], idx[0], str(value), ha="center", va="center", color="black")
+    val_total = len(content_by_split["val"])
+    test_total = len(content_by_split["test"])
+    val_train_percent = matrix[0, 1] / max(1, val_total) * 100
+    test_train_percent = matrix[0, 2] / max(1, test_total) * 100
+    ax.text(
+        0.5,
+        -0.16,
+        f"Validation/train: {val_train_percent:.2f}% | Test/train: {test_train_percent:.2f}%",
+        transform=ax.transAxes,
+        ha="center",
+        va="top",
+        fontsize=8,
+    )
     fig.colorbar(image, ax=ax, fraction=0.046, pad=0.04)
     _savefig(output_dir / "figures" / "13_cross_split_duplicate_matrix.png", fig)
+
+
+def _cross_split_overlap_values(manifest: pd.DataFrame) -> np.ndarray:
+    splits = ["train", "val", "test"]
+    matrix = np.zeros((3, 3), dtype=int)
+    content_by_split = {
+        split: set(manifest.loc[manifest["original_split"] == split, "content_id"])
+        for split in splits
+    }
+    for i, left in enumerate(splits):
+        for j, right in enumerate(splits):
+            if i != j:
+                matrix[i, j] = len(content_by_split[left] & content_by_split[right])
+    return matrix
 
 
 def _duplicate_group_size_distribution(manifest: pd.DataFrame, output_dir: Path) -> None:
@@ -451,6 +486,11 @@ def visualize_embedding_health(feature_dir: Path, output_dir: Path, label: str =
         raise ValueError(f"Feature directory is missing embedding arrays: {feature_dir}")
     metadata = json.loads((feature_dir / "metadata.json").read_text(encoding="utf-8"))
     extractor = metadata.get("extractor", feature_dir.parent.name)
+    stage = str(label)
+    prefix = f"{extractor}_"
+    while stage.startswith(prefix):
+        stage = stage[len(prefix):]
+    stage = stage or "feature"
     raw = np.load(feature_dir / "embeddings_raw.npy", mmap_mode="r")
     normalized = np.load(feature_dir / "embeddings_l2.npy", mmap_mode="r")
     raw_norms = np.linalg.norm(raw, axis=1)
@@ -462,34 +502,34 @@ def visualize_embedding_health(feature_dir: Path, output_dir: Path, label: str =
     ax.hist(raw_norms, bins=_safe_hist_bins(raw_norms), color="#4C72B0")
     ax.set_xlabel("L2 norm of raw embedding")
     ax.set_ylabel("Count")
-    ax.set_title(f"Embedding raw norm distribution ({extractor}, {label})")
-    _savefig(output_dir / "figures" / f"embedding_raw_norm_distribution_{extractor}_{label}.png", fig)
+    ax.set_title(f"Embedding raw norm distribution ({extractor}, {stage})")
+    _savefig(output_dir / "figures" / f"embedding_raw_norm_distribution_{extractor}_{stage}.png", fig)
 
     fig, ax = plt.subplots(figsize=(7, 5))
     ax.hist(l2_norms, bins=_safe_hist_bins(l2_norms), color="#55A868")
     ax.set_xlabel("L2 norm of normalized embedding")
     ax.set_ylabel("Count")
-    ax.set_title(f"Embedding L2 norm distribution ({extractor}, {label})")
-    _savefig(output_dir / "figures" / f"embedding_l2_norm_distribution_{extractor}_{label}.png", fig)
+    ax.set_title(f"Embedding L2 norm distribution ({extractor}, {stage})")
+    _savefig(output_dir / "figures" / f"embedding_l2_norm_distribution_{extractor}_{stage}.png", fig)
 
     fig, ax = plt.subplots(figsize=(7, 5))
     ax.hist(dim_std, bins=_safe_hist_bins(dim_std), color="#8172B3")
     ax.set_xlabel("Dimension std")
     ax.set_ylabel("Dimension count")
-    ax.set_title(f"Embedding dimension std ({extractor}, {label})")
-    _savefig(output_dir / "figures" / f"embedding_dimension_std_{extractor}_{label}.png", fig)
+    ax.set_title(f"Embedding dimension std ({extractor}, {stage})")
+    _savefig(output_dir / "figures" / f"embedding_dimension_std_{extractor}_{stage}.png", fig)
 
     fig, ax = plt.subplots(figsize=(7, 5))
     ax.hist(dim_mean, bins=_safe_hist_bins(dim_mean), color="#C44E52")
     ax.set_xlabel("Dimension mean")
     ax.set_ylabel("Dimension count")
-    ax.set_title(f"Embedding dimension mean ({extractor}, {label})")
-    _savefig(output_dir / "figures" / f"embedding_dimension_mean_{extractor}_{label}.png", fig)
+    ax.set_title(f"Embedding dimension mean ({extractor}, {stage})")
+    _savefig(output_dir / "figures" / f"embedding_dimension_mean_{extractor}_{stage}.png", fig)
 
     stats = _embedding_health_summary(feature_dir)
-    stats["label"] = label
+    stats["label"] = stage
     stats["feature_directory"] = _relative_path(feature_dir)
-    return {"label": label, "stats": stats, "extractor": extractor}
+    return {"label": stage, "stats": stats, "extractor": extractor}
 
 
 def _write_csv(path: Path, dataframe: pd.DataFrame) -> None:

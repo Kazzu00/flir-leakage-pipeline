@@ -31,6 +31,7 @@ reports/experiment_logs/*
 reports/data_inventory/
 reports/data_manifest*/
 reports/feature_engineering/
+reports/feature_engineering/jp_review/
 data/manifests/*.parquet
 data/manifests/*.csv
 data/manifests/*.json
