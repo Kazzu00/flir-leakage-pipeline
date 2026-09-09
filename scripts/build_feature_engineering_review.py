@@ -6,10 +6,12 @@ import argparse
 from pathlib import Path
 
 import nbformat
+import pandas as pd
 from check_notebook_source import check_notebook_source
 from nbclient import NotebookClient
 from nbconvert import HTMLExporter
 
+from flir_pipeline.cli import _default_root
 from flir_pipeline.features.visualization import (
     discover_feature_directories,
     generate_feature_engineering_report,
@@ -31,6 +33,7 @@ REQUIRED_FIGURES = [
     "11_laplacian_variance.png",
     "12_unique_vs_records.png",
     "13_cross_split_duplicate_matrix.png",
+    "15_class_instances.png",
 ]
 
 
@@ -49,7 +52,7 @@ def _build_notebook() -> None:
     client = NotebookClient(notebook, timeout=600, kernel_name="python3", resources={"metadata": {"path": str(ROOT)}})
     client.execute()
     nbformat.write(notebook, EXECUTED_NOTEBOOK)
-    exporter = HTMLExporter(template_name="lab")
+    exporter = HTMLExporter(template_name="lab", exclude_input=True, exclude_input_prompt=True, exclude_output_prompt=True)
     body, _ = exporter.from_notebook_node(notebook)
     HTML_REPORT.write_text(body, encoding="utf-8")
 
@@ -61,18 +64,33 @@ def main() -> None:
     parser.add_argument("--diagnostics", type=Path)
     parser.add_argument("--dinov2", type=Path, help="Existing DINOv2 feature directory")
     parser.add_argument("--clip", type=Path, help="Existing CLIP feature directory")
+    parser.add_argument("--full", action="store_true", help="Select verified full artifacts for this manifest and require both encoders")
+    parser.add_argument("--labels-archive", type=Path, help="Read-only source labels ZIP; defaults to FLIR_DATA_ROOT/Etiquetas.zip")
+    parser.add_argument("--max-frame-gap", type=int, default=1, help="Transparent near-neighbor rule in inferred frame-index units")
     args = parser.parse_args()
     check_notebook_source(SOURCE_NOTEBOOK)
     manifest = args.manifest or _find_single("data/manifests/*.parquet")
     diagnostics = args.diagnostics or _find_single("artifacts/features/diagnostics/*/*.parquet")
+    data_root = _default_root()
+    labels_archive = args.labels_archive or (data_root / "Etiquetas.zip" if data_root else None)
+    if labels_archive is None or not labels_archive.is_file():
+        raise FileNotFoundError("Provide --labels-archive or FLIR_DATA_ROOT to audit actual box instances")
     selected = {name: path for name in ("dinov2", "clip") if (path := getattr(args, name)) is not None}
     if not selected:
-        selected = discover_feature_directories(ROOT / "artifacts" / "features")
+        selected = discover_feature_directories(ROOT / "artifacts" / "features", full_manifest=pd.read_parquet(manifest) if args.full else None)
+    if args.full:
+        from flir_pipeline.features.storage import verify_features_against_manifest
+
+        canonical = pd.read_parquet(manifest)
+        if set(selected) != {"dinov2", "clip"} or not all(verify_features_against_manifest(path, canonical)["reproducible_full_dataset_valid"] for path in selected.values()):
+            raise ValueError("--full requires verified complete DINOv2 and CLIP artifacts")
     generate_feature_engineering_report(
         manifest,
         diagnostics,
         REPORT_DIR,
         feature_dirs=selected,
+        labels_archive=labels_archive,
+        max_frame_gap=args.max_frame_gap,
     )
     missing = [name for name in REQUIRED_FIGURES if not (REPORT_DIR / "figures" / name).is_file()]
     if missing:

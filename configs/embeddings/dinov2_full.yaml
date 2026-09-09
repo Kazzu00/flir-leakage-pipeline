@@ -1,0 +1,13 @@
+# Week-6 representation: full content-level DINOv2-small, independently of CLIP.
+# Same config for a validation run with --limit-content 16 and a separate root.
+extractor: dinov2
+model_id: facebook/dinov2-small
+model_revision: ed25f3a31f01632728cabb09d1542f84ab7b0056
+require_resolved_revision: true
+pooling_strategy: cls_token
+device: cpu
+batch_size: 8
+dtype: float32
+mixed_precision: false
+store_raw: true
+store_l2_normalized: true

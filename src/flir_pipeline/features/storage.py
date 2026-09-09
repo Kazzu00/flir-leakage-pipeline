@@ -6,6 +6,7 @@ import hashlib
 import json
 import os
 import platform
+import re
 import shutil
 import subprocess
 import zipfile
@@ -291,3 +292,41 @@ def summarize_feature_directory(feature_dir: Path) -> dict:
     metadata = json.loads((feature_dir / "metadata.json").read_text(encoding="utf-8"))
     quality = json.loads((feature_dir / "feature_quality.json").read_text(encoding="utf-8"))
     return {"metadata": metadata, "quality": quality}
+
+
+def verify_features_against_manifest(feature_dir: Path, manifest: pd.DataFrame) -> dict:
+    """Check complete coverage of the supplied canonical dataset and model provenance.
+
+    Ordinary verification allows -1 rows for smoke samples. Closure additionally
+    requires every content exactly once, all historical occurrences with their
+    original content mapping, matching metadata counts/identity and a resolved
+    model commit. Equal numerical vectors are allowed for different contents.
+    """
+    result = verify_feature_directory(feature_dir)
+    metadata = json.loads((feature_dir / "metadata.json").read_text(encoding="utf-8"))
+    content = pd.read_parquet(feature_dir / "content_index.parquet")
+    records = pd.read_parquet(feature_dir / "record_index.parquet")
+    expected = manifest.set_index("frame_id")["content_id"].sort_index()
+    actual = records.set_index("frame_id")["content_id"].sort_index()
+    coverage = (
+        manifest["frame_id"].is_unique
+        and expected.equals(actual)
+        and set(content["content_id"]) == set(manifest["content_id"])
+        and records["embedding_row"].ge(0).all()
+    )
+    counts_valid = (
+        metadata.get("dataset_id") == dataset_id_from_manifest(manifest)
+        and metadata.get("total_records") == len(manifest)
+        and metadata.get("selected_content_ids") == result["content_embedding_count"]
+        and metadata.get("unique_content_ids") == manifest["content_id"].nunique()
+        and metadata.get("embedding_dimension") == result["embedding_dimension"]
+    )
+    revision = metadata.get("resolved_model_revision")
+    revision_valid = isinstance(revision, str) and re.fullmatch(r"[0-9a-f]{40}", revision) is not None and metadata.get("model_revision") == revision
+    result.update({
+        "record_count": len(records), "full_record_content_coverage": bool(coverage),
+        "metadata_matches_manifest": bool(counts_valid), "resolved_revision_valid": revision_valid,
+        "full_dataset_valid": bool(result["quality_valid"] and coverage and counts_valid),
+    })
+    result["reproducible_full_dataset_valid"] = result["full_dataset_valid"] and revision_valid
+    return result

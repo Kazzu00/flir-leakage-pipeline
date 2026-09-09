@@ -8,14 +8,19 @@ configuration boundaries; they do not imply implemented experiments.
 |---|---|---|---|
 | `dinov2_smoke.yaml` | Active infrastructure validation | `facebook/dinov2-small` | CPU / 8 starting value |
 | `clip_smoke.yaml` | Active infrastructure validation | `openai/clip-vit-base-patch32` | CPU / 8 starting value |
+| `dinov2_full.yaml` | Executed full closure, pinned HF revision | `facebook/dinov2-small` | CPU / 8 validated |
+| `clip_full.yaml` | Executed full closure, pinned HF revision | `openai/clip-vit-base-patch32` | CPU / 8 validated |
 | `dinov2_research.yaml` | Planned research candidate | `facebook/dinov2-base` | auto / 8 provisional |
 | `clip_research.yaml` | Planned research candidate | `openai/clip-vit-large-patch14` | auto / 8 provisional |
 
 Smoke files configure the encoder, not the sample limit: explicitly pass
 `--limit-content 16 --seed 0`. Omitting the limit requests all unique contents.
-Research files are not final validated hardware configurations. Decide the model
+Full files are the selected small/base model configurations for the week 6 closure:
+both completed 1459 unique contents after real N=16 validation using the same pinned
+revisions. Research files are larger, unexecuted candidates and do not supersede
+that completed choice. Research files are not final validated hardware configurations. Decide the model
 size, pin a full HF `model_revision`, and validate a small run on target hardware
-before full extraction. `require_resolved_revision` is true for research and
+before full extraction. `require_resolved_revision` is true for full/research and
 false for smoke; see [revision semantics](../docs/design_decisions.md).
 
 Raw and L2 float32 arrays are both required. Alternative storage flags/dtypes and

@@ -110,6 +110,10 @@ def test_adapter_pins_processor_to_loaded_model_and_preserves_representation(
     assert calls[1][2] == {"revision": sha, "local_files_only": True}
     assert metadata["resolved_model_revision"] == sha
     assert metadata["model_revision_source"] == "model.config._commit_hash"
+    assert metadata["library_versions"] == {"torch": "synthetic-version", "transformers": "synthetic-version"}
+    assert metadata["embedding_dimension"] == 3
+    assert metadata["raw_dtype"] == metadata["normalized_dtype"] == "float32"
+    assert metadata["preprocessing"]["processor_config"] == {"size": 224}
     result = extractor.encode_batch([extractor.preprocess(Image.new("L", (3, 3)))])
     np.testing.assert_array_equal(result, [[1, 2, 3]] if name == "dinov2" else [[4, 5, 6]])
     config = extractor.feature_space_config()

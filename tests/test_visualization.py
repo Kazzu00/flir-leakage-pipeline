@@ -139,8 +139,8 @@ def test_generate_feature_engineering_report_creates_outputs(tmp_path: Path) -> 
     assert "absolute" not in json.dumps(result["metadata"]).lower()
     values = pd.read_csv(output_dir / "tables" / "dataset_summary.csv").to_numpy(dtype=float)
     assert np.isfinite(values).all()
-    report = (output_dir / "feature_engineering_report.md").read_text()
-    assert "3 records but 2 unique contents" in report
+    report = (output_dir / "feature_engineering_report.md").read_text(encoding="utf-8")
+    assert "3 registros y 2 contenidos únicos" in report
     assert result["embedding_status"] == {"dinov2": "pending", "clip": "pending"}
 
 
@@ -225,8 +225,8 @@ def test_report_units_and_ambiguous_discovery(tmp_path: Path) -> None:
     manifest = _manifest_df()
     manifest["label_valid"] = True  # Empty labels are also valid.
     labels = _empty_label_summary(manifest).set_index("label_status")["count"]
-    assert labels["labels_with_objects"] == 2
-    assert labels["empty_labels"] == 1
+    assert labels["non-empty annotations"] == 2
+    assert labels["empty annotations"] == 1
     assert _class_distribution_rows(manifest).set_index("class_id").loc["0", "count"] == 2
     duplicates = _summarize_duplicate_structure(manifest)
     assert duplicates["duplicate_records"] == 2

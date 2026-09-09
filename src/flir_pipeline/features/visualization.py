@@ -12,7 +12,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+from flir_pipeline.data.annotations import audit_annotations
 from flir_pipeline.data.identity import dataset_id_from_manifest
+from flir_pipeline.data.temporal import TemporalAudit, audit_temporal_lineage
+from flir_pipeline.features.storage import verify_features_against_manifest
 
 matplotlib.use("Agg")
 
@@ -145,16 +148,16 @@ def _objects_per_image_summary(manifest: pd.DataFrame) -> pd.DataFrame:
 
 def _empty_label_summary(manifest: pd.DataFrame) -> pd.DataFrame:
     if manifest.empty:
-        return pd.DataFrame(columns=["label_status", "count"])
+        return pd.DataFrame(columns=["label_status", "count", "percentage"])
     empty = manifest.get("label_empty", pd.Series(False, index=manifest.index))
     if hasattr(empty, "fillna"):
         empty = empty.fillna(False)
-    has_objects = pd.to_numeric(manifest.get("num_objects", pd.Series(0, index=manifest.index)), errors="coerce").fillna(0).gt(0)
     rows = [
-        {"label_status": "empty_labels", "count": int(empty.astype(bool).sum())},
-        {"label_status": "non_empty_labels", "count": int((~empty.fillna(True).astype(bool)).sum())},
-        {"label_status": "labels_with_objects", "count": int(has_objects.astype(bool).sum())},
+        {"label_status": "empty annotations", "count": int(empty.astype(bool).sum())},
+        {"label_status": "non-empty annotations", "count": int((~empty.astype(bool)).sum())},
     ]
+    for row in rows:
+        row["percentage"] = row["count"] / len(manifest) * 100
     return pd.DataFrame(rows)
 
 
@@ -178,14 +181,14 @@ def _dataset_overview_figure(manifest: pd.DataFrame, output_dir: Path) -> None:
         ) if "classes_present" in manifest.columns else 0,
     }
     cards = [
-        (summary["total_records"], "Historical records"),
-        (summary["unique_content_ids"], "Unique contents"),
-        (summary["duplicate_groups"], "Exact duplicate groups"),
-        (summary["total_objects"], "Annotated objects"),
-        (summary["classes"], "Classes"),
+        (summary["total_records"], "Registros históricos"),
+        (summary["unique_content_ids"], "Contenidos únicos"),
+        (summary["duplicate_groups"], "Grupos duplicados exactos"),
+        (summary["total_objects"], "Objetos anotados"),
+        (summary["classes"], "Clases"),
     ]
     fig, axes = plt.subplots(1, len(cards), figsize=(12, 2.8))
-    fig.suptitle("Dataset overview", fontsize=14, y=1.04)
+    fig.suptitle("Composición del dataset", fontsize=14, y=1.04)
     for axis, (value, label) in zip(axes, cards, strict=True):
         axis.text(0.5, 0.58, f"{value:,}", ha="center", va="center", fontsize=22, fontweight="bold")
         axis.text(0.5, 0.25, label, ha="center", va="center", fontsize=9, wrap=True)
@@ -207,15 +210,15 @@ def _original_split_distribution_figure(manifest: pd.DataFrame, output_dir: Path
     counts = manifest["original_split"].value_counts().reindex(["train", "val", "test"], fill_value=0)
     fig, ax = plt.subplots(figsize=(6, 4))
     ax.bar(counts.index, counts.values, color=["#4C72B0", "#55A868", "#C44E52"])
-    ax.set_xlabel("Original split")
-    ax.set_ylabel("Records")
-    ax.set_title("Original split distribution (descriptive metadata only)")
+    ax.set_xlabel("Split histórico")
+    ax.set_ylabel("Registros")
+    ax.set_title("Distribución histórica de registros")
     for index, value in enumerate(counts.values):
         ax.text(index, value, f"{value:,}", ha="center", va="bottom")
     ax.text(
         0.5,
         -0.22,
-        "original_split is not used as input to feature extraction or clustering.",
+        "original_split se conserva como metadato descriptivo.",
         transform=ax.transAxes,
         ha="center",
         fontsize=8,
@@ -232,8 +235,8 @@ def _class_distribution_figure(manifest: pd.DataFrame, output_dir: Path) -> None
     else:
         ax.bar(counts["class_id"].astype(str), counts["count"], color="#4C72B0")
         ax.set_xlabel("class_id")
-        ax.set_ylabel("Historical records containing class")
-        ax.set_title("Class presence per record (not object counts)")
+        ax.set_ylabel("Registros históricos que contienen la clase")
+        ax.set_title("Imágenes que contienen cada clase")
         ax.grid(axis="y", alpha=0.2)
     _savefig(output_dir / "figures" / "03_class_distribution.png", fig)
     counts.to_csv(output_dir / "tables" / "class_distribution.csv", index=False)
@@ -247,9 +250,9 @@ def _objects_per_image_figure(manifest: pd.DataFrame, output_dir: Path) -> None:
         ax.set_axis_off()
     else:
         ax.bar(summary["bucket"].astype(str), summary["count"], color="#55A868")
-        ax.set_xlabel("Objects per frame")
-        ax.set_ylabel("Images")
-        ax.set_title("Objects per image")
+        ax.set_xlabel("Objetos por registro")
+        ax.set_ylabel("Imágenes")
+        ax.set_title("Objetos por imagen")
         ax.grid(axis="y", alpha=0.2)
     _savefig(output_dir / "figures" / "04_objects_per_image.png", fig)
     summary.to_csv(output_dir / "tables" / "objects_per_image_summary.csv", index=False)
@@ -262,11 +265,15 @@ def _empty_labels_figure(manifest: pd.DataFrame, output_dir: Path) -> None:
         ax.text(0.5, 0.5, "No label status available", ha="center", va="center")
         ax.set_axis_off()
     else:
-        ax.bar(summary["label_status"], summary["count"], color=["#C44E52", "#55A868", "#8172B3"])
-        ax.set_ylabel("Count")
-        ax.set_title("Empty vs populated labels")
+        ax.bar(summary["label_status"], summary["count"], color=["#C44E52", "#55A868"])
+        for index, row in summary.iterrows():
+            ax.text(index, row["count"], f"{row['count']:,}\n({row['percentage']:.2f}%)", ha="center", va="bottom")
+        ax.set_ylim(0, max(summary["count"]) * 1.2)
+        ax.set_ylabel("Registros históricos")
+        ax.set_title("Anotaciones vacías y no vacías")
         ax.grid(axis="y", alpha=0.2)
     _savefig(output_dir / "figures" / "05_empty_labels.png", fig)
+    _write_csv(output_dir / "tables" / "empty_annotations.csv", summary)
 
 
 def _bbox_area_distribution_figure(manifest: pd.DataFrame, output_dir: Path) -> None:
@@ -283,46 +290,44 @@ def _bbox_area_distribution_figure(manifest: pd.DataFrame, output_dir: Path) -> 
         ax.axvline(median, color="#C44E52", linestyle="--", label=f"median={median:.3f}")
         ax.axvline(q25, color="#CCB974", linestyle=":", label=f"p25={q25:.3f}")
         ax.axvline(q75, color="#55A868", linestyle=":", label=f"p75={q75:.3f}")
-        ax.set_xlabel("Mean normalized bbox area per annotated record")
-        ax.set_ylabel("Historical records")
-        ax.set_title("Per-record mean bounding-box area distribution")
+        ax.set_xlabel("Media del área normalizada de cajas por registro anotado")
+        ax.set_ylabel("Registros históricos")
+        ax.set_title("Área media de bounding boxes por registro")
         ax.legend(frameon=False)
         ax.grid(axis="y", alpha=0.2)
     _savefig(output_dir / "figures" / "06_bbox_area_distribution.png", fig)
 
 
-def _image_dimensions_figure(diagnostics: pd.DataFrame, output_dir: Path) -> None:
-    if diagnostics.empty:
-        fig, ax = plt.subplots(figsize=(6, 4))
-        ax.text(0.5, 0.5, "No image dimensions available", ha="center", va="center")
-        ax.set_axis_off()
-        _savefig(output_dir / "figures" / "07_image_dimensions.png", fig)
+def _annotation_instances_figure(classes: pd.DataFrame, output_dir: Path) -> None:
+    """Count every parsed box in matched historical labels, separate from presence."""
+    fig, ax = plt.subplots(figsize=(8, 5))
+    ax.bar(classes["class_id"].astype(str), classes["object_instances"], color="#55A868")
+    for index, count in enumerate(classes["object_instances"]):
+        ax.text(index, count, str(count), ha="center", va="bottom")
+    ax.set_xlabel("class_id")
+    ax.set_ylabel("Instancias / bounding boxes")
+    ax.set_title("Instancias por clase en las anotaciones del candidato")
+    ax.margins(y=0.15)
+    _savefig(output_dir / "figures" / "15_class_instances.png", fig)
+
+
+def _temporal_lineage_figure(audit: TemporalAudit, output_dir: Path) -> None:
+    """Display inferred frame indices, without converting them to elapsed time."""
+    groups = list(audit.lineage.loc[audit.lineage["order_reconstructable_from_name"]].groupby(["source_archive", "possible_sequence"], sort=True))
+    if not groups:
         return
-    x = pd.to_numeric(diagnostics.get("width", pd.Series(dtype=float)), errors="coerce").dropna()
-    y = pd.to_numeric(diagnostics.get("height", pd.Series(dtype=float)), errors="coerce").dropna()
-    fig, ax = plt.subplots(figsize=(7, 5))
-    if len(x) and len(y):
-        ax.scatter(x.to_numpy(), y.to_numpy(), s=12, alpha=0.7)
-    ax.set_xlabel("Width (px)")
-    ax.set_ylabel("Height (px)")
-    ax.set_title("Image dimensions")
-    ax.grid(alpha=0.2)
-    _savefig(output_dir / "figures" / "07_image_dimensions.png", fig)
+    fig, axes = plt.subplots(len(groups), 1, figsize=(10, max(3, 2.5 * len(groups))), squeeze=False)
+    for axis, ((_, sequence), group) in zip(axes[:, 0], groups, strict=True):
+        for y, (split, color) in enumerate(zip(("train", "val", "test"), ("#4C72B0", "#55A868", "#C44E52"), strict=True)):
+            selected = group.loc[group["original_split"] == split]
+            axis.scatter(selected["possible_frame_index"], np.full(len(selected), y), marker="|", color=color, alpha=0.55)
+        axis.set_yticks([0, 1, 2], ["train", "val", "test"])
+        axis.set_ylim(-0.5, 2.5)
+        axis.set_title(f"Secuencia inferida: {sequence} (N={len(group)})")
+        axis.set_xlabel("Índice derivado del nombre; no es un timestamp verificado")
+    _savefig(output_dir / "figures" / "16_temporal_lineage.png", fig)
 
 
-def _aspect_ratio_distribution_figure(diagnostics: pd.DataFrame, output_dir: Path) -> None:
-    values = pd.to_numeric(diagnostics.get("aspect_ratio", pd.Series(dtype=float)), errors="coerce").dropna()
-    fig, ax = plt.subplots(figsize=(7, 5))
-    if values.empty:
-        ax.text(0.5, 0.5, "No aspect ratios available", ha="center", va="center")
-        ax.set_axis_off()
-    else:
-        ax.hist(values, bins=30, color="#4C72B0")
-        ax.set_xlabel("Aspect ratio")
-        ax.set_ylabel("Count")
-        ax.set_title("Aspect ratio distribution")
-        ax.grid(axis="y", alpha=0.2)
-    _savefig(output_dir / "figures" / "08_aspect_ratio_distribution.png", fig)
 
 
 def _pixel_statistics_figure(diagnostics: pd.DataFrame, output_dir: Path) -> None:
@@ -332,9 +337,9 @@ def _pixel_statistics_figure(diagnostics: pd.DataFrame, output_dir: Path) -> Non
     if not x.empty and not y.empty:
         pairs = pd.concat([x.rename("pixel_mean"), y.rename("pixel_std")], axis=1).dropna()
         ax.scatter(pairs["pixel_mean"], pairs["pixel_std"], s=12, alpha=0.7)
-        ax.set_xlabel("Mean normalized pixel intensity")
-        ax.set_ylabel("Pixel intensity standard deviation")
-        ax.set_title("Pixel statistics")
+        ax.set_xlabel("Intensidad media normalizada")
+        ax.set_ylabel("Desviación estándar de intensidad")
+        ax.set_title("Estadísticas de píxeles")
         ax.grid(alpha=0.2)
     else:
         ax.text(0.5, 0.5, "No pixel statistics available", ha="center", va="center")
@@ -350,9 +355,9 @@ def _entropy_distribution_figure(diagnostics: pd.DataFrame, output_dir: Path) ->
         ax.set_axis_off()
     else:
         ax.hist(values, bins=30, color="#55A868")
-        ax.set_xlabel("Entropy (bits)")
-        ax.set_ylabel("Count")
-        ax.set_title("Entropy distribution")
+        ax.set_xlabel("Entropía (bits)")
+        ax.set_ylabel("Cantidad")
+        ax.set_title("Distribución de entropía")
         ax.grid(axis="y", alpha=0.2)
     _savefig(output_dir / "figures" / "10_entropy_distribution.png", fig)
 
@@ -367,8 +372,8 @@ def _laplacian_variance_figure(diagnostics: pd.DataFrame, output_dir: Path) -> N
         transformed = np.log10(1.0 + values)
         ax.hist(transformed, bins=30, color="#C44E52")
         ax.set_xlabel("log10(1 + Laplacian variance)")
-        ax.set_ylabel("Count")
-        ax.set_title("Transformed Laplacian variance distribution")
+        ax.set_ylabel("Cantidad")
+        ax.set_title("Distribución de la varianza del Laplaciano transformada")
         ax.grid(axis="y", alpha=0.2)
     _savefig(output_dir / "figures" / "11_laplacian_variance.png", fig)
 
@@ -379,7 +384,7 @@ def _unique_vs_records_figure(manifest: pd.DataFrame, output_dir: Path) -> None:
     diff = total_records - unique_content
     fig, ax = plt.subplots(figsize=(6, 4))
     ax.bar(["historical records", "unique content"], [total_records, unique_content], color=["#4C72B0", "#55A868"])
-    ax.set_ylabel("Count")
+    ax.set_ylabel("Cantidad")
     ax.set_title("Historical records vs. unique visual contents")
     ax.text(0.5, 0.97, f"Difference: {diff} ({diff / max(total_records, 1) * 100:.1f}%)", transform=ax.transAxes, ha="center", va="top")
     _savefig(output_dir / "figures" / "12_unique_vs_records.png", fig)
@@ -435,21 +440,6 @@ def _cross_split_overlap_values(manifest: pd.DataFrame) -> np.ndarray:
                 matrix[i, j] = len(content_by_split[left] & content_by_split[right])
     return matrix
 
-
-def _duplicate_group_size_distribution(manifest: pd.DataFrame, output_dir: Path) -> None:
-    counts = manifest["content_id"].value_counts()
-    duplicate_sizes = counts[counts > 1]
-    fig, ax = plt.subplots(figsize=(7, 5))
-    if duplicate_sizes.empty:
-        ax.text(0.5, 0.5, "No duplicate groups", ha="center", va="center")
-        ax.set_axis_off()
-    else:
-        ax.hist(duplicate_sizes.values, bins=max(1, min(10, len(duplicate_sizes))), color="#8172B3")
-        ax.set_xlabel("Occurrences per duplicated content_id")
-        ax.set_ylabel("Duplicate groups")
-        ax.set_title("Duplicate group size distribution")
-        ax.grid(axis="y", alpha=0.2)
-    _savefig(output_dir / "figures" / "14_duplicate_group_size_distribution.png", fig)
 
 
 def _embedding_health_summary(feature_dir: Path) -> dict:
@@ -518,14 +508,14 @@ def visualize_embedding_health(feature_dir: Path, output_dir: Path, label: str =
     fig, ax = plt.subplots(figsize=(7, 5))
     ax.hist(raw_norms, bins=_safe_hist_bins(raw_norms), color="#4C72B0")
     ax.set_xlabel("L2 norm of raw embedding")
-    ax.set_ylabel("Count")
+    ax.set_ylabel("Cantidad")
     ax.set_title(f"Embedding raw norm distribution ({extractor}, {stage})")
     _savefig(output_dir / "figures" / f"embedding_raw_norm_distribution_{extractor}_{stage}.png", fig)
 
     fig, ax = plt.subplots(figsize=(7, 5))
     ax.hist(l2_norms, bins=_safe_hist_bins(l2_norms), color="#55A868")
     ax.set_xlabel("L2 norm of normalized embedding")
-    ax.set_ylabel("Count")
+    ax.set_ylabel("Cantidad")
     ax.set_title(f"Embedding L2 norm distribution ({extractor}, {stage})")
     _savefig(output_dir / "figures" / f"embedding_l2_norm_distribution_{extractor}_{stage}.png", fig)
 
@@ -575,12 +565,16 @@ def generate_feature_engineering_report(
     diagnostics_path: Path,
     output_dir: Path,
     feature_dirs: dict[str, Path] | None = None,
+    labels_archive: Path | None = None,
+    max_frame_gap: int = 1,
 ) -> dict:
     """Write descriptive figures, tables, Markdown and local provenance metadata.
 
     Manifest statistics count historical occurrences; diagnostics count unique
     contents. Optional feature_dirs explicitly choose already executed artifacts.
     An empty mapping means no embedding results, with no ambient artifact lookup.
+    Optional labels_archive recomputes actual box instances, orphan counts and
+    annotation consistency. Temporal lineage is explicitly filename-derived.
     This function never loads a model or computes a future research stage.
     """
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -591,6 +585,28 @@ def generate_feature_engineering_report(
 
     manifest = pd.read_parquet(manifest_path) if manifest_path.is_file() else pd.DataFrame()
     diagnostics = pd.read_parquet(diagnostics_path) if diagnostics_path.is_file() else pd.DataFrame()
+
+    annotation_summary = None
+    if labels_archive is not None:
+        annotations = audit_annotations(manifest, labels_archive)
+        annotation_summary = annotations.summary
+        _write_csv(tables_dir / "annotation_class_distribution.csv", annotations.classes)
+        _write_csv(tables_dir / "annotation_quality.csv", pd.DataFrame([annotation_summary]))
+        _write_csv(tables_dir / "duplicate_annotation_audit.csv", annotations.duplicate_groups)
+        _annotation_instances_figure(annotations.classes, output_dir)
+    temporal = audit_temporal_lineage(manifest, max_frame_gap=max_frame_gap)
+    _write_csv(tables_dir / "temporal_summary.csv", temporal.sequences)
+    _write_csv(tables_dir / "temporal_coverage.csv", pd.DataFrame([temporal.summary]))
+    _write_csv(tables_dir / "temporal_lineage.csv", temporal.lineage)
+    _write_csv(tables_dir / "cross_split_temporal_candidates.csv", temporal.neighbors)
+    _temporal_lineage_figure(temporal, output_dir)
+    # This is the preserved historical baseline, not a new split allocation.
+    _write_csv(tables_dir / "historical_baseline.csv", manifest[["frame_id", "content_id", "original_split"]])
+    split_counts = manifest["original_split"].value_counts().reindex(["train", "val", "test"], fill_value=0)
+    _write_csv(tables_dir / "historical_split_summary.csv", split_counts.rename_axis("original_split").reset_index(name="records"))
+    geometry_columns = [column for column in ("width", "height", "aspect_ratio") if column in diagnostics]
+    geometry = diagnostics.groupby(geometry_columns).size().reset_index(name="contents") if geometry_columns else pd.DataFrame(columns=["contents"])
+    _write_csv(tables_dir / "image_geometry_summary.csv", geometry)
 
     dataset_summary = {
         "total_records": int(len(manifest)),
@@ -607,14 +623,11 @@ def generate_feature_engineering_report(
     _bbox_area_distribution_figure(manifest, output_dir)
     _dataset_overview_figure(manifest, output_dir)
     _original_split_distribution_figure(manifest, output_dir)
-    _image_dimensions_figure(diagnostics, output_dir)
-    _aspect_ratio_distribution_figure(diagnostics, output_dir)
     _pixel_statistics_figure(diagnostics, output_dir)
     _entropy_distribution_figure(diagnostics, output_dir)
     _laplacian_variance_figure(diagnostics, output_dir)
     _unique_vs_records_figure(manifest, output_dir)
     _cross_split_duplicate_matrix(manifest, output_dir)
-    _duplicate_group_size_distribution(manifest, output_dir)
 
     duplicate_summary = _summarize_duplicate_structure(manifest)
     _write_csv(tables_dir / "duplicate_summary.csv", pd.DataFrame([duplicate_summary]))
@@ -634,7 +647,14 @@ def generate_feature_engineering_report(
                     raise ValueError("Selected feature artifact belongs to a different dataset")
             count = details.get("selected_content_ids")
             stage = "full" if count == details.get("unique_content_ids") and count else "smoke" if count == 16 else "sampled"
-            embedding_stats[extractor] = visualize_embedding_health(selected_dir, output_dir, label=stage)
+            stats = {
+                **_embedding_health_summary(selected_dir),
+                **verify_features_against_manifest(selected_dir, manifest),
+                "label": stage, "feature_space_id": details["feature_space_id"],
+                "feature_directory": _relative_path(selected_dir),
+                "pooling_strategy": details["pooling_strategy"],
+            }
+            embedding_stats[extractor] = {"stats": stats, "label": stage}
             embedding_status[extractor] = "available"
         else:
             embedding_status[extractor] = "pending"
@@ -662,68 +682,79 @@ def generate_feature_engineering_report(
         "git_commit": _git_commit(),
         "generated_at": datetime.now(UTC).isoformat(),
         "feature_directories_used": feature_dir_paths,
+        "annotation_summary": annotation_summary,
+        "temporal_summary": temporal.summary,
+        "baseline": "original_split preserved; no new partition generated",
+        "feature_engineering_completed": all(embedding_stats.get(name, {}).get("stats", {}).get("reproducible_full_dataset_valid", False) for name in ("dinov2", "clip")),
         "sample_sizes": {
             "manifest_records": int(len(manifest)),
             "diagnostics_rows": int(len(diagnostics)),
             "embedding_rows": {k: v["stats"]["n_samples"] for k, v in embedding_stats.items()},
         },
     }
+    lines = [
+        "# FLIR Feature Engineering – Revisión de avance",
+        "",
+        "## Composición y línea base histórica",
+        "",
+        f"- {dataset_summary['total_records']} registros y {dataset_summary['unique_content_ids']} contenidos únicos.",
+        f"- Objetos del candidato: {dataset_summary['total_objects']}; clases: {dataset_summary['classes']}.",
+        f"- Anotaciones vacías: {dataset_summary['empty_labels']}.",
+        "- historical_baseline.csv preserva frame_id, content_id y original_split; no crea una partición.",
+        "",
+        "## Anotaciones y duplicados",
+        "",
+        "- Imágenes que contienen una clase e instancias de objetos son medidas distintas.",
+        f"- Grupos duplicados: {duplicate_summary['duplicate_groups']}; ocurrencias involucradas: {duplicate_summary['duplicate_records']}.",
+        f"- Contenidos exactos train–val / train–test / val–test: {duplicate_summary['train_val_duplicate_content_ids']} / {duplicate_summary['train_test_duplicate_content_ids']} / {duplicate_summary['val_test_duplicate_content_ids']}.",
+    ]
+    if annotation_summary is not None:
+        lines.extend([
+            f"- Objetos del candidato: {annotation_summary['candidate_objects']}; objetos en {annotation_summary['orphan_labels']} etiquetas huérfanas: {annotation_summary['orphan_objects']}; archivo completo: {annotation_summary['archive_objects']}.",
+            f"- Grupos con anotaciones consistentes: {annotation_summary['consistent_duplicate_groups']}; con conflictos: {annotation_summary['conflicting_duplicate_groups']}.",
+            "- Conteos recalculados desde el ZIP de etiquetas, sin corregir anotaciones.",
+        ])
+    lines.extend([
+        "", "## Procedencia temporal disponible", "",
+        f"- Secuencias inferidas por nombre: {temporal.summary['inferred_sequences']}.",
+        f"- Registros ordenables / no ordenables por nombre: {temporal.summary['records_with_inferred_order']} / {temporal.summary['records_without_inferred_order']}.",
+        f"- Timestamps verificados: {temporal.summary['records_with_verified_timestamps']}.",
+        f"- Regla: mismo archivo y secuencia, splits diferentes, diferencia de índice <= {max_frame_gap}, incluidos índices iguales.",
+        f"- Pares candidatos: {temporal.summary['cross_split_neighbor_pairs']}; con contenido exacto: {temporal.summary['neighbor_pairs_exact_content']}; de contenido distinto: {temporal.summary['neighbor_pairs_different_content']}.",
+        "- La proximidad derivada del nombre no confirma leakage ni correlación espaciotemporal completa.",
+        "", "## Representaciones y calidad", "",
+    ])
+    for name in ("dinov2", "clip"):
+        stats = embedding_stats.get(name, {}).get("stats")
+        if stats:
+            lines.append(f"- {name}: N={stats['n_samples']}, D={stats['embedding_dimension']}, espacio={stats['feature_space_id']}, cobertura completa y reproducible={stats['reproducible_full_dataset_valid']}.")
+        else:
+            lines.append(f"- {name}: pendiente.")
+    lines.extend([
+        "- Un embedding por content_id; mapping completo de ocurrencias verificado contra el manifest.",
+        "- Raw/L2, finitud, normas e índices son controles numéricos; no prueban calidad semántica.",
+        "- Dimensiones y relación de aspecto se conservan en tabla secundaria; Laplaciano usa log10(1 + varianza).",
+        "", "## Estado hasta semana 6 y frontera metodológica", "",
+        f"- Ingeniería de características completada: {metadata['feature_engineering_completed']}.",
+        "- El alcance se contrasta con los compromisos suministrados hasta semana 6; no se dispone del calendario íntegro de la propuesta.",
+        "- Siguiente fase: similitud entre fotogramas. Bhattacharyya condicional, reducción, clustering, nuevos splits y entrenamiento/evaluación permanecen pendientes.",
+        "- Notebook ejecutado y HTML de presentación en jp_review/; código oculto en el HTML.",
+    ])
     report_md = output_dir / "feature_engineering_report.md"
-    report_md.write_text(
-        "# Feature Engineering Report\n\n"
-        "## Dataset composition\n\n"
-        f"- Total records: {dataset_summary['total_records']}\n"
-        f"- Unique content IDs: {dataset_summary['unique_content_ids']}\n"
-        f"- Duplicate groups: {duplicate_summary['duplicate_groups']}\n"
-        f"- Total objects: {dataset_summary['total_objects']}\n"
-        f"- Classes observed: {dataset_summary['classes']}\n\n"
-        "## Annotation characteristics\n\n"
-        f"- Empty labels: {dataset_summary['empty_labels']}\n"
-        f"- Non-empty label records: {max(dataset_summary['total_records'] - dataset_summary['empty_labels'], 0)}\n"
-        "- Label geometry and object counts are descriptive only and do not drive feature extraction.\n\n"
-        "## Exact duplicate structure\n\n"
-        f"- Duplicate record count: {duplicate_summary['duplicate_records']}\n"
-        f"- Duplicate content IDs: {duplicate_summary['duplicate_groups']}\n"
-        f"- Cross-split duplicate content IDs: {duplicate_summary['cross_split_duplicate_content_ids']}\n"
-        "- Exact duplicate records are preserved in the frame-level manifest and mapped to one content-level embedding row.\n\n"
-        "## Image diagnostics\n\n"
-        f"- Mean image width: {diagnostics.get('width', pd.Series(dtype=float)).mean() if not diagnostics.empty else 'n/a'}\n"
-        f"- Mean image height: {diagnostics.get('height', pd.Series(dtype=float)).mean() if not diagnostics.empty else 'n/a'}\n"
-        f"- Mean entropy: {diagnostics.get('entropy', pd.Series(dtype=float)).mean() if not diagnostics.empty else 'n/a'}\n"
-        f"- Mean Laplacian variance: {diagnostics.get('laplacian_variance', pd.Series(dtype=float)).mean() if not diagnostics.empty else 'n/a'}\n\n"
-        "## DINOv2 feature health\n\n"
-        f"- Status: {embedding_status.get('dinov2', 'pending')}\n"
-        + (
-            f"- Sample size: {embedding_stats['dinov2']['stats']['n_samples']}\n"
-            if 'dinov2' in embedding_stats else "- Sample size: pending\n"
-        )
-        + "- Feature quality is descriptive only and should not be interpreted as semantic quality for individual dimensions.\n\n"
-        + "## CLIP feature health\n\n"
-        + f"- Status: {embedding_status.get('clip', 'pending')}\n"
-        + (
-            f"- Sample size: {embedding_stats['clip']['stats']['n_samples']}\n"
-            if 'clip' in embedding_stats else "- Sample size: pending\n"
-        )
-        + "- Feature statistics are used to check shape, L2 normalization, and basic distributional structure only.\n\n"
-        + "## Methodological implications\n\n"
-        + f"- There are {dataset_summary['total_records']} records but {dataset_summary['unique_content_ids']} unique contents.\n"
-        + "- Exact duplicates can affect density-based downstream methods; this is why feature extraction is performed once per content_id.\n"
-        + "- original_split is retained as historical metadata only and is not used as input to feature extraction or clustering.\n"
-        + "- DINOv2 and CLIP do not use labels or original_split as model inputs.\n"
-        + "- This stage remains descriptive; it does not claim a fixed clustering structure or detector superiority.\n",
-        encoding="utf-8",
-    )
+    report_md.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
     metadata_path = output_dir / "metadata.json"
     metadata_path.write_text(json.dumps(metadata, indent=2), encoding="utf-8")
     return {"metadata": metadata, "embedding_status": embedding_status, "dataset_summary": dataset_summary, "duplicate_summary": duplicate_summary}
 
 
-def discover_feature_directories(root: Path | None = None) -> dict[str, Path]:
+def discover_feature_directories(root: Path | None = None, *, full_manifest: pd.DataFrame | None = None) -> dict[str, Path]:
     """Find a single completed artifact per extractor, refusing ambiguous reports.
 
     A metadata completion marker is required. Multiple runs must be selected
     explicitly by the caller; lexicographic hash order has no scientific meaning.
+    When full_manifest is supplied, ignore samples and other datasets, and
+    require complete verified coverage with resolved model provenance.
     """
     root = root or Path("artifacts/features")
     directories: dict[str, Path] = {}
@@ -732,6 +763,20 @@ def discover_feature_directories(root: Path | None = None) -> dict[str, Path]:
         if not extractor_root.exists():
             continue
         candidates = sorted(item for item in extractor_root.glob("*/*") if (item / "metadata.json").is_file())
+        if full_manifest is not None:
+            eligible = []
+            for candidate in candidates:
+                metadata = json.loads((candidate / "metadata.json").read_text(encoding="utf-8"))
+                if metadata.get("dataset_id") != dataset_id_from_manifest(full_manifest):
+                    continue
+                if metadata.get("selected_content_ids") != full_manifest["content_id"].nunique():
+                    continue
+                if metadata.get("extractor") != extractor:
+                    raise ValueError("Artifact directory and metadata extractor disagree")
+                if not verify_features_against_manifest(candidate, full_manifest)["reproducible_full_dataset_valid"]:
+                    raise ValueError("Full feature candidate failed coverage or provenance verification")
+                eligible.append(candidate)
+            candidates = eligible
         if len(candidates) > 1:
             raise ValueError(f"Multiple {extractor} artifacts: select a feature directory explicitly")
         if candidates:

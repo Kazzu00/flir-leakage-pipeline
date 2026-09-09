@@ -39,8 +39,9 @@ claim the work of other contributors. The proposed handoff is documented in
 |---|---|
 | Data understanding and exact duplicate audit | DONE |
 | Canonical candidate manifest | DONE |
-| Feature engineering infrastructure and reporting | IN PROGRESS; real smoke tests validated |
-| Full DINOv2 / CLIP extraction | NEXT; neither full run executed |
+| Dataset characterization and available temporal lineage | DONE; filename heuristics remain explicit |
+| Feature engineering infrastructure and JP reporting | DONE |
+| Full DINOv2 / CLIP extraction | DONE; 1459 contents per encoder, verified against 1657 records |
 | Cosine similarity | PLANNED |
 | t-SNE / PaCMAP | PLANNED |
 | DBSCAN / OPTICS / HDBSCAN | PLANNED |
@@ -67,7 +68,13 @@ not an implemented experiment. See [current status](docs/current_status.md).
 All 1657 matched labels are valid, with five classes and 292 empty labels.
 The candidate contains **4168 objects**; the full label archive contains **4182**,
 including 14 objects in 10 orphan labels. Eight duplicate groups have annotation
-conflicts. The [status document](docs/current_status.md) explains the scopes.
+conflicts; 190 duplicate groups have consistent annotations. The [status document](docs/current_status.md) explains the scopes.
+
+The reproducible class table separates image presence from individual boxes.
+Two filename-derived sequences cover all 1657 records with medium confidence;
+no verified timestamps are available. A gap ≤ 1 rule finds 598 cross-split pairs:
+198 exact copies and 400 different-content proximity candidates. This is not a
+complete characterization of spatiotemporal correlation.
 Only aggregate results are published here; real identities and hashes remain local.
 
 ## Methodology alignment
@@ -123,7 +130,7 @@ configuration, selected content, seed, Python/library versions and Git commit.
 Record a clean commit and hardware details for final experiments: a seed alone
 does not guarantee bit-identical results across CPU/GPU or precision modes.
 
-Set `model_revision` to a full Hugging Face commit SHA for final research runs.
+The executed `*_full.yaml` configurations pin full Hugging Face commit SHAs.
 New loads capture the resolved SHA when available and use it for the processor
 and feature identity. Existing smoke metadata with `unknown` is preserved.
 See [revision and cache semantics](docs/design_decisions.md).
@@ -246,38 +253,64 @@ contents map to row -1, not a fabricated vector. Labels, boxes and
 
 Pixel statistics, entropy, Laplacian variance, pHash and dHash remain QA/EDA.
 See [configuration status](configs/README.md) for smoke vs research candidates.
-Full embeddings for 1459 contents have **not** been executed. For the same model
-space, use separate smoke/full output roots because cache signatures reject
-different selections.
+**Full embeddings are complete and verified** for both requested models.
+DINOv2-small: 1459 × 384, space `c6df9d274f46cca7`; CLIP ViT-B/32: 1459 × 512,
+space `585246e6ed6c4cf8`. Both have all 1657 occurrence mappings and resolved
+model commits. Raw and L2 are two representations of the same extracted vectors.
+The table above records the preserved older smoke, not the completion evidence.
+New N=16 checks using pinned revisions were also run in a separate root.
+
+```powershell
+uv run flir-pipeline features diagnostics --manifest data/manifests/flir_canonical_candidate_v1.parquet
+uv run --extra vision flir-pipeline features extract --manifest data/manifests/flir_canonical_candidate_v1.parquet --config configs/embeddings/dinov2_full.yaml --seed 0 --local-files-only --output-root artifacts/features
+uv run --extra vision flir-pipeline features extract --manifest data/manifests/flir_canonical_candidate_v1.parquet --config configs/embeddings/clip_full.yaml --seed 0 --local-files-only --output-root artifacts/features
+```
+
+Use `features verify <returned-directory> --manifest data/manifests/flir_canonical_candidate_v1.parquet`
+to require full canonical coverage and resolved provenance. Ordinary verification
+without a manifest also supports samples. Repeat the extraction command to resume
+or reuse a verified complete output. Use separate smoke/full roots.
+`--local-files-only` requires the pinned snapshots in local cache; omit it on the
+first run if downloading them is needed. See the [complete runbook](docs/week6_closure.md)
+for executable selection/verification commands and execution provenance.
 
 ## Reports
 
 The [feature engineering review notebook](notebooks/feature_engineering_jp_review.ipynb)
 is narrative source without outputs. With the required existing local manifest,
-diagnostics and smoke artifacts, build the executed notebook and HTML:
+diagnostics, source labels ZIP and complete artifacts, build the executed notebook
+and Spanish HTML presentation with code cells hidden:
 
 ```powershell
-uv run --extra reporting python scripts/build_feature_engineering_review.py
+uv run --extra reporting python scripts/build_feature_engineering_review.py --full
 ```
 
-The builder discovers only unambiguous completed artifacts under
-`artifacts/features/`; select other locations or multiple runs explicitly with
-`--manifest`, `--diagnostics`, `--dinov2` and `--clip`. Supplying either encoder
-path uses only explicitly selected encoders. It never loads a model.
+With `--full`, the builder selects verified full artifacts for the supplied
+manifest, ignoring samples and other datasets; more than one eligible run is an
+error. Select other locations with `--manifest`, `--diagnostics`, `--dinov2` and
+`--clip`. Explicit encoder paths select only those encoders; `--full` requires
+both. Labels default to `FLIR_DATA_ROOT/Etiquetas.zip` or `--labels-archive`.
+The temporal rule is configurable with `--max-frame-gap` (default 1).
+It never loads a model.
 Executed outputs go to `reports/feature_engineering/jp_review/`.
 
-Report class charts count presence per historical record; box areas are
-per-record means. Embedding tables use actual selected sample sizes and measured
-health. N=16 smoke results are distinct from full-dataset characterization.
-The local repository review is `reports/code_review/project_review.md`.
+Class charts distinguish presence per historical record from actual object
+instances; box areas are per-record means. Temporal lineage, annotation conflicts,
+orphans and historical baseline have reproducible local tables. Image geometry
+is secondary; L2 is a quality check, without main per-dimension histograms.
+The 16-section narrative calculates completion from both full verifications.
+The original local review is `reports/code_review/project_review.md`; closure
+receipts and final audit are in `reports/feature_engineering_closure/`.
 
 ## Repository status
 
-**2026-09-09 — Feature engineering.** Data understanding, canonical traceability,
-diagnostics and both real smoke tests are complete. The next scientific step is
-**full embedding extraction → cosine similarity → t-SNE / PaCMAP →
-DBSCAN / OPTICS / HDBSCAN**. See [current status](docs/current_status.md) for
-evidence and limitations.
+**2026-09-09 — Data and feature engineering closed** against the supplied scope
+through week 6, including both complete encoders. The full dated proposal was
+not provided. The next phase is **frame similarity/correlation**, followed later
+by reduction, clustering, new partitions and controlled detector comparison.
+These stages remain pending and were not executed in this closure.
+See [current status](docs/current_status.md), [week 6 closure](docs/week6_closure.md)
+and [methodology traceability](docs/methodology_traceability.md).
 
 ## References
 

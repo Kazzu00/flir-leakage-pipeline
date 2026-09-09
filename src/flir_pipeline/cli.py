@@ -290,15 +290,26 @@ def features_summary(feature_directory: Path) -> None:
 
 
 @features_app.command("verify")
-def features_verify(feature_directory: Path) -> None:
+def features_verify(
+    feature_directory: Path,
+    manifest: Path | None = typer.Option(None, help="Also verify full coverage of this canonical manifest."),
+) -> None:
     """Verify arrays and indexes in a feature directory."""
     if not feature_directory.is_dir():
         raise typer.BadParameter(f"Feature directory does not exist: {feature_directory}")
-    from flir_pipeline.features.storage import verify_feature_directory
+    from flir_pipeline.features.storage import (
+        verify_feature_directory,
+        verify_features_against_manifest,
+    )
 
-    result = verify_feature_directory(feature_directory)
+    if manifest is None:
+        result = verify_feature_directory(feature_directory)
+    else:
+        import pandas as pd
+
+        result = verify_features_against_manifest(feature_directory, pd.read_parquet(manifest))
     typer.echo(json.dumps(result, indent=2))
-    if not result["quality_valid"]:
+    if not result.get("reproducible_full_dataset_valid", result["quality_valid"]):
         raise typer.Exit(code=1)
 
 

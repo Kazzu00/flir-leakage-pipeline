@@ -60,10 +60,10 @@ compatibility claim. It never substitutes for SHA256 exact-content identity.
 ## 7. Keep DINOv2 and CLIP spaces independent
 
 Each extractor has separate model, preprocessing, pooling and feature-space
-metadata. Do not concatenate their embeddings automatically. The real smoke
-dimensions (384 and 512) describe the tested small/base models only. Existing
-research configs nominate larger candidates but do not establish a scientific
-choice, hardware batch size or completed experiment.
+metadata. Do not concatenate their embeddings automatically. The selected full
+closure models are DINOv2-small (384D) and CLIP ViT-B/32 (512D), validated on all
+1459 contents. Existing research configs nominate larger candidates and remain
+unexecuted; they do not supersede this bounded model choice.
 
 ## 8. Conditional Bhattacharyya and committed reductions
 
@@ -100,7 +100,8 @@ New metadata fields have distinct meanings:
 `require_resolved_revision: true` in research configs rejects unresolved loads.
 Smoke configs allow unresolved metadata with a warning. The optional Transformers
 attribute is isolated in a helper and tested with offline stand-ins for both
-adapters. This review validates wiring, not a new real model run.
+adapters. The later week 6 closure also validated real N=16 loads and complete extractions
+with pinned revisions, resolving both SHAs from the loaded config in offline mode.
 
 Previously validated smoke artifacts record `unknown`. They remain unchanged and
 readable by summary/verification/reporting. A new resolved SHA can change
@@ -133,7 +134,31 @@ selection does not change feature_space_id, and a mismatched selection is refuse
 Diagnostics do not provide a resumable multi-run store; separate sampled and full
 diagnostic roots to avoid overwriting a previous diagnostic report.
 
-Report inputs are explicit or unambiguous. Hash ordering never chooses an
+Report inputs are explicit or unambiguous. The builder's `--full` mode filters
+by canonical dataset and complete coverage, verifies provenance, requires both
+encoders, and still rejects multiple eligible runs. Hash ordering never chooses an
 experiment. Class-presence charts count records, not objects; box-area charts use
 per-record means. Sample sizes and embedding health come from selected artifacts.
 Source notebooks have no outputs; executed notebooks and HTML stay local.
+
+## 12. Annotation universes and temporal evidence
+
+Class presence counts each class once per historical occurrence; instances count
+every parsed box. The audit reads label ZIP members in memory, checks matched
+SHA256/object counts against the manifest, and reports orphans separately.
+Duplicate annotation conflicts remain unchanged and visible. Empty/non-empty
+are two complementary categories with counts and percentages.
+
+Temporal lineage retains source archive/member, frame/content IDs, original split,
+possible sequence/index and confidence. The source is explicitly
+`filename_heuristic`; no timestamp is fabricated. Nearby pairs require the same
+archive/sequence, different historical splits and index gap <= a stated threshold
+(default 1, including equal indices). Exact content equality is a separate flag.
+This auditable candidate rule is not an embedding-similarity experiment or proof
+of leakage for distinct contents. The retained historical mapping is a data
+baseline, not an executed detector baseline.
+
+A full closure additionally compares record/content mappings to the canonical
+manifest and requires resolved revision metadata. Equal numerical embeddings for
+different contents are permitted. Full numerical validity does not establish
+semantic quality, clustering structure or detector improvement.

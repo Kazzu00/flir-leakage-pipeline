@@ -1,94 +1,118 @@
-# Current research status
+# Estado del proyecto
 
-Reviewed **2026-09-09**. Current phase: feature engineering and preparation for
-full embedding extraction. This is an evidence snapshot, not a week-based schedule.
-Local artifacts were inspected read-only; real embeddings were not recomputed.
+Revisado **2026-09-09**. **Cierre de datos, trazabilidad, caracterización e ingeniería
+de características**, contrastado con los compromisos hasta semana 6 suministrados
+en la solicitud. No se recibió el documento íntegro ni el calendario fechado de
+la propuesta; no se certifican compromisos adicionales ni su aprobación formal.
 
-## DONE
+## COMPLETADO en este alcance
 
-- Dataset audit and exact duplicate analysis.
-- Canonical candidate v1 manifest with portable occurrence/content identity.
-- YOLO label validation, including orphan labels and annotation conflicts.
-- Full content-level image diagnostics for 1459 contents.
-- DINOv2/CLIP infrastructure, raw/L2 storage, record mapping and checkpointing.
-- Real DINOv2 and CLIP smoke validation, N=16 per encoder.
-- Feature engineering visualization and narrative notebook/HTML infrastructure.
+- Diseño inicial y arquitectura del pipeline.
+- Inventario y auditoría de ZIP, imágenes y etiquetas, conservando los originales.
+- Manifest canónico candidato v1, identificadores y mapping ocurrencia/contenido.
+- Caracterización de registros, instancias por clase y partición histórica.
+- Auditoría de duplicados exactos y conflictos de anotación.
+- Caracterización temporal disponible, con heurística y confianza explícitas.
+- Línea base reproducible de datos: pertenencia histórica preservada, sin nuevos splits.
+- Diagnósticos sobre los 1459 contenidos únicos.
+- Pipeline DINOv2/CLIP con checkpoints, metadata, raw/L2 y validaciones.
+- **DINOv2-small completo: 1459 × 384**, con mapping de 1657 registros y revisión resuelta.
+- **CLIP ViT-B/32 completo: 1459 × 512**, con mapping de 1657 registros y revisión resuelta.
+- Reporte para JP en español: 16 secciones, notebook ejecutado local y HTML sin código visible.
 
-DONE infrastructure does not mean full representation experiments are complete.
-Revision tracking added during review is covered by synthetic adapter tests only.
+El estado completo de features exige que ambos espacios pasen
+`features verify --manifest ...`. Los smoke N=16 no satisfacen esa condición.
 
-## CURRENT
+## Evidencia agregada verificada
 
-Feature engineering: choose and pin the model revision, validate the extraction
-configuration on target hardware and prepare full extraction. Research configs
-are candidate settings; their larger model sizes and batch size are not finalized.
-
-## NEXT
-
-1. Full DINOv2 extraction over all 1459 unique contents.
-2. Full CLIP extraction over all 1459 unique contents, independently.
-3. Cosine similarity over normalized embeddings in each space.
-
-## PLANNED
-
-t-SNE, PaCMAP, DBSCAN, OPTICS, HDBSCAN, stability/visual/temporal coherence,
-AMI/ARI, cluster selection, cluster-aware splitting, seeded random baseline,
-partition-similarity evaluation and controlled detector comparison. No outputs
-from these stages exist in the reviewed repository. Bhattacharyya remains
-conditional on a justified distributional representation.
-
-## Validated aggregate dataset facts
-
-| Quantity | Count / result | Scope |
+| Cantidad | Resultado | Universo |
 |---|---|---|
-| Historical records / unique frame_id | 1657 | Canonical candidate |
-| Unique content_id | 1459 | Exact original image bytes |
-| Original train / val / test | 1178 / 107 / 372 | Historical occurrences |
-| Valid matched labels | 1657 | Candidate records |
-| Empty matched labels | 292 | Candidate records |
-| Classes observed | 5 | Candidate annotations |
-| Invalid boxes / geometry | 0 | Validated candidate labels |
-| Objects in candidate | 4168 | Sum of `num_objects` across 1657 records |
-| Labels in entire label archive | 1667 | Includes 10 orphan labels |
-| Objects in orphan labels | 14 | Excluded from candidate |
-| Objects in entire label archive | 4182 | 4168 matched + 14 orphan objects |
-| Exact duplicate content groups | 198 | 396 involved occurrences |
-| Cross-split duplicate occurrences | 396 | Historical partition |
-| Train–val / train–test / val–test overlap | 57 / 141 / 0 | Unique shared exact contents |
-| Validation with an exact train duplicate | 53.27% | 57 of 107 validation records |
-| Test with an exact train duplicate | 37.90% | 141 of 372 test records |
-| Duplicate groups with annotation conflicts | 8 | Preserve for annotation policy review |
+| Registros / frame_id únicos | 1657 | Candidato canónico |
+| content_id únicos | 1459 | Bytes originales exactos |
+| Train / val / test histórico | 1178 / 107 / 372 | Ocurrencias |
+| Etiquetas asociadas válidas / faltantes | 1657 / 0 | Candidato |
+| Anotaciones vacías / no vacías | 292 / 1365 | 17.62% / 82.38% |
+| Clases | 0, 1, 2, 3, 4 | Anotaciones canónicas |
+| Etiquetas con geometría inválida | 0 | Candidato |
+| Objetos del candidato | 4168 | 1657 etiquetas asociadas |
+| Etiquetas huérfanas / objetos excluidos | 10 / 14 | Fuera del manifest |
+| Etiquetas / objetos del archivo completo | 1667 / 4182 | Incluye huérfanas |
+| Grupos duplicados exactos / ocurrencias involucradas | 198 / 396 | Candidato |
+| Exceso de registros sobre contenidos únicos | 198 | 1657 − 1459 |
+| Solapamiento exacto train–val / train–test / val–test | 57 / 141 / 0 | Contenidos compartidos |
+| Validación / test con copia exacta en train | 53.27% / 37.90% | 57/107 y 141/372 |
+| Grupos con anotaciones consistentes / conflictivas | 190 / 8 | Duplicados preservados |
 
-The earlier reported **4182 objects** describes the entire label archive, not the
-candidate's matched annotations. This review reconciled the difference by reading
-the 10 orphan labels and confirming their 14 objects. No labels, manifest rows or
-original files were changed. Local evidence is recorded in
-`reports/code_review/annotation_count_reconciliation.json`.
+**4168 + 14 = 4182**: los dos totales de objetos corresponden a universos distintos.
+El builder relee las etiquetas en memoria, verifica sus SHA256 y recuenta cada caja.
+No usa estas cifras documentales como fuente de verdad ni corrige anotaciones.
 
-## Real smoke evidence
+| Clase | Imágenes que contienen la clase | Instancias / cajas |
+|---|---:|---:|
+| 0 | 55 | 92 |
+| 1 | 685 | 2295 |
+| 2 | 619 | 1010 |
+| 3 | 401 | 642 |
+| 4 | 121 | 129 |
 
-| Encoder | Model | Contents | Dimension | Representation | Stored quality_valid |
-|---|---|---|---|---|---|
-| DINOv2 | `facebook/dinov2-small` | 16 | 384 | CLS token | true |
-| CLIP | `openai/clip-vit-base-patch32` | 16 | 512 | Projected image embedding | true |
+Ambas columnas cuentan anotaciones de ocurrencias históricas. Una imagen con
+varias cajas de una clase aporta una presencia y varias instancias.
 
-These are pre-existing real runs. Their stored `model_revision` is `unknown`;
-the review preserves that evidence rather than assigning a commit retrospectively.
-N=16 establishes shape and normalization behavior, not semantic quality across
-1459 contents. A local fake-extractor artifact is software QA, never research data.
+## Procedencia temporal disponible
 
-## Scientific limitations and next gate
+| Secuencia inferida | Registros | Contenidos | Rango de índices | Confianza |
+|---|---:|---:|---|---|
+| video_11min | 910 | 712 | 1–712 | medium |
+| video_13min | 747 | 747 | 1–781 | medium |
 
-Exact duplicates establish historical cross-split content overlap. They do not
-measure the resulting detector performance bias, which requires the future
-controlled comparison. Filename-derived sequence/frame fields are exploratory;
-validated video provenance is still needed for strong temporal-coherence claims.
+Los 1657 registros tienen secuencia e índice inferibles por nombre; 0 carecen de
+ese orden inferido y **0 tienen timestamps verificados**. No se certifican dos
+videos fuente ni se infieren segundos o FPS. El rango no implica muestreo uniforme.
 
-Before full extraction, pin the chosen HF model commits, record the environment
-and clean Git commit, select separate output roots for smoke/full runs of the same
-space, and check target-hardware memory with a small run. Then verify 1459 content
-rows, complete mapping of all 1657 frame_id, finite nonzero vectors and raw/L2
-consistency. Do not compare encoders by individual feature dimensions.
+Regla: mismo archivo/secuencia, splits distintos, diferencia de índice ≤ 1,
+incluidos índices iguales. Produce **598 pares candidatos**: 198 con bytes
+idénticos y 400 de contenido distinto. Los últimos son proximidad nominal;
+no constituyen leakage confirmado. La correlación espaciotemporal completa
+requiere la siguiente fase y mejor validación de procedencia cuando sea posible.
 
-See [methodology traceability](methodology_traceability.md),
-[design decisions](design_decisions.md) and [architecture](architecture.md).
+## Espacios completos y smoke conservados
+
+| Extractor | Modelo | N | Dimensión | Pooling | feature_space_id |
+|---|---|---:|---:|---|---|
+| DINOv2 | facebook/dinov2-small | 1459 | 384 | cls_token | c6df9d274f46cca7 |
+| CLIP | openai/clip-vit-base-patch32 | 1459 | 512 | projected_pooler_output | 585246e6ed6c4cf8 |
+
+Ambos pasaron verificación de arrays, finitud, normas no nulas, consistencia
+raw/L2, índices únicos y completos, mapping de los 1657 registros, identidad del
+dataset y revisión efectiva HF. Los vectores no tienen que ser todos diferentes.
+
+Se ejecutaron primero **16 contenidos adicionales de validación por encoder**
+con las revisiones fijadas y salida separada en `artifacts/features_revision_smoke/`.
+Los smoke anteriores N=16, con revisión `unknown`, permanecen sin cambios.
+Un mismo feature_space_id puede identificar la muestra y el completo; la selección
+se controla con la firma de caché y las raíces separadas.
+
+Se reutilizaron snapshots locales, en CPU, batch 8, sin precisión mixta.
+Python 3.11.9, torch 2.14.0, Transformers 5.16.1. Tiempos observados de los comandos
+completos: DINOv2 169.84 s; CLIP 128.27 s. No son un benchmark.
+
+Los modelos y el backend de extracción procedían del commit existente al ejecutar;
+los YAML fijados estaban aún sin commit. Se conservan ese commit en metadata y
+los hashes de configuración en el recibo local, sin reescribir la procedencia.
+El commit de cierre versiona las configuraciones, auditorías y reporte.
+Ver [ejecución reproducible](week6_closure.md).
+
+## PENDIENTE / SIGUIENTE
+
+Similitud entre fotogramas (coseno por espacio); Bhattacharyya cuando exista una
+representación distribucional justificada; t-SNE; PaCMAP; DBSCAN; OPTICS;
+HDBSCAN; evaluación de estabilidad/coherencia, AMI/ARI y selección de agrupamiento;
+partición por clústeres y baseline aleatorio; entrenamiento comparativo;
+evaluación y análisis/reproducibilidad final. No se ejecutaron estas etapas.
+
+Los controles numéricos no prueban calidad semántica ni mejora de detección.
+La línea base de datos no implica que un detector baseline esté entrenado.
+
+Evidencia local: `reports/feature_engineering/` y
+`reports/feature_engineering_closure/`. Datos, arrays, hashes de contenido,
+notebook ejecutado y HTML permanecen fuera de Git.
