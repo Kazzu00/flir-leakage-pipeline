@@ -9,6 +9,7 @@ import pytest
 from PIL import Image
 
 from flir_pipeline.features.base import DeterministicFakeExtractor, l2_normalize
+from flir_pipeline.features.clip import projected_image_features
 from flir_pipeline.features.diagnostics import run_diagnostics
 from flir_pipeline.features.storage import (
     _quality,
@@ -134,3 +135,65 @@ def test_diagnostics_are_reproducible(tmp_path: Path) -> None:
     assert first["phash"].tolist() == second["phash"].tolist()
     assert first["dhash"].tolist() == second["dhash"].tolist()
     assert first["original_mode"].tolist() == ["RGB"]
+
+
+class _FakeTensor:
+    def __init__(self, values: list[list[float]]) -> None:
+        self.values = np.asarray(values, dtype=np.float32)
+
+    def detach(self) -> "_FakeTensor":
+        return self
+
+    def float(self) -> "_FakeTensor":
+        return self
+
+    def cpu(self) -> "_FakeTensor":
+        return self
+
+    def numpy(self) -> np.ndarray:
+        return self.values
+
+
+class _FakeTorch:
+    Tensor = _FakeTensor
+
+
+class _FakePoolingOutput:
+    def __init__(self, pooler_output: _FakeTensor | None) -> None:
+        self.pooler_output = pooler_output
+        self.last_hidden_state = _FakeTensor([[99.0, 99.0]])
+
+
+class _FakeClipModel:
+    def __init__(self, output: object) -> None:
+        self.output = output
+
+    def get_image_features(self, **_: object) -> object:
+        return self.output
+
+
+def test_clip_projected_output_accepts_tensor_and_pooler_output() -> None:
+    torch_module = _FakeTorch()
+    direct_model = _FakeClipModel(_FakeTensor([[1.0, 2.0, 3.0]]))
+    pooled_model = _FakeClipModel(
+        _FakePoolingOutput(_FakeTensor([[4.0, 5.0, 6.0]]))
+    )
+
+    direct = projected_image_features(direct_model.get_image_features(), torch_module)
+    pooled = projected_image_features(pooled_model.get_image_features(), torch_module)
+    direct_array = direct.detach().float().cpu().numpy()
+    pooled_array = pooled.detach().float().cpu().numpy()
+
+    assert direct_array.dtype == np.float32
+    assert pooled_array.dtype == np.float32
+    assert direct_array.shape == (1, 3)
+    assert pooled_array.shape == (1, 3)
+    assert np.array_equal(pooled_array, [[4.0, 5.0, 6.0]])
+
+
+def test_clip_projected_output_rejects_missing_pooler_output() -> None:
+    torch_module = _FakeTorch()
+    output = _FakePoolingOutput(None)
+
+    with pytest.raises(TypeError, match="pooler_output"):
+        projected_image_features(output, torch_module)

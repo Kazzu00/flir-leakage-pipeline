@@ -78,6 +78,12 @@ relationships. The follow-up exact-duplicate check writes
 uses SHA256 before calling two images byte-identical. It does not establish
 leakage or choose a canonical dataset.
 
+For CLIP, the recorded representation is explicitly
+`projected_pooler_output`: the projected image embedding returned by the image
+encoder. It is distinct from `last_hidden_state`, unprojected CLS tokens, and
+manual mean pooling. Changes to this mathematical representation produce a new
+deterministic `feature_space_id`; device and batch size do not.
+
 The candidate manifest phase uses the 1,657 image occurrences from `Imagenes.zip`
 and their matched labels from `Etiquetas.zip`. It preserves historical
 `original_split`, separates occurrence `frame_id` from exact-byte `content_id`,

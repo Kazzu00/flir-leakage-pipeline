@@ -15,6 +15,19 @@ from flir_pipeline.features.base import (
 )
 
 
+def projected_image_features(output: Any, torch_module: Any) -> Any:
+    """Select CLIP's projected image embedding across Transformers API variants."""
+    if isinstance(output, torch_module.Tensor):
+        return output
+    pooler_output = getattr(output, "pooler_output", None)
+    if pooler_output is not None:
+        return pooler_output
+    raise TypeError(
+        "CLIP get_image_features() returned neither a torch.Tensor nor "
+        "an object with a non-null pooler_output; refusing implicit pooling."
+    )
+
+
 class CLIPExtractor(FeatureExtractor):
     """CLIP image-only encoder; no text prompts or text embeddings are used."""
 
@@ -71,7 +84,8 @@ class CLIPExtractor(FeatureExtractor):
             else nullcontext()
         )
         with self._torch.inference_mode(), context:
-            embeddings = self.model.get_image_features(**inputs)
+            output = self.model.get_image_features(**inputs)
+            embeddings = projected_image_features(output, self._torch)
         return embeddings.detach().float().cpu().numpy()
 
     def metadata(self) -> dict[str, Any]:
@@ -81,6 +95,7 @@ class CLIPExtractor(FeatureExtractor):
             "model_revision": self.model_revision,
             "embedding_dimension": self.embedding_dimension,
             "feature_type": "image_embedding",
+            "pooling_strategy": "projected_pooler_output",
             "preprocessing": {
                 "processor": "transformers.AutoProcessor",
                 "model_input_mode": "RGB",
