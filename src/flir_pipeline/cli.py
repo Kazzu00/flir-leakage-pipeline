@@ -291,6 +291,38 @@ def features_verify(feature_directory: Path) -> None:
     typer.echo(json.dumps(result, indent=2))
 
 
+@features_app.command("visualize-data")
+def features_visualize_data(
+    manifest: Path = typer.Option(..., help="Candidate manifest Parquet."),
+    diagnostics: Path = typer.Option(..., help="Diagnostics Parquet."),
+    output: Path = typer.Option(Path("reports/feature_engineering"), help="Output directory."),
+) -> None:
+    """Generate descriptive visualizations for dataset composition and diagnostics."""
+    if not manifest.is_file():
+        raise typer.BadParameter(f"Manifest does not exist: {manifest}")
+    if not diagnostics.is_file():
+        raise typer.BadParameter(f"Diagnostics file does not exist: {diagnostics}")
+    from flir_pipeline.features.visualization import generate_feature_engineering_report
+
+    result = generate_feature_engineering_report(manifest, diagnostics, output)
+    typer.echo(json.dumps(result["metadata"], indent=2))
+
+
+@features_app.command("visualize-embeddings")
+def features_visualize_embeddings(
+    feature_directory: Path = typer.Option(..., help="Feature directory to visualize."),
+    output: Path = typer.Option(Path("reports/feature_engineering"), help="Output directory."),
+    label: str = typer.Option("feature", help="Label used in file names."),
+) -> None:
+    """Generate embedding health visualizations for a stored feature directory."""
+    if not feature_directory.is_dir():
+        raise typer.BadParameter(f"Feature directory does not exist: {feature_directory}")
+    from flir_pipeline.features.visualization import visualize_embedding_health
+
+    result = visualize_embedding_health(feature_directory, output, label=label)
+    typer.echo(json.dumps(result["stats"], indent=2))
+
+
 @app.command()
 def similarity() -> None:
     """Similarity analysis commands."""
