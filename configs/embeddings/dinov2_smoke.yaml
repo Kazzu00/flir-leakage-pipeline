@@ -1,4 +1,8 @@
+# Infrastructure validation. Pass --limit-content 16 --seed 0 explicitly.
+# null resolves the default HF revision; record the resolved SHA in metadata.
 extractor: dinov2
+model_revision: null
+require_resolved_revision: false
 model_id: facebook/dinov2-small
 pooling_strategy: cls_token
 device: cpu

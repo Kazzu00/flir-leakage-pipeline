@@ -39,6 +39,8 @@ CONCEPTS = (
 
 @dataclass
 class FileInventory:
+    """One external file described with portable relative paths and optional QA."""
+
     filename: str
     relative_path: str
     extension: str
@@ -53,6 +55,8 @@ class FileInventory:
 
 @dataclass
 class ArchiveMember:
+    """ZIP member facts; SHA256 identifies exact bytes, not inferred sequence."""
+
     archive_name: str
     member_path: str
     filename: str
@@ -69,6 +73,8 @@ class ArchiveMember:
 
 @dataclass
 class ArchiveInspection:
+    """Structural ZIP audit with counts and read errors; never an extracted dataset."""
+
     archive_name: str
     total_members: int = 0
     total_files: int = 0
@@ -95,6 +101,7 @@ def _normalise_member_path(name: str) -> str:
 
 
 def classify_member(name: str) -> str:
+    """Classify by extension for discovery; this does not validate file contents."""
     extension = _extension(name)
     if extension in IMAGE_EXTENSIONS:
         return "image"
@@ -334,6 +341,7 @@ def _filename_features(member: ArchiveMember) -> dict:
 
 
 def filename_patterns(members: list[ArchiveMember]) -> list[dict]:
+    """Return exploratory sequence/frame guesses and confidence, never timestamps."""
     return [
         _filename_features(member) for member in members if member.file_type == "image"
     ]
@@ -393,6 +401,11 @@ def label_content_rows(root: Path, members: list[ArchiveMember]) -> list[dict]:
 
 
 def temporal_neighbors(members: list[ArchiveMember]) -> list[dict]:
+    """Return closest filename-index candidates per sequence and historical split pair.
+
+    Candidates do not prove temporal adjacency; authoritative video lineage is
+    required before using this metadata to evaluate temporal coherence.
+    """
     rows = filename_patterns(members)
     grouped: dict[str, list[dict]] = defaultdict(list)
     for row in rows:
@@ -598,12 +611,6 @@ def _relationship(count_a: int, count_b: int, overlap: int) -> str:
     if overlap == count_b:
         return "SUPERSET"
     return "PARTIAL_OVERLAP"
-
-
-def _safe_json(value):
-    if isinstance(value, Path):
-        return value.as_posix()
-    return value
 
 
 def run_inventory(
@@ -893,7 +900,7 @@ def _write_findings(
         "## Inferencias",
         "",
         "- Los índices de frame y secuencias se extraen únicamente como features exploratorias de regex; la confianza se conserva por fila.",
-        "- Los seis vecinos nominales son candidatos a proximidad temporal cross-split, porque sus nombres comparten secuencia e índice o índices cercanos; todavía no prueban procedencia temporal ni identidad visual.",
+        "- Los vecinos nominales reportados son candidatos a proximidad temporal cross-split, porque sus nombres comparten secuencia e índice o índices cercanos; todavía no prueban procedencia temporal ni identidad visual.",
         "- Imagenes.zip + Etiquetas.zip parecen el candidato más cercano al conjunto reportado de 1657 frames por counts y splits, pero su correspondencia no es completa y no se declara fuente canónica.",
         "- Las relaciones de contenido solo son concluyentes cuando exact_hash_overlap fue calculado con --hash-members.",
         "- La igualdad de tamaños, nombres o estructuras no demuestra igualdad de contenido.",
@@ -903,7 +910,7 @@ def _write_findings(
         "- La coincidencia observacional entre 778 en el nombre del ZIP y la duración contextual aproximada de 777 segundos no demuestra identidad del video.",
         "- Dataset_Balanceado y dataset_split_completo no son idénticos como conjuntos de archivos aunque comparten casi todas sus imágenes; sus labels y estructura deben investigarse antes de elegir uno.",
         "- No se puede decidir definitivamente el dataset canónico sin procedencia original, revisión de duplicados visuales, validación de imágenes y explicación de labels ausentes/adicionales.",
-        "- La validación de contenido YOLO, decodificación de imágenes, metadatos de video y decisión canónica quedan para fases posteriores.",
+        "- Este comando solo inventaría archivos. La validación YOLO y el manifiesto canónico tienen comandos separados; los metadatos temporales originales siguen pendientes.",
         "- Los reportes generados desde datos reales deben revisarse antes de publicar hashes o conteos detallados.",
     ]
     (output / "findings.md").write_text("\n".join(lines) + "\n", encoding="utf-8")

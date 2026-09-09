@@ -8,7 +8,12 @@ from dataclasses import dataclass, field
 
 @dataclass
 class LabelValidationResult:
-    """Validation and lightweight geometry statistics for one label."""
+    """Non-mutating YOLO QA result, including errors and canonical box tuples.
+
+    Empty labels are valid backgrounds. ``canonical`` sorts boxes and rounds to
+    ten decimals for duplicate-annotation comparison; it never rewrites sources.
+    Geometry validity is separate from syntax and normalized-coordinate validity.
+    """
 
     label_empty: bool
     syntax_valid: bool
@@ -35,7 +40,13 @@ def _number(value: str) -> float:
 
 
 def validate_label_text(text: str) -> LabelValidationResult:
-    """Validate a YOLO label string without correcting its contents."""
+    """Validate classic class/x-center/y-center/width/height lines without edits.
+
+    Require integer nonnegative classes, finite normalized coordinates, positive
+    size and corners inside the image. Slight corner overflow is still invalid,
+    with a warning. Return QA/statistics, not a corrected label or a class ontology
+    check; the five observed classes are a dataset finding, not a parser constant.
+    """
     lines = [line.strip() for line in text.splitlines() if line.strip()]
     if not lines:
         return LabelValidationResult(

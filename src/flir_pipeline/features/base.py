@@ -21,7 +21,13 @@ class PreprocessedImage:
 
 
 class FeatureExtractor(ABC):
-    """Model-agnostic interface used by storage and downstream analyses."""
+    """Image-only contract consumed by content-level embedding storage.
+
+    Implementations preserve batch order and return a finite float array of shape
+    (batch length, embedding_dimension). Storage owns content deduplication,
+    record mapping and L2 normalization; adapters never consume annotations or
+    original_split. DINOv2 and CLIP define separate mathematical spaces.
+    """
 
     name: str
     model_id: str
@@ -33,14 +39,18 @@ class FeatureExtractor(ABC):
 
     @abstractmethod
     def encode_batch(self, batch: list[Any]) -> np.ndarray:
-        """Encode a preprocessed batch and return raw float embeddings."""
+        """Return raw (N, D) vectors in input order; do not normalize or deduplicate."""
 
     @abstractmethod
     def metadata(self) -> dict[str, Any]:
         """Return serializable runtime and model metadata."""
 
     def feature_space_config(self) -> dict[str, Any]:
-        """Return only settings that define the mathematical feature space."""
+        """Return weight, pooling and preprocessing identity for deterministic hashing.
+
+        Runtime device and batch size are excluded. Resolved model commits affect
+        identity so distinct weights cannot silently share a cache.
+        """
         metadata = self.metadata()
         return {
             "extractor": self.name,
@@ -89,6 +99,10 @@ class DeterministicFakeExtractor(FeatureExtractor):
 
     def preprocess(self, image: Image.Image) -> PreprocessedImage:
         return PreprocessedImage(image=image.convert("RGB"), original_mode=image.mode)
+
+    def feature_space_config(self) -> dict[str, Any]:
+        """Include the configurable fake dimension to avoid test-cache collisions."""
+        return {**super().feature_space_config(), "embedding_dimension": self.embedding_dimension}
 
     def encode_batch(self, batch: list[PreprocessedImage]) -> np.ndarray:
         rows = []

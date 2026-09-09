@@ -1,4 +1,9 @@
+# PLANNED research candidate, not an executed experiment or final model choice.
+# Set a full HF commit SHA before the final run; unresolved revisions are refused.
+# Batch size 8 is a starting value to validate on the target hardware.
 extractor: dinov2
+model_revision: null
+require_resolved_revision: true
 model_id: facebook/dinov2-base
 pooling_strategy: cls_token
 device: auto

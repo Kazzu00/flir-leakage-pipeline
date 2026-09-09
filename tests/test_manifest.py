@@ -4,6 +4,7 @@ from zipfile import ZIP_DEFLATED, ZipFile
 
 from PIL import Image
 
+from flir_pipeline.data.identity import dataset_id_from_manifest
 from flir_pipeline.data.manifest import build_manifest
 from flir_pipeline.data.yolo_labels import validate_label_text
 
@@ -76,6 +77,10 @@ def test_build_manifest_preserves_occurrences_and_orphans(tmp_path: Path) -> Non
     assert set(dataframe["original_split"]) == {"train", "val"}
     assert dataframe["label_valid"].all()
     assert dataframe["cross_split_exact_duplicate"].all()
+    assert dataset_id_from_manifest(dataframe) == summary["dataset_id"]
+    assert dataset_id_from_manifest(dataframe.iloc[::-1]) == summary["dataset_id"]
+    dataframe.loc[0, "label_sha256"] = "changed-label"
+    assert dataset_id_from_manifest(dataframe) != summary["dataset_id"]
     assert all("C:\\" not in value for value in dataframe["source_member_path"])
     assert len(pd.read_csv(report_path / "orphan_labels.csv")) == 1
     assert len(pd.read_csv(report_path / "duplicate_annotation_consistency.csv")) == 1

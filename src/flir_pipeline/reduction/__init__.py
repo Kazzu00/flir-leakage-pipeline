@@ -1,1 +1,1 @@
-"""Dimensionality reduction interfaces."""
+"""PLANNED: t-SNE and PaCMAP experiments; no implementation yet."""

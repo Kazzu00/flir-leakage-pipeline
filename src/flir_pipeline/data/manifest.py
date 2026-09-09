@@ -18,6 +18,7 @@ from PIL import Image
 from tqdm import tqdm
 
 from flir_pipeline import __version__
+from flir_pipeline.data.identity import dataset_id_from_manifest
 from flir_pipeline.data.inventory import (
     ArchiveMember,
     _basename,
@@ -52,6 +53,11 @@ def _channels(image: Image.Image) -> int:
 
 
 def _stable_id(*parts: str) -> str:
+    """Hash portable occurrence parts with a separator; never include machine paths.
+
+    frame_id uses archive basename, normalized member path and exact image SHA256.
+    content_id is the image SHA256 itself, independent of occurrence and labels.
+    """
     return hashlib.sha256("\x1f".join(parts).encode("utf-8")).hexdigest()
 
 
@@ -257,7 +263,8 @@ def _write_findings(
         "",
         f"- The candidate manifest contains {len(rows)} image occurrences.",
         f"- {sum(bool(row['label_exists']) for row in rows)} occurrences have matched labels; {len(orphan_rows)} labels are orphaned and excluded.",
-        f"- Valid labels: {sum(row['label_valid'] for row in rows)}; empty labels: {empty}; invalid labels: {len(invalid)}.",
+        f"- Candidate matched-label scope: valid={sum(row['label_valid'] for row in rows)}; empty={sum(row['label_empty'] for row in rows)}; objects={sum(row['num_objects'] for row in rows)}.",
+        f"- Entire label-archive scope (including orphans): empty={empty}; invalid={len(invalid)}; objects={sum(row['num_objects'] for row in label_records)}.",
         f"- Classes observed: {', '.join(classes) if classes else 'none'}.",
         f"- Unique content IDs: {duplicate_summary['unique_content_ids']}; cross-split duplicate records: {duplicate_summary['cross_split_duplicate_records']}.",
         f"- Cross-split duplicate content IDs: {duplicate_summary['cross_split_duplicate_content_ids']}.",
@@ -284,7 +291,14 @@ def build_manifest(
     report_output: Path,
     comparison_root: Path | None = None,
 ) -> dict:
-    """Build the candidate manifest without extracting or modifying either ZIP."""
+    """Write a Parquet occurrence manifest and local QA reports from source ZIPs.
+
+    Match labels by normalized split and basename; retain every image occurrence
+    and report orphan labels separately. frame_id identifies an occurrence,
+    content_id identifies exact bytes, and duplicate_group_id marks repeated
+    content. original_split and annotations are provenance/EDA fields only.
+    Inputs are read-only; the returned summary identifies the canonical version.
+    """
     output.parent.mkdir(parents=True, exist_ok=True)
     report_output.mkdir(parents=True, exist_ok=True)
     _, image_members = inspect_archive(images_archive)
@@ -454,13 +468,7 @@ def build_manifest(
         "proportion_val_with_exact_train_duplicate": len(val_content & train_content) / (split_counts["val"] or 1),
         "proportion_test_with_exact_train_duplicate": len(test_content & train_content) / test_count,
     }
-    dataset_id_items = sorted(
-        (row["frame_id"], row["image_sha256"], row["label_sha256"]) for row in rows
-    )
-    dataset_id = _stable_id(
-        MANIFEST_VERSION,
-        json.dumps(dataset_id_items, separators=(",", ":"), ensure_ascii=True),
-    )
+    dataset_id = dataset_id_from_manifest(dataframe)
     metadata = {
         "dataset_id": dataset_id,
         "manifest_version": MANIFEST_VERSION,
@@ -481,6 +489,10 @@ def build_manifest(
         encoding="utf-8",
     )
     label_summary = {
+        "scope": "entire_label_archive_including_orphans",
+        "candidate_valid_labels": sum(row["label_valid"] for row in rows),
+        "candidate_empty_labels": sum(row["label_empty"] for row in rows),
+        "candidate_objects": sum(row["num_objects"] for row in rows),
         "total_labels": len(label_records),
         "valid_labels": sum(record["label_valid"] for record in label_records),
         "invalid_labels": len(invalid_rows),
@@ -506,6 +518,7 @@ def validate_labels_archive(labels_archive: Path, report_output: Path) -> dict:
     _write_csv(report_output / "invalid_labels.csv", invalid, list(invalid[0]) if invalid else ["member_path", "label_errors"])
     _write_csv(report_output / "geometry_warnings.csv", warnings, list(warnings[0]) if warnings else ["member_path", "label_warnings"])
     summary = {
+        "scope": "entire_label_archive_including_orphans",
         "total_labels": len(records),
         "valid_labels": len(records) - len(invalid),
         "invalid_labels": len(invalid),

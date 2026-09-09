@@ -1,40 +1,69 @@
-# Local environment and secrets
+# Local environment, credentials and tooling
 .env
+.env.*
+!.env.example
 .venv/
+.venv-*/
 __pycache__/
 .pytest_cache/
 .ruff_cache/
 .ipynb_checkpoints/
+.cache/
+.coverage*
+htmlcov/
+dist/
+build/
+*.egg-info/
+*.pem
+*.key
+credentials*.json
 
-# Datasets, media and model artifacts
+# Real datasets and annotations stay outside Git; placeholders only
+data/**
+!data/**/
+!data/**/.gitkeep
+datasets/
+labels/
+images/
+videos/
 *.zip
+*.tar
+*.gz
+*.tgz
+*.rar
+*.7z
+*.jpg
+*.jpeg
+*.png
+*.bmp
+*.tif
+*.tiff
+*.webp
+*.mp4
+*.mov
+*.avi
+*.mkv
+
+# Weights, model caches, embeddings and inventories
 *.pt
 *.pth
 *.ckpt
 *.onnx
-*.mp4
-*.mov
-*.avi
+*.safetensors
+*.bin
 *.npy
 *.npz
-data/raw/
-data/external/
+*.parquet
+*.arrow
+models/
+model_cache/
+hf_cache/
 artifacts/
-!artifacts/.gitkeep
-artifacts/features/
 mlruns/
 
-# Generated reports and local tooling output
-reports/figures/*
-reports/tables/*
-reports/experiment_logs/*
-reports/data_inventory/
-reports/data_manifest*/
-reports/feature_engineering/
-reports/feature_engineering/jp_review/
-data/manifests/*.parquet
-data/manifests/*.csv
-data/manifests/*.json
-!reports/figures/.gitkeep
-!reports/tables/.gitkeep
-!reports/experiment_logs/.gitkeep
+# All generated reports are local, including code review and executed notebooks
+reports/**
+!reports/**/
+!reports/**/.gitkeep
+*.executed.ipynb
+*.html

@@ -17,12 +17,18 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
+from flir_pipeline.data.identity import dataset_id_from_manifest
 from flir_pipeline.features.base import FeatureExtractor, l2_normalize
 from flir_pipeline.features.preprocessing import decode_zip_image
 
 
 def feature_space_id(config: dict[str, Any]) -> str:
-    """Hash only mathematical feature-space configuration, not runtime knobs."""
+    """Return a 16-hex SHA256 prefix of canonical mathematical configuration.
+
+    Sorted JSON includes model/revision, pooling, preprocessing and normalization.
+    Device, batch size and timestamps do not change identity. Dataset membership
+    and sampled content belong to the separate cache signature.
+    """
     excluded = {"device", "batch_size", "created_at", "timestamp"}
     canonical = {key: value for key, value in config.items() if key not in excluded}
     payload = json.dumps(canonical, sort_keys=True, separators=(",", ":"), default=str)
@@ -37,29 +43,6 @@ def _git_commit() -> str:
         return result.stdout.strip()
     except (OSError, subprocess.CalledProcessError):
         return "unknown"
-
-
-def _dataset_id_from_manifest(manifest: pd.DataFrame) -> str:
-    for candidate in (
-        Path("reports/data_manifest/manifest_summary.json"),
-        Path("reports/data_manifest/manifest_metadata.json"),
-    ):
-        if candidate.is_file():
-            try:
-                data = json.loads(candidate.read_text(encoding="utf-8"))
-                if data.get("dataset_id"):
-                    return data["dataset_id"]
-            except json.JSONDecodeError:
-                pass
-    values = sorted(
-        zip(
-            manifest["frame_id"].astype(str),
-            manifest["image_sha256"].astype(str),
-            manifest["label_sha256"].astype(str),
-            strict=True,
-        )
-    )
-    return hashlib.sha256(json.dumps(values, separators=(",", ":")).encode()).hexdigest()
 
 
 def _selected_content(manifest: pd.DataFrame, limit_content: int | None, seed: int) -> pd.DataFrame:
@@ -82,8 +65,26 @@ def _atomic_json(path: Path, data: dict) -> None:
 
 
 def _quality(raw: np.ndarray, normalized: np.ndarray, content_index: pd.DataFrame, record_index: pd.DataFrame) -> dict:
-    norms = np.linalg.norm(normalized, axis=1)
-    return {
+    """Check numerical health and both directions of the content/occurrence map."""
+    shape_valid = raw.ndim == normalized.ndim == 2 and raw.shape == normalized.shape and len(raw) > 0
+    norms = np.linalg.norm(normalized, axis=1) if normalized.ndim == 2 else np.array([])
+    index_valid = (
+        len(content_index) == len(raw)
+        and content_index["content_id"].is_unique
+        and not content_index["content_id"].isna().any()
+        and np.array_equal(content_index["embedding_row"], np.arange(len(raw)))
+        and record_index["frame_id"].is_unique
+        and not record_index[["frame_id", "content_id"]].isna().any().any()
+    )
+    mapping_valid = False
+    if index_valid and "embedding_row" in record_index:
+        rows = content_index.set_index("content_id")["embedding_row"]
+        expected = record_index["content_id"].map(rows).fillna(-1)
+        mapping_valid = bool(
+            expected.eq(record_index["embedding_row"]).all()
+            and set(content_index["content_id"]) <= set(record_index["content_id"])
+        )
+    result = {
         "content_embedding_count": int(len(raw)),
         "embedding_dimension": int(raw.shape[1]) if raw.ndim == 2 else 0,
         "raw_has_nan": bool(np.isnan(raw).any()),
@@ -95,8 +96,14 @@ def _quality(raw: np.ndarray, normalized: np.ndarray, content_index: pd.DataFram
         "content_id_unique": bool(content_index["content_id"].is_unique),
         "embedding_row_unique": bool(content_index["embedding_row"].is_unique),
         "record_frame_id_unique": bool(record_index["frame_id"].is_unique),
+        "array_shape_valid": bool(shape_valid),
+        "index_valid": bool(index_valid),
+        "record_mapping_valid": mapping_valid,
         "quality_valid": bool(
-            not np.isnan(raw).any()
+            shape_valid
+            and index_valid
+            and mapping_valid
+            and not np.isnan(raw).any()
             and not np.isinf(raw).any()
             and not np.isnan(normalized).any()
             and not np.isinf(normalized).any()
@@ -104,6 +111,10 @@ def _quality(raw: np.ndarray, normalized: np.ndarray, content_index: pd.DataFram
             and np.allclose(norms, 1.0, atol=1e-5)
         ),
     }
+    if shape_valid and result["quality_valid"]:
+        expected_l2, _ = l2_normalize(raw)
+        result["quality_valid"] = bool(np.allclose(expected_l2, normalized, atol=1e-5))
+    return result
 
 
 def extract_to_store(
@@ -116,9 +127,23 @@ def extract_to_store(
     limit_content: int | None = None,
     seed: int = 0,
 ) -> Path:
-    """Extract one embedding per content ID with resumable atomic storage."""
+    """Store one raw/L2 float32 row per selected content_id from a read-only ZIP.
+
+    The Parquet manifest supplies occurrences and source-member paths. Exact
+    copies share a vector so future density clustering does not count them twice;
+    record_index preserves all frame_id, using -1 for unsampled smoke contents.
+    A single writer flushes each batch before atomically advancing its checkpoint.
+    Resume requires the same dataset, space and selection. Metadata is written
+    last as the completion marker. Existing valid artifacts are reused, never
+    migrated in place. Return the final feature directory.
+    """
+    if batch_size < 1:
+        raise ValueError("batch_size must be positive")
     manifest = pd.read_parquet(manifest_path)
-    dataset_id = dataset_id or _dataset_id_from_manifest(manifest)
+    if manifest.empty:
+        raise ValueError("Cannot extract features from an empty manifest")
+    computed_dataset_id = dataset_id_from_manifest(manifest)
+    dataset_id = dataset_id or computed_dataset_id
     selected = _selected_content(manifest, limit_content, seed)
     config = extractor.feature_space_config()
     space_id = feature_space_id(config)
@@ -136,6 +161,8 @@ def extract_to_store(
         existing = json.loads(final_metadata.read_text(encoding="utf-8"))
         if existing.get("cache_signature") != signature:
             raise RuntimeError("Existing feature cache does not match dataset/config selection")
+        if not verify_feature_directory(feature_dir)["quality_valid"]:
+            raise RuntimeError("Existing feature cache failed verification; preserve it for inspection")
         return feature_dir
     partial = feature_dir / ".partial"
     partial.mkdir(exist_ok=True)
@@ -145,6 +172,8 @@ def extract_to_store(
         if checkpoint.get("signature") != signature:
             raise RuntimeError("Partial feature cache does not match dataset/config selection")
         completed = int(checkpoint["completed"])
+        if checkpoint.get("embedding_dimension") != extractor.embedding_dimension:
+            raise RuntimeError("Partial feature cache has a different embedding dimension")
     else:
         completed = 0
         _atomic_json(
@@ -154,6 +183,10 @@ def extract_to_store(
     total = len(selected)
     raw_path = partial / "embeddings_raw.npy"
     l2_path = partial / "embeddings_l2.npy"
+    if not 0 <= completed <= total:
+        raise RuntimeError("Partial feature checkpoint has an invalid completed count")
+    if completed and not (raw_path.is_file() and l2_path.is_file()):
+        raise RuntimeError("Partial feature arrays are missing; preserve this interrupted publication for inspection")
     mode = "r+" if raw_path.exists() and l2_path.exists() else "w+"
     raw = np.lib.format.open_memmap(
         raw_path,
@@ -167,6 +200,8 @@ def extract_to_store(
         dtype=np.float32,
         shape=(total, extractor.embedding_dimension),
     )
+    if raw.shape != (total, extractor.embedding_dimension) or normalized.shape != raw.shape:
+        raise RuntimeError("Partial feature arrays do not match the checkpoint shape")
     with zipfile.ZipFile(images_archive) as archive:
         for start in tqdm(range(completed, total, batch_size), desc=f"Extracting {extractor.name}", unit="batch"):
             stop = min(start + batch_size, total)
@@ -216,6 +251,8 @@ def extract_to_store(
     l2_final = np.load(feature_dir / "embeddings_l2.npy", mmap_mode="r")
     quality = _quality(raw_final, l2_final, content_index, record_index)
     (feature_dir / "feature_quality.json").write_text(json.dumps(quality, indent=2), encoding="utf-8")
+    if not quality["quality_valid"]:
+        raise RuntimeError("Extracted feature quality is invalid; metadata completion marker was not written")
     metadata = {
         **extractor.metadata(),
         "dataset_id": dataset_id,
@@ -226,6 +263,7 @@ def extract_to_store(
         "unique_content_ids": int(manifest["content_id"].nunique()),
         "selected_content_ids": total,
         "seed": seed,
+        "batch_size": batch_size,
         "python_version": platform.python_version(),
         "git_commit": _git_commit(),
         "created_at": datetime.now(UTC).isoformat(),

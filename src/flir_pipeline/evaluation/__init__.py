@@ -1,1 +1,1 @@
-"""Evaluation and experiment reporting interfaces."""
+"""PLANNED: cluster stability, visual/temporal coherence, AMI/ARI and partition/detector evaluation; no implementation yet."""

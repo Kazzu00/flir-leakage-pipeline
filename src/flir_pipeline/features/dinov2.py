@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from contextlib import nullcontext
+from importlib.metadata import version
 from typing import Any
 
 import numpy as np
@@ -13,10 +14,17 @@ from flir_pipeline.features.base import (
     PreprocessedImage,
     resolve_device,
 )
+from flir_pipeline.features.model_revision import resolve_model_revision
+from flir_pipeline.features.preprocessing import ensure_rgb
 
 
 class DinoV2Extractor(FeatureExtractor):
-    """DINOv2 CLS-token extractor; model weights load only at construction."""
+    """Encode RGB image batches as raw float32 DINOv2 CLS-token vectors.
+
+    Construction loads weights on demand; importing this module stays offline.
+    The store supplies one image per content_id, with no labels or split input.
+    Model and processor share the resolved revision whenever HF exposes it.
+    """
 
     name = "dinov2"
 
@@ -28,6 +36,7 @@ class DinoV2Extractor(FeatureExtractor):
         mixed_precision: bool = False,
         local_files_only: bool = False,
         model_revision: str | None = None,
+        require_resolved_revision: bool = False,
     ) -> None:
         try:
             import torch
@@ -44,20 +53,27 @@ class DinoV2Extractor(FeatureExtractor):
         self.batch_size = batch_size
         self.mixed_precision = mixed_precision and self.device == "cuda"
         self.local_files_only = local_files_only
-        self.model_revision = model_revision or "unknown"
         load_kwargs = {"local_files_only": local_files_only}
         if model_revision:
             load_kwargs["revision"] = model_revision
-        self.processor = AutoImageProcessor.from_pretrained(model_id, **load_kwargs)
         self.model = AutoModel.from_pretrained(model_id, **load_kwargs).to(self.device)
+        self.revision = resolve_model_revision(
+            self.model.config, model_revision, require_resolved_revision
+        )
+        self.model_revision = self.revision.effective
+        if self.revision.resolved:
+            load_kwargs["revision"] = self.revision.resolved
+        self.processor = AutoImageProcessor.from_pretrained(model_id, **load_kwargs)
         self.model.eval()
         self.embedding_dimension = int(self.model.config.hidden_size)
         self._torch = torch
 
     def preprocess(self, image: Image.Image) -> PreprocessedImage:
-        return PreprocessedImage(image=image.convert("RGB"), original_mode=image.mode)
+        """Convert a decoded image to RGB in memory, preserving its source mode."""
+        return ensure_rgb(image)
 
     def encode_batch(self, batch: list[PreprocessedImage]) -> np.ndarray:
+        """Return (batch, hidden_size) CLS vectors in input order, without L2 scaling."""
         inputs = self.processor(
             images=[item.image for item in batch], return_tensors="pt"
         )
@@ -76,10 +92,12 @@ class DinoV2Extractor(FeatureExtractor):
         return embeddings.detach().float().cpu().numpy()
 
     def metadata(self) -> dict[str, Any]:
+        """Describe representation, resolved weights and runtime for a local artifact."""
         return {
             "extractor": self.name,
             "model_id": self.model_id,
-            "model_revision": self.model_revision,
+            **self.revision.metadata(),
+            "library_versions": {name: version(name) for name in ("torch", "transformers")},
             "embedding_dimension": self.embedding_dimension,
             "pooling_strategy": "cls_token",
             "preprocessing": {

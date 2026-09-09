@@ -8,9 +8,13 @@ import pandas as pd
 import pytest
 
 from flir_pipeline.features.visualization import (
+    _class_distribution_rows,
     _cross_split_duplicate_matrix,
     _cross_split_overlap_values,
+    _empty_label_summary,
     _laplacian_variance_figure,
+    _summarize_duplicate_structure,
+    discover_feature_directories,
     generate_feature_engineering_report,
     visualize_embedding_health,
 )
@@ -135,6 +139,9 @@ def test_generate_feature_engineering_report_creates_outputs(tmp_path: Path) -> 
     assert "absolute" not in json.dumps(result["metadata"]).lower()
     values = pd.read_csv(output_dir / "tables" / "dataset_summary.csv").to_numpy(dtype=float)
     assert np.isfinite(values).all()
+    report = (output_dir / "feature_engineering_report.md").read_text()
+    assert "3 records but 2 unique contents" in report
+    assert result["embedding_status"] == {"dinov2": "pending", "clip": "pending"}
 
 
 def test_visualize_embedding_health_handles_arbitrary_dimensions(tmp_path: Path) -> None:
@@ -212,3 +219,21 @@ def test_visualize_embedding_health_rejects_missing_arrays(tmp_path: Path) -> No
 
     with pytest.raises(ValueError, match="missing embedding arrays"):
         visualize_embedding_health(feature_dir, tmp_path / "out")
+
+
+def test_report_units_and_ambiguous_discovery(tmp_path: Path) -> None:
+    manifest = _manifest_df()
+    manifest["label_valid"] = True  # Empty labels are also valid.
+    labels = _empty_label_summary(manifest).set_index("label_status")["count"]
+    assert labels["labels_with_objects"] == 2
+    assert labels["empty_labels"] == 1
+    assert _class_distribution_rows(manifest).set_index("class_id").loc["0", "count"] == 2
+    duplicates = _summarize_duplicate_structure(manifest)
+    assert duplicates["duplicate_records"] == 2
+    assert duplicates["difference_absolute"] == 1
+    for name in ("first", "second"):
+        feature = tmp_path / "dinov2" / "dataset" / name
+        feature.mkdir(parents=True)
+        (feature / "metadata.json").write_text("{}")
+    with pytest.raises(ValueError, match="Multiple dinov2"):
+        discover_feature_directories(tmp_path)

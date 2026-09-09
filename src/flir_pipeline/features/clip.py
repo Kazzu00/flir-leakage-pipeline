@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from contextlib import nullcontext
+from importlib.metadata import version
 from typing import Any
 
 import numpy as np
@@ -13,6 +14,8 @@ from flir_pipeline.features.base import (
     PreprocessedImage,
     resolve_device,
 )
+from flir_pipeline.features.model_revision import resolve_model_revision
+from flir_pipeline.features.preprocessing import ensure_rgb
 
 
 def projected_image_features(output: Any, torch_module: Any) -> Any:
@@ -29,7 +32,12 @@ def projected_image_features(output: Any, torch_module: Any) -> Any:
 
 
 class CLIPExtractor(FeatureExtractor):
-    """CLIP image-only encoder; no text prompts or text embeddings are used."""
+    """Encode image batches as raw float32 CLIP projected image embeddings.
+
+    No text prompts, labels, bounding boxes or historical splits enter the image
+    encoder. Storage deduplicates content and normalizes vectors separately.
+    Weights load only at construction; model and processor revisions are paired.
+    """
 
     name = "clip"
 
@@ -41,6 +49,7 @@ class CLIPExtractor(FeatureExtractor):
         mixed_precision: bool = False,
         local_files_only: bool = False,
         model_revision: str | None = None,
+        require_resolved_revision: bool = False,
     ) -> None:
         try:
             import torch
@@ -56,20 +65,27 @@ class CLIPExtractor(FeatureExtractor):
             raise RuntimeError("CUDA was requested but torch.cuda.is_available() is false")
         self.batch_size = batch_size
         self.mixed_precision = mixed_precision and self.device == "cuda"
-        self.model_revision = model_revision or "unknown"
         load_kwargs = {"local_files_only": local_files_only}
         if model_revision:
             load_kwargs["revision"] = model_revision
-        self.processor = AutoProcessor.from_pretrained(model_id, **load_kwargs)
         self.model = CLIPModel.from_pretrained(model_id, **load_kwargs).to(self.device)
+        self.revision = resolve_model_revision(
+            self.model.config, model_revision, require_resolved_revision
+        )
+        self.model_revision = self.revision.effective
+        if self.revision.resolved:
+            load_kwargs["revision"] = self.revision.resolved
+        self.processor = AutoProcessor.from_pretrained(model_id, **load_kwargs)
         self.model.eval()
         self.embedding_dimension = int(self.model.config.projection_dim)
         self._torch = torch
 
     def preprocess(self, image: Image.Image) -> PreprocessedImage:
-        return PreprocessedImage(image=image.convert("RGB"), original_mode=image.mode)
+        """Convert a decoded image to RGB in memory, preserving its source mode."""
+        return ensure_rgb(image)
 
     def encode_batch(self, batch: list[PreprocessedImage]) -> np.ndarray:
+        """Return (batch, projection_dim) vectors; refuse implicit alternate pooling."""
         inputs = self.processor(
             images=[item.image for item in batch], return_tensors="pt"
         )
@@ -89,10 +105,12 @@ class CLIPExtractor(FeatureExtractor):
         return embeddings.detach().float().cpu().numpy()
 
     def metadata(self) -> dict[str, Any]:
+        """Describe the projected representation, weight provenance and runtime."""
         return {
             "extractor": self.name,
             "model_id": self.model_id,
-            "model_revision": self.model_revision,
+            **self.revision.metadata(),
+            "library_versions": {name: version(name) for name in ("torch", "transformers")},
             "embedding_dimension": self.embedding_dimension,
             "feature_type": "image_embedding",
             "pooling_strategy": "projected_pooler_output",

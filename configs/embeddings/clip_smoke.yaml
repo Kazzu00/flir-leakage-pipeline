@@ -1,4 +1,8 @@
+# Infrastructure validation. Pass --limit-content 16 --seed 0 explicitly.
+# null resolves the default HF revision; record the resolved SHA in metadata.
 extractor: clip
+model_revision: null
+require_resolved_revision: false
 model_id: openai/clip-vit-base-patch32
 feature_type: image_embedding
 device: cpu

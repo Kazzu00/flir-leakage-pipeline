@@ -1,4 +1,5 @@
 import hashlib
+import json
 from io import BytesIO
 from pathlib import Path
 from zipfile import ZIP_DEFLATED, ZipFile
@@ -70,6 +71,7 @@ def test_fake_extractor_and_feature_space_identity() -> None:
     assert feature_space_id(base) == feature_space_id({**base, "batch_size": 32})
     assert feature_space_id(base) != feature_space_id({**base, "model_id": "y"})
     assert feature_space_id(base) != feature_space_id({**base, "pooling_strategy": "mean"})
+    assert feature_space_id(extractor.feature_space_config()) != feature_space_id(DeterministicFakeExtractor(5).feature_space_config())
 
 
 def test_content_level_storage_and_resume(tmp_path: Path) -> None:
@@ -98,8 +100,53 @@ def test_content_level_storage_and_resume(tmp_path: Path) -> None:
     assert len(record_index) == 2
     assert record_index["embedding_row"].tolist() == [0, 0]
     assert result["quality_valid"]
+    record_index.loc[0, "embedding_row"] = 99
+    record_index.to_parquet(feature_dir / "record_index.parquet", index=False)
+    assert not verify_feature_directory(feature_dir)["quality_valid"]
+    with pytest.raises(RuntimeError, match="verification"):
+        extract_to_store(manifest, archive, extractor, tmp_path / "artifacts")
     with pytest.raises(ValueError, match="limit_content"):
         extract_to_store(manifest, archive, extractor, tmp_path / "artifacts", limit_content=0)
+
+
+def test_resume_after_an_interrupted_batch(tmp_path: Path) -> None:
+    archive = tmp_path / "images.zip"
+    manifest = tmp_path / "manifest.parquet"
+    rows, members = [], {}
+    for index, color in enumerate(("red", "blue", "green")):
+        buffer = BytesIO()
+        Image.new("RGB", (5, 5), color).save(buffer, format="PNG")
+        content = buffer.getvalue()
+        image_hash = hashlib.sha256(content).hexdigest()
+        member = f"train/{index}.png"
+        members[member] = content
+        rows.append({"frame_id": f"frame-{index}", "content_id": image_hash, "image_sha256": image_hash, "label_sha256": "label", "source_archive": archive.name, "source_member_path": member})
+    _write_zip(archive, members)
+    pd.DataFrame(rows).to_parquet(manifest, index=False)
+
+    class Interruptible(DeterministicFakeExtractor):
+        calls = 0
+        fail = True
+
+        def encode_batch(self, batch):
+            self.calls += 1
+            if self.fail and self.calls == 2:
+                raise RuntimeError("synthetic interruption")
+            return super().encode_batch(batch)
+
+    extractor = Interruptible(6)
+    with pytest.raises(RuntimeError, match="synthetic interruption"):
+        extract_to_store(manifest, archive, extractor, tmp_path / "out", batch_size=1)
+    checkpoint = next((tmp_path / "out").rglob("checkpoint.json"))
+    assert json.loads(checkpoint.read_text())["completed"] == 1
+    extractor.fail = False
+    extractor.calls = 0
+    resumed = extract_to_store(manifest, archive, extractor, tmp_path / "out", batch_size=1)
+    assert extractor.calls == 2
+    assert not checkpoint.exists()
+    clean = extract_to_store(manifest, archive, DeterministicFakeExtractor(6), tmp_path / "clean")
+    np.testing.assert_array_equal(np.load(resumed / "embeddings_raw.npy"), np.load(clean / "embeddings_raw.npy"))
+    assert verify_feature_directory(resumed)["quality_valid"]
 
 
 def test_quality_detects_nan_inf_and_zero_vectors() -> None:

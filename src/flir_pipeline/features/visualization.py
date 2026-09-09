@@ -12,6 +12,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+from flir_pipeline.data.identity import dataset_id_from_manifest
+
 matplotlib.use("Agg")
 
 
@@ -76,11 +78,11 @@ def _summarize_duplicate_structure(manifest: pd.DataFrame) -> dict:
 
     content_counts = manifest["content_id"].value_counts()
     duplicates = content_counts[content_counts > 1]
-    split_map = manifest.groupby("content_id")["original_split"].agg(set)
     if "original_split" not in manifest.columns:
         cross_split_count = 0
         train_val = train_test = val_test = 0
     else:
+        split_map = manifest.groupby("content_id")["original_split"].agg(set)
         cross_split_mask = split_map.map(len) > 1
         cross_split_count = int(cross_split_mask.sum())
         train_content = set(manifest.loc[manifest["original_split"] == "train", "content_id"])
@@ -93,7 +95,7 @@ def _summarize_duplicate_structure(manifest: pd.DataFrame) -> dict:
         "total_records": int(len(manifest)),
         "unique_content_ids": int(manifest["content_id"].nunique(dropna=False)),
         "duplicate_groups": int(len(duplicates)),
-        "duplicate_records": int(duplicates.sum() - len(duplicates)),
+        "duplicate_records": int(duplicates.sum()),
         "cross_split_duplicate_content_ids": int(cross_split_count),
         "train_val_duplicate_content_ids": int(train_val),
         "train_test_duplicate_content_ids": int(train_test),
@@ -147,7 +149,7 @@ def _empty_label_summary(manifest: pd.DataFrame) -> pd.DataFrame:
     empty = manifest.get("label_empty", pd.Series(False, index=manifest.index))
     if hasattr(empty, "fillna"):
         empty = empty.fillna(False)
-    has_objects = manifest.get("label_valid", pd.Series(False, index=manifest.index)).fillna(False)
+    has_objects = pd.to_numeric(manifest.get("num_objects", pd.Series(0, index=manifest.index)), errors="coerce").fillna(0).gt(0)
     rows = [
         {"label_status": "empty_labels", "count": int(empty.astype(bool).sum())},
         {"label_status": "non_empty_labels", "count": int((~empty.fillna(True).astype(bool)).sum())},
@@ -230,8 +232,8 @@ def _class_distribution_figure(manifest: pd.DataFrame, output_dir: Path) -> None
     else:
         ax.bar(counts["class_id"].astype(str), counts["count"], color="#4C72B0")
         ax.set_xlabel("class_id")
-        ax.set_ylabel("Objects")
-        ax.set_title("Objects per class_id")
+        ax.set_ylabel("Historical records containing class")
+        ax.set_title("Class presence per record (not object counts)")
         ax.grid(axis="y", alpha=0.2)
     _savefig(output_dir / "figures" / "03_class_distribution.png", fig)
     counts.to_csv(output_dir / "tables" / "class_distribution.csv", index=False)
@@ -281,9 +283,9 @@ def _bbox_area_distribution_figure(manifest: pd.DataFrame, output_dir: Path) -> 
         ax.axvline(median, color="#C44E52", linestyle="--", label=f"median={median:.3f}")
         ax.axvline(q25, color="#CCB974", linestyle=":", label=f"p25={q25:.3f}")
         ax.axvline(q75, color="#55A868", linestyle=":", label=f"p75={q75:.3f}")
-        ax.set_xlabel("Normalized bbox area")
-        ax.set_ylabel("Frequency")
-        ax.set_title("Bounding-box area distribution")
+        ax.set_xlabel("Mean normalized bbox area per annotated record")
+        ax.set_ylabel("Historical records")
+        ax.set_title("Per-record mean bounding-box area distribution")
         ax.legend(frameon=False)
         ax.grid(axis="y", alpha=0.2)
     _savefig(output_dir / "figures" / "06_bbox_area_distribution.png", fig)
@@ -453,6 +455,8 @@ def _duplicate_group_size_distribution(manifest: pd.DataFrame, output_dir: Path)
 def _embedding_health_summary(feature_dir: Path) -> dict:
     raw = np.load(feature_dir / "embeddings_raw.npy", mmap_mode="r")
     normalized = np.load(feature_dir / "embeddings_l2.npy", mmap_mode="r")
+    if raw.ndim != 2 or raw.shape != normalized.shape or not raw.size:
+        raise ValueError("Embedding health requires matching non-empty (N, D) arrays")
     norms_raw = np.linalg.norm(raw, axis=1)
     norms_norm = np.linalg.norm(normalized, axis=1)
     dims_mean = normalized.mean(axis=0)
@@ -461,6 +465,14 @@ def _embedding_health_summary(feature_dir: Path) -> dict:
     extractor = metadata.get("extractor", feature_dir.parent.name)
     stats = {
         "extractor": extractor,
+        "model_id": metadata.get("model_id", "unknown"),
+        "model_revision": metadata.get("model_revision", "unknown"),
+        "pooling_strategy": metadata.get("pooling_strategy", "unknown"),
+        "raw_has_nan": bool(np.isnan(raw).any()),
+        "raw_has_inf": bool(np.isinf(raw).any()),
+        "normalized_has_nan": bool(np.isnan(normalized).any()),
+        "normalized_has_inf": bool(np.isinf(normalized).any()),
+        "zero_norm_count": int((norms_raw == 0).sum()),
         "n_samples": int(raw.shape[0]),
         "embedding_dimension": int(raw.shape[1]),
         "raw_norm_min": float(norms_raw.min()),
@@ -481,6 +493,11 @@ def _embedding_health_summary(feature_dir: Path) -> dict:
 
 
 def visualize_embedding_health(feature_dir: Path, output_dir: Path, label: str = "feature") -> dict:
+    """Write local norm/dimension plots and return measured numerical health.
+
+    Load stored raw/L2 arrays only; never infer semantic quality from dimensions.
+    The returned sample count comes from arrays, not the directory name.
+    """
     output_dir.mkdir(parents=True, exist_ok=True)
     if not (feature_dir / "embeddings_raw.npy").is_file() or not (feature_dir / "embeddings_l2.npy").is_file():
         raise ValueError(f"Feature directory is missing embedding arrays: {feature_dir}")
@@ -559,6 +576,13 @@ def generate_feature_engineering_report(
     output_dir: Path,
     feature_dirs: dict[str, Path] | None = None,
 ) -> dict:
+    """Write descriptive figures, tables, Markdown and local provenance metadata.
+
+    Manifest statistics count historical occurrences; diagnostics count unique
+    contents. Optional feature_dirs explicitly choose already executed artifacts.
+    An empty mapping means no embedding results, with no ambient artifact lookup.
+    This function never loads a model or computes a future research stage.
+    """
     output_dir.mkdir(parents=True, exist_ok=True)
     figs_dir = output_dir / "figures"
     tables_dir = output_dir / "tables"
@@ -601,13 +625,16 @@ def generate_feature_engineering_report(
     feature_dirs = feature_dirs or {}
     for extractor in ("dinov2", "clip"):
         selected_dir = feature_dirs.get(extractor)
-        if selected_dir is None:
-            feature_root = Path("artifacts/features") / extractor
-            candidates = sorted(feature_root.glob("*/*")) if feature_root.exists() else []
-            if candidates:
-                selected_dir = candidates[-1]
-        if selected_dir is not None and (selected_dir / "embeddings_raw.npy").exists():
-            embedding_stats[extractor] = visualize_embedding_health(selected_dir, output_dir, label="smoke" if selected_dir.name.startswith("smoke") or selected_dir.parent.name.endswith("smoke") else "feature")
+        if selected_dir is not None:
+            details = json.loads((selected_dir / "metadata.json").read_text(encoding="utf-8"))
+            if details.get("extractor") != extractor:
+                raise ValueError("Selected feature artifact has a different extractor")
+            if {"frame_id", "image_sha256", "label_sha256"} <= set(manifest.columns):
+                if details.get("dataset_id") != dataset_id_from_manifest(manifest):
+                    raise ValueError("Selected feature artifact belongs to a different dataset")
+            count = details.get("selected_content_ids")
+            stage = "full" if count == details.get("unique_content_ids") and count else "smoke" if count == 16 else "sampled"
+            embedding_stats[extractor] = visualize_embedding_health(selected_dir, output_dir, label=stage)
             embedding_status[extractor] = "available"
         else:
             embedding_status[extractor] = "pending"
@@ -623,18 +650,8 @@ def generate_feature_engineering_report(
         pd.DataFrame([{"extractor": "clip", "status": "pending"}]).to_csv(tables_dir / "embedding_health_clip.csv", index=False)
 
     manifest_version = str(manifest.get("manifest_version").dropna().unique()[0]) if "manifest_version" in manifest.columns and not manifest.empty else "unknown"
-    dataset_id = None
-    if "dataset_id" in manifest.columns:
-        dataset_id = str(manifest["dataset_id"].dropna().iloc[0]) if not manifest.empty else None
-    if dataset_id is None:
-        dataset_id = (Path("reports/data_manifest/manifest_metadata.json").read_text(encoding="utf-8") if Path("reports/data_manifest/manifest_metadata.json").exists() else "unknown")
-    if dataset_id == "unknown":
-        dataset_id = "unknown"
-    else:
-        try:
-            dataset_id = json.loads(Path("reports/data_manifest/manifest_metadata.json").read_text(encoding="utf-8"))["dataset_id"] if Path("reports/data_manifest/manifest_metadata.json").exists() else dataset_id
-        except Exception:
-            pass
+    identity_columns = {"frame_id", "image_sha256", "label_sha256"}
+    dataset_id = dataset_id_from_manifest(manifest) if identity_columns <= set(manifest.columns) else "unknown"
 
     feature_dir_paths = []
     for item in feature_dirs.values():
@@ -689,7 +706,7 @@ def generate_feature_engineering_report(
         )
         + "- Feature statistics are used to check shape, L2 normalization, and basic distributional structure only.\n\n"
         + "## Methodological implications\n\n"
-        + "- There are 1657 records but 1459 unique contents.\n"
+        + f"- There are {dataset_summary['total_records']} records but {dataset_summary['unique_content_ids']} unique contents.\n"
         + "- Exact duplicates can affect density-based downstream methods; this is why feature extraction is performed once per content_id.\n"
         + "- original_split is retained as historical metadata only and is not used as input to feature extraction or clustering.\n"
         + "- DINOv2 and CLIP do not use labels or original_split as model inputs.\n"
@@ -702,23 +719,21 @@ def generate_feature_engineering_report(
     return {"metadata": metadata, "embedding_status": embedding_status, "dataset_summary": dataset_summary, "duplicate_summary": duplicate_summary}
 
 
-def _default_feature_directories(root: Path | None = None) -> dict[str, Path]:
+def discover_feature_directories(root: Path | None = None) -> dict[str, Path]:
+    """Find a single completed artifact per extractor, refusing ambiguous reports.
+
+    A metadata completion marker is required. Multiple runs must be selected
+    explicitly by the caller; lexicographic hash order has no scientific meaning.
+    """
     root = root or Path("artifacts/features")
     directories: dict[str, Path] = {}
     for extractor in ("dinov2", "clip"):
         extractor_root = root / extractor
         if not extractor_root.exists():
             continue
-        candidates = sorted(extractor_root.glob("*/*"))
+        candidates = sorted(item for item in extractor_root.glob("*/*") if (item / "metadata.json").is_file())
+        if len(candidates) > 1:
+            raise ValueError(f"Multiple {extractor} artifacts: select a feature directory explicitly")
         if candidates:
-            directories[extractor] = candidates[-1]
+            directories[extractor] = candidates[0]
     return directories
-
-
-def generate_feature_engineering_report_for_cli(
-    manifest: Path,
-    diagnostics: Path,
-    output: Path,
-) -> dict:
-    discovered = _default_feature_directories()
-    return generate_feature_engineering_report(manifest, diagnostics, output, discovered)

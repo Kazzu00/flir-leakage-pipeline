@@ -3,18 +3,17 @@
 import json
 import os
 from pathlib import Path
+from typing import TYPE_CHECKING, Any
 
 import typer
 
+if TYPE_CHECKING:
+    from flir_pipeline.features.base import FeatureExtractor
 app = typer.Typer(help="Reproducible FLIR leakage research pipeline.")
 data_app = typer.Typer(help="Read-only dataset discovery and audit commands.")
 features_app = typer.Typer(help="Content-level visual feature extraction commands.")
 app.add_typer(data_app, name="data")
 app.add_typer(features_app, name="features")
-
-
-def _placeholder(name: str) -> None:
-    typer.echo(f"{name} is reserved for a future pipeline stage.")
 
 
 def _default_root() -> Path | None:
@@ -140,7 +139,7 @@ def build_manifest_command(
 def validate_labels_command(
     labels_archive: Path | None = typer.Option(None, help="Etiquetas.zip path."),
     output: Path = typer.Option(
-        Path("reports/data_manifest"), help="Local validation report directory."
+        Path("reports/data_manifest_validation"), help="Archive-wide validation directory, separate from candidate reports."
     ),
 ) -> None:
     """Validate labels from a ZIP without modifying or extracting them."""
@@ -180,18 +179,26 @@ def _load_yaml_config(path: Path | None) -> dict:
     return data
 
 
-def _feature_extractor(name: str, config: dict, device: str | None, local_files_only: bool):
+def _feature_extractor(
+    name: str, config: dict[str, Any], device: str | None, local_files_only: bool
+) -> "FeatureExtractor":
     from flir_pipeline.features.base import DeterministicFakeExtractor
 
     options = dict(config)
     options.pop("extractor", None)
     pooling_strategy = options.pop("pooling_strategy", None)
-    options.pop("feature_type", None)
-    options.pop("dtype", None)
-    options.pop("store_raw", None)
-    options.pop("store_l2_normalized", None)
+    feature_type = options.pop("feature_type", None)
+    if feature_type not in {None, "image_embedding"}:
+        raise typer.BadParameter("Only feature_type=image_embedding is supported")
+    if options.pop("dtype", "float32") != "float32":
+        raise typer.BadParameter("Only dtype=float32 storage is supported")
+    for flag in ("store_raw", "store_l2_normalized"):
+        if options.pop(flag, True) is not True:
+            raise typer.BadParameter(f"{flag} must be true: raw and L2 arrays are both required")
     if name == "dinov2" and pooling_strategy not in {None, "cls_token"}:
         raise typer.BadParameter("DINOv2 currently supports pooling_strategy=cls_token")
+    if name == "clip" and pooling_strategy not in {None, "projected_pooler_output"}:
+        raise typer.BadParameter("CLIP currently supports pooling_strategy=projected_pooler_output")
     if device is not None:
         options["device"] = device
     options["local_files_only"] = local_files_only
@@ -216,8 +223,8 @@ def features_extract(
     images_archive: Path | None = typer.Option(None, help="Imagenes.zip path."),
     output_root: Path = typer.Option(Path("artifacts/features"), help="Artifact root."),
     device: str | None = typer.Option(None, help="cpu, cuda, or auto."),
-    batch_size: int | None = typer.Option(None, help="Override batch size."),
-    limit_content: int | None = typer.Option(None, help="Maximum unique contents."),
+    batch_size: int | None = typer.Option(None, min=1, help="Override batch size."),
+    limit_content: int | None = typer.Option(None, min=1, help="Maximum unique contents."),
     seed: int = typer.Option(0, help="Deterministic content sample seed."),
     local_files_only: bool = typer.Option(False, help="Do not access model downloads."),
 ) -> None:
@@ -228,6 +235,8 @@ def features_extract(
         raise typer.BadParameter("Provide --images-archive or set FLIR_DATA_ROOT.")
     settings = _load_yaml_config(config)
     selected_name = settings.pop("extractor", extractor)
+    if batch_size is not None:
+        settings["batch_size"] = batch_size
     selected_extractor = _feature_extractor(
         selected_name, settings, device, local_files_only
     )
@@ -289,6 +298,8 @@ def features_verify(feature_directory: Path) -> None:
 
     result = verify_feature_directory(feature_directory)
     typer.echo(json.dumps(result, indent=2))
+    if not result["quality_valid"]:
+        raise typer.Exit(code=1)
 
 
 @features_app.command("visualize-data")
@@ -321,33 +332,3 @@ def features_visualize_embeddings(
 
     result = visualize_embedding_health(feature_directory, output, label=label)
     typer.echo(json.dumps(result["stats"], indent=2))
-
-
-@app.command()
-def similarity() -> None:
-    """Similarity analysis commands."""
-    _placeholder("similarity")
-
-
-@app.command("cluster")
-def cluster() -> None:
-    """Clustering commands."""
-    _placeholder("cluster")
-
-
-@app.command()
-def split() -> None:
-    """Dataset split commands."""
-    _placeholder("split")
-
-
-@app.command()
-def detect() -> None:
-    """Detection commands."""
-    _placeholder("detect")
-
-
-@app.command()
-def evaluate() -> None:
-    """Evaluation commands."""
-    _placeholder("evaluate")

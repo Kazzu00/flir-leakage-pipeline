@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
 import json
 import platform
 import zipfile
@@ -15,6 +14,7 @@ from PIL import Image
 from scipy.fft import dctn
 from tqdm import tqdm
 
+from flir_pipeline.data.identity import dataset_id_from_manifest
 from flir_pipeline.features.preprocessing import decode_zip_image
 
 
@@ -51,30 +51,6 @@ def _dhash(image: Image.Image) -> str:
     return format(int("".join(str(bit) for bit in bits), 2), "016x")
 
 
-def _dataset_id(manifest: pd.DataFrame) -> str:
-    for candidate in (
-        Path("reports/data_manifest/manifest_summary.json"),
-        Path("reports/data_manifest/manifest_metadata.json"),
-    ):
-        if candidate.is_file():
-            try:
-                data = json.loads(candidate.read_text(encoding="utf-8"))
-                if data.get("dataset_id"):
-                    return data["dataset_id"]
-            except json.JSONDecodeError:
-                pass
-    values = sorted(
-        zip(
-            manifest["frame_id"].astype(str),
-            manifest["image_sha256"].astype(str),
-            manifest["label_sha256"].astype(str),
-            strict=True,
-        )
-    )
-    payload = json.dumps(values, separators=(",", ":"), ensure_ascii=True)
-    return hashlib.sha256(payload.encode()).hexdigest()
-
-
 def run_diagnostics(
     manifest_path: Path,
     images_archive: Path,
@@ -83,9 +59,15 @@ def run_diagnostics(
     limit_content: int | None = None,
     seed: int = 0,
 ) -> Path:
-    """Compute diagnostics once per content ID by streaming images from a ZIP."""
+    """Write content-level QA/EDA measurements and metadata from read-only images.
+
+    Pixel statistics assume 8-bit images; entropy and edge variance use grayscale.
+    pHash/dHash describe appearance and are not exact-content identities. These
+    diagnostics neither filter images nor concatenate with DINOv2/CLIP vectors.
+    Return the local dataset directory; sampled runs should use a separate root.
+    """
     manifest = pd.read_parquet(manifest_path)
-    dataset_id = dataset_id or _dataset_id(manifest)
+    dataset_id = dataset_id or dataset_id_from_manifest(manifest)
     unique = manifest.sort_values("content_id").drop_duplicates("content_id", keep="first")
     if limit_content is not None:
         if limit_content < 1:
