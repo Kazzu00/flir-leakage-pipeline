@@ -134,10 +134,11 @@ selection does not change feature_space_id, and a mismatched selection is refuse
 Diagnostics do not provide a resumable multi-run store; separate sampled and full
 diagnostic roots to avoid overwriting a previous diagnostic report.
 
-Report inputs are explicit or unambiguous. The builder's `--full` mode filters
+Report inputs are explicit or unambiguous. The builder's default complete mode (`--full`) filters
 by canonical dataset and complete coverage, verifies provenance, requires both
 encoders, and still rejects multiple eligible runs. Hash ordering never chooses an
-experiment. Class-presence charts count records, not objects; box-area charts use
+experiment. Use `--no-full` and explicit paths to report a sampled artifact.
+Class-presence charts count records, not objects; box-area charts use
 per-record means. Sample sizes and embedding health come from selected artifacts.
 Source notebooks have no outputs; executed notebooks and HTML stay local.
 

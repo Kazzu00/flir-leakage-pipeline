@@ -1,7 +1,7 @@
 # Cierre controlado hasta semana 6
 
-La matriz de [estado](current_status.md) responde al alcance de la propuesta
-transcrito por el usuario. El calendario íntegro no estuvo disponible.
+La matriz de [estado](current_status.md) responde al alcance documentado de la
+propuesta. El calendario íntegro no forma parte del repositorio.
 Se cierra la preparación de datos y representaciones; la siguiente fase será
 similitud/correlación entre fotogramas.
 
@@ -14,7 +14,7 @@ solo probada con stand-ins; los smoke antiguos seguían con revisión desconocid
 
 Faltaban conteos separados de imágenes e instancias; una auditoría temporal
 tabulada; evidencia real con revisiones resueltas; ambos espacios completos;
-verificación contra todos los registros; y una presentación JP en español.
+verificación contra todos los registros; y un reporte técnico en español.
 Esta iteración genera esas evidencias y conserva el candidato y artefactos previos.
 
 ## Reproducir extracción y reanudación
@@ -73,15 +73,16 @@ if ($LASTEXITCODE -ne 0) { throw "Falló la selección verificada" }
 $featurePaths = $featurePathsJson | ConvertFrom-Json
 uv run flir-pipeline features verify $featurePaths.dinov2 --manifest data/manifests/flir_canonical_candidate_v1.parquet
 uv run flir-pipeline features verify $featurePaths.clip --manifest data/manifests/flir_canonical_candidate_v1.parquet
-uv run --extra reporting python scripts/build_feature_engineering_review.py --full
+uv run --extra reporting python scripts/build_feature_engineering_review.py
 ```
 
 `verify` sin manifest controla la integridad interna y admite muestras con filas
 no seleccionadas (-1). Con `--manifest` exige cobertura total, correspondencia
 canónica y revisión HF resuelta; devuelve código distinto de cero si falla.
 
-`--full` filtra muestras y datasets distintos, exige ambos encoders completos y
-rechaza ambigüedad. Se pueden proporcionar `--dinov2` y `--clip` explícitos.
+El modo completo predeterminado (`--full`) filtra muestras y datasets distintos, exige ambos encoders completos y
+rechaza ambigüedad. Se pueden proporcionar `--dinov2` y `--clip` explícitos;
+`--no-full` permite seleccionar muestras sin exigir cobertura completa.
 `--labels-archive` permite seleccionar el ZIP; el valor por defecto es
 `FLIR_DATA_ROOT/Etiquetas.zip`. `--max-frame-gap 1` documenta el umbral nominal.
 El builder no carga modelos y calcula el estado de cierre desde las verificaciones.
@@ -106,8 +107,8 @@ Esto describe el estado real de ejecución, sin atribuirlo a un commit posterior
 
 Artefactos principales:
 
-- `reports/feature_engineering/jp_review/feature_engineering_jp_review.html`: presentación sin celdas de código.
-- `reports/feature_engineering/jp_review/feature_engineering_jp_review.executed.ipynb`: notebook ejecutado con código.
+- `reports/feature_engineering/review/feature_engineering_review.html`: presentación sin celdas de código.
+- `reports/feature_engineering/review/feature_engineering_review.executed.ipynb`: notebook ejecutado con código.
 - `reports/feature_engineering/feature_engineering_report.md` y `metadata.json`.
 - `tables/annotation_class_distribution.csv`, `annotation_quality.csv`, `empty_annotations.csv`.
 - `tables/temporal_summary.csv`, `temporal_coverage.csv`, `temporal_lineage.csv`, `cross_split_temporal_candidates.csv`.

@@ -41,5 +41,5 @@ def check_notebook_source(path: Path) -> None:
 
 
 if __name__ == "__main__":
-    check_notebook_source(Path(__file__).resolve().parents[1] / "notebooks" / "feature_engineering_jp_review.ipynb")
+    check_notebook_source(Path(__file__).resolve().parents[1] / "notebooks" / "feature_engineering_review.ipynb")
     print("Notebook source is clean and code cells compile.")

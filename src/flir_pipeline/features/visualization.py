@@ -693,7 +693,7 @@ def generate_feature_engineering_report(
         },
     }
     lines = [
-        "# FLIR Feature Engineering – Revisión de avance",
+        "# FLIR Feature Engineering — Progress Review",
         "",
         "## Composición y línea base histórica",
         "",
@@ -736,9 +736,9 @@ def generate_feature_engineering_report(
         "- Dimensiones y relación de aspecto se conservan en tabla secundaria; Laplaciano usa log10(1 + varianza).",
         "", "## Estado hasta semana 6 y frontera metodológica", "",
         f"- Ingeniería de características completada: {metadata['feature_engineering_completed']}.",
-        "- El alcance se contrasta con los compromisos suministrados hasta semana 6; no se dispone del calendario íntegro de la propuesta.",
+        "- El alcance documentado llega hasta semana 6; el calendario íntegro de la propuesta no forma parte de este repositorio.",
         "- Siguiente fase: similitud entre fotogramas. Bhattacharyya condicional, reducción, clustering, nuevos splits y entrenamiento/evaluación permanecen pendientes.",
-        "- Notebook ejecutado y HTML de presentación en jp_review/; código oculto en el HTML.",
+        "- Notebook ejecutado y HTML del reporte técnico en review/; código oculto en el HTML.",
     ])
     report_md = output_dir / "feature_engineering_report.md"
     report_md.write_text("\n".join(lines) + "\n", encoding="utf-8")

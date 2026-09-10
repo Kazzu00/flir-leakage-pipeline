@@ -1,9 +1,8 @@
 # Methodology traceability
 
-Reviewed 2026-09-09 against the thesis proposal requirements supplied for this
-review: **“Desarrollo de un pipeline de agrupación, procesamiento y detección de
+Reviewed 2026-09-09 against the documented scope of the thesis proposal: **“Desarrollo de un pipeline de agrupación, procesamiento y detección de
 minería ilegal en videos FLIR de la Amazonía colombiana.”** The full proposal
-document was not included; this table traces the supplied methodological scope.
+document is not included in this repository; this table traces its documented scope.
 
 DONE means implemented and supported by executed evidence, not an empty package.
 Local evidence paths below are intentionally ignored and absent from public clones.
@@ -62,5 +61,5 @@ are not automatically ground-truth scene clusters. Decide whether a reduction is
 for visualization or a clustering input and document its geometric implications.
 No reduction/clustering combination is selected. The bounded week 6 closure uses
 DINOv2-small and CLIP ViT-B/32; this does not select a downstream winning encoder.
-The [week 6 matrix](current_status.md) traces the supplied commitments explicitly;
-the full dated proposal was not supplied.
+The [week 6 matrix](current_status.md) traces the documented commitments explicitly;
+the full dated proposal is not included in the repository.

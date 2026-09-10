@@ -19,10 +19,10 @@ from flir_pipeline.features.visualization import (
 
 ROOT = Path(__file__).resolve().parents[1]
 REPORT_DIR = ROOT / "reports" / "feature_engineering"
-REVIEW_DIR = REPORT_DIR / "jp_review"
-SOURCE_NOTEBOOK = ROOT / "notebooks" / "feature_engineering_jp_review.ipynb"
-EXECUTED_NOTEBOOK = REVIEW_DIR / "feature_engineering_jp_review.executed.ipynb"
-HTML_REPORT = REVIEW_DIR / "feature_engineering_jp_review.html"
+REVIEW_DIR = REPORT_DIR / "review"
+SOURCE_NOTEBOOK = ROOT / "notebooks" / "feature_engineering_review.ipynb"
+EXECUTED_NOTEBOOK = REVIEW_DIR / "feature_engineering_review.executed.ipynb"
+HTML_REPORT = REVIEW_DIR / "feature_engineering_review.html"
 REQUIRED_FIGURES = [
     "01_dataset_overview.png",
     "02_original_split_distribution.png",
@@ -53,7 +53,7 @@ def _build_notebook() -> None:
     client.execute()
     nbformat.write(notebook, EXECUTED_NOTEBOOK)
     exporter = HTMLExporter(template_name="lab", exclude_input=True, exclude_input_prompt=True, exclude_output_prompt=True)
-    body, _ = exporter.from_notebook_node(notebook)
+    body, _ = exporter.from_notebook_node(notebook, resources={"metadata": {"name": "FLIR Feature Engineering — Progress Review"}})
     HTML_REPORT.write_text(body, encoding="utf-8")
 
 
@@ -64,7 +64,7 @@ def main() -> None:
     parser.add_argument("--diagnostics", type=Path)
     parser.add_argument("--dinov2", type=Path, help="Existing DINOv2 feature directory")
     parser.add_argument("--clip", type=Path, help="Existing CLIP feature directory")
-    parser.add_argument("--full", action="store_true", help="Select verified full artifacts for this manifest and require both encoders")
+    parser.add_argument("--full", action=argparse.BooleanOptionalAction, default=True, help="Require verified full artifacts for both encoders (default); --no-full permits explicitly selected samples")
     parser.add_argument("--labels-archive", type=Path, help="Read-only source labels ZIP; defaults to FLIR_DATA_ROOT/Etiquetas.zip")
     parser.add_argument("--max-frame-gap", type=int, default=1, help="Transparent near-neighbor rule in inferred frame-index units")
     args = parser.parse_args()

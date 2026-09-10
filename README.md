@@ -40,7 +40,7 @@ claim the work of other contributors. The proposed handoff is documented in
 | Data understanding and exact duplicate audit | DONE |
 | Canonical candidate manifest | DONE |
 | Dataset characterization and available temporal lineage | DONE; filename heuristics remain explicit |
-| Feature engineering infrastructure and JP reporting | DONE |
+| Feature engineering infrastructure and progress reporting | DONE |
 | Full DINOv2 / CLIP extraction | DONE; 1459 contents per encoder, verified against 1657 records |
 | Cosine similarity | PLANNED |
 | t-SNE / PaCMAP | PLANNED |
@@ -276,23 +276,25 @@ for executable selection/verification commands and execution provenance.
 
 ## Reports
 
-The [feature engineering review notebook](notebooks/feature_engineering_jp_review.ipynb)
-is narrative source without outputs. With the required existing local manifest,
+The [feature engineering review notebook](notebooks/feature_engineering_review.ipynb)
+is narrative source without outputs. It supports progress reporting, technical
+inspection and academic evaluation. With the required existing local manifest,
 diagnostics, source labels ZIP and complete artifacts, build the executed notebook
 and Spanish HTML presentation with code cells hidden:
 
 ```powershell
-uv run --extra reporting python scripts/build_feature_engineering_review.py --full
+uv run --extra reporting python scripts/build_feature_engineering_review.py
 ```
 
-With `--full`, the builder selects verified full artifacts for the supplied
+By default, the builder selects verified full artifacts for the supplied
 manifest, ignoring samples and other datasets; more than one eligible run is an
 error. Select other locations with `--manifest`, `--diagnostics`, `--dinov2` and
 `--clip`. Explicit encoder paths select only those encoders; `--full` requires
-both. Labels default to `FLIR_DATA_ROOT/Etiquetas.zip` or `--labels-archive`.
+both. Use `--no-full` with explicit encoder paths for sampled reports.
+Labels default to `FLIR_DATA_ROOT/Etiquetas.zip` or `--labels-archive`.
 The temporal rule is configurable with `--max-frame-gap` (default 1).
 It never loads a model.
-Executed outputs go to `reports/feature_engineering/jp_review/`.
+Executed outputs go to `reports/feature_engineering/review/`.
 
 Class charts distinguish presence per historical record from actual object
 instances; box areas are per-record means. Temporal lineage, annotation conflicts,
@@ -304,7 +306,7 @@ receipts and final audit are in `reports/feature_engineering_closure/`.
 
 ## Repository status
 
-**2026-09-09 — Data and feature engineering closed** against the supplied scope
+**2026-09-09 — Data and feature engineering closed** against the documented scope
 through week 6, including both complete encoders. The full dated proposal was
 not provided. The next phase is **frame similarity/correlation**, followed later
 by reduction, clustering, new partitions and controlled detector comparison.

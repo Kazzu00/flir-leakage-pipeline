@@ -1,9 +1,9 @@
 # Estado del proyecto
 
 Revisado **2026-09-09**. **Cierre de datos, trazabilidad, caracterización e ingeniería
-de características**, contrastado con los compromisos hasta semana 6 suministrados
-en la solicitud. No se recibió el documento íntegro ni el calendario fechado de
-la propuesta; no se certifican compromisos adicionales ni su aprobación formal.
+de características**, contrastado con el alcance documentado hasta semana 6.
+El documento íntegro y el calendario fechado de la propuesta no forman parte del
+repositorio; no se certifican compromisos adicionales ni su aprobación formal.
 
 ## COMPLETADO en este alcance
 
@@ -18,7 +18,7 @@ la propuesta; no se certifican compromisos adicionales ni su aprobación formal.
 - Pipeline DINOv2/CLIP con checkpoints, metadata, raw/L2 y validaciones.
 - **DINOv2-small completo: 1459 × 384**, con mapping de 1657 registros y revisión resuelta.
 - **CLIP ViT-B/32 completo: 1459 × 512**, con mapping de 1657 registros y revisión resuelta.
-- Reporte para JP en español: 16 secciones, notebook ejecutado local y HTML sin código visible.
+- Reporte técnico en español: 16 secciones, notebook ejecutado local y HTML sin código visible.
 
 El estado completo de features exige que ambos espacios pasen
 `features verify --manifest ...`. Los smoke N=16 no satisfacen esa condición.
