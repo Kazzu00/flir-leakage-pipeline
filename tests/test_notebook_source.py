@@ -64,3 +64,18 @@ def test_review_outputs_remain_ignored_without_ignoring_source() -> None:
     assert result.stdout.splitlines() == outputs
     source = subprocess.run(["git", "check-ignore", "--no-index", "notebooks/feature_engineering_review.ipynb"], cwd=root, capture_output=True, text=True)
     assert source.returncode == 1 and not source.stdout
+
+
+def test_similarity_review_source_has_complete_narrative_without_execution_state():
+    root = Path(__file__).resolve().parents[1]
+    source = root/"notebooks/similarity_review.ipynb"
+    check = runpy.run_path(str(root/"scripts/check_notebook_source.py"))["check_notebook_source"]
+    check(source)
+    notebook = json.loads(source.read_text(encoding="utf-8"))
+    assert "".join(notebook["cells"][0]["source"]).splitlines()[0] == "# FLIR Similarity and Spatiotemporal Correlation — Progress Review"
+    sections = ["".join(cell["source"]).splitlines()[0] for cell in notebook["cells"] if cell["cell_type"] == "markdown" and "".join(cell["source"]).startswith("## ")]
+    assert len(sections) == 14
+    assert all(heading.startswith(f"## {i}. ") for i, heading in enumerate(sections, 1))
+    ignored = ["reports/similarity/review/similarity_review.executed.ipynb", "reports/similarity/review/similarity_review.html", "artifacts/similarity/synthetic/cosine_similarity.npy", "reports/similarity/figures/nearest_neighbors_dinov2.png"]
+    result = subprocess.run(["git", "check-ignore", "--no-index", *ignored], cwd=root, text=True, capture_output=True, check=True)
+    assert result.stdout.splitlines() == ignored

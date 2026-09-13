@@ -182,3 +182,55 @@ The four metrics are normalized width, height, their product and their ratio.
 The ratio of normalized axes differs from pixel aspect ratio on non-square images.
 Report sample standard deviation and linear quartiles, retain outliers, and
 explicitly count geometry exclusions for invalid labels. No label is repaired.
+
+## 14. Content-level cosine and posterior provenance
+
+Week 9 uses existing float32 L2 vectors without silent normalization, clipping or
+diagonal replacement. A full matrix is small enough at the current 1459-content
+scale. All-pair statistics use i<j, while top-k tables contain directed edges.
+Identical vectors from different contents remain eligible neighbors. Self exclusion
+uses content identity; equal scores use ascending content ID as a stable tie break.
+Statistics use population standard deviation and linear quantiles. The six upper
+cohorts include threshold ties and are nested, so their counts must not be summed.
+Encoder-specific quantiles express relative similarity, not a shared leakage cutoff.
+
+Temporal/split metadata is joined only after the dot product and ranking. All
+occurrences must agree on known archive/sequence and index before content-level
+time is used. Conflicts/missing values stay explicit; different sequences have
+null frame_delta. Split membership retains every known train/val/test occurrence.
+A distinct-content pair crosses historical splits if some occurrence on each side
+has unequal membership; identical multi-split sets can therefore cross. Unknown
+provenance is not encoded as a negative relation. Counts describe candidates only.
+
+Similarity identity includes dataset, feature and scientific analysis settings;
+runtime paths, timestamps, device and batch are excluded. Because the existing
+dataset identity does not include temporal/split fields, a separate posterior
+manifest fingerprint prevents reuse after those fields change. Input/output
+checksums, executable QA and optional original-source verification protect stored
+arrays, row mappings, ranks and annotations. Partial directories are preserved and
+refused; a separate output root is required for a distinct source revision under
+the same identity. One writer per directory; no distributed writer protocol.
+
+Execution metadata records the actual prior Git commit and dirty-worktree flag
+when code has not yet been committed, plus source-file hashes. It is never
+retroactively rewritten to claim execution under a later commit. Final verification
+receipts can link the committed implementation to the preserved experiment.
+
+## 15. Bounded visual review and encoder agreement
+
+Jaccard aligns query content IDs and compares top-k sets for k=1,5,10,20. k=1 also
+measures exact nearest-neighbor agreement. Neither score establishes superiority;
+the spaces are never concatenated. Rank correlation was optional and remains
+unimplemented to keep this phase focused on interpretable set agreement.
+
+The report verifies the chosen similarity artifacts and the comparison's source
+fingerprints, then recomputes Jaccard. Global figures use all applicable pairs or
+queries. Galleries use three shared queries selected without replacement from
+sorted IDs by NumPy's seeded generator; this is not a stratified coherence audit.
+Only selected image bytes are read from the original ZIP and checked before
+in-memory decoding. Private IDs/hashes are retained in ignored selection and
+inspection tables; displayed tables use aggregate or ordinal identifiers.
+Maximum-similarity pairs are inspected even when no pair meets the numerical
+near-unit tolerance. RGB pixel equality and exact-byte equality remain separate.
+Overlays/menus are visible in source images; their possible influence has not been
+isolated experimentally. All image composites, HTML and executed notebooks stay local.

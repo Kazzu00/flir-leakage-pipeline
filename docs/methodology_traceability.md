@@ -16,8 +16,9 @@ the local code review. See [current status](current_status.md) for aggregate fac
 | Canonical traceability | `data/manifest.py`, `data/identity.py`, `utils/hashing.py` | DONE | Local candidate v1 manifest: 1657 unique frame_id, 1459 content_id; `tests/test_manifest.py` |
 | DINOv2 | `features/dinov2.py`, `features/storage.py` | DONE | Full 1459 × 384 CLS, resolved revision, raw/L2 and all 1657 canonical occurrence mappings verified |
 | CLIP | `features/clip.py`, `features/storage.py` | DONE | Full 1459 × 512 projected-image embeddings, resolved revision, raw/L2 and canonical coverage verified |
-| Cosine similarity | `similarity/` | PLANNED | Namespace only; intended input is L2-normalized embeddings from each independent encoder |
-| Bhattacharyya distance | `similarity/`, design decision 8 | PLANNED | Conditional on an explicitly defined distributional representation; none selected |
+| Cosine similarity | `similarity/cosine.py`, `storage.py` | DONE | Both full 1459 × 1459 float32 matrices, 1063611 unordered pairs, 29180 directed top-20 edges per encoder; original L2 source verification and executed 14-section HTML |
+| Visual/temporal correlation analysis | `similarity/temporal.py`, `reporting.py` | PARTIAL | Full same/different-sequence and frame-delta analysis executed; all 1459 contents have inferred sequence/index, zero verified timestamps; global visual coherence remains unvalidated |
+| Bhattacharyya distance | `similarity/`, design decision 8 | PLANNED / CONDITIONAL | Conditional on an explicitly defined distributional representation; none selected |
 | t-SNE | `reduction/` | PLANNED | Namespace only; no reductions executed |
 | PaCMAP | `reduction/` | PLANNED | Namespace only; no reductions executed |
 | DBSCAN | `clustering/` | PLANNED | No clustering implementation or experiment |
@@ -31,9 +32,10 @@ the local code review. See [current status](current_status.md) for aggregate fac
 | Historical data baseline | `original_split`, report `historical_baseline.csv` | DONE | Original membership preserved and exact overlap audited; detector baseline comparison remains a separate pending stage |
 | Random baseline | `splitting/` | PLANNED | Reproducible seeded baseline not generated; must document sampling unit and leakage |
 | Cluster-based baseline | `splitting/` | PLANNED | No new split generated |
-| Inter-partition similarity | `similarity/`, `evaluation/` | PLANNED | Exact-byte historical overlap is available; embedding-based similarity has not been executed |
+| Historical inter-partition similarity | `similarity/temporal.py` | DONE WITH LIMITS | Six encoder-specific quantile cohorts, multi-split content sets and non-exact cross-split candidates measured; no automatic leakage claim |
+| New-partition correlation evaluation | `splitting/`, `evaluation/` | PLANNED | New splits do not exist; residual correlation and detector comparison remain pending |
 | YOLO/detector comparison | `detection/`, `evaluation/` | PLANNED | Compare Precision, Recall, mAP@50 and mAP@50–95 across baselines under a controlled detector protocol |
-| Reproducibility | `uv.lock`, configs, identity/storage/revision helpers, CI | IN PROGRESS | Stage-level reproducibility complete: pinned configs, full verification, source-only notebook, local receipts; final experimental reproducibility pending; legacy smoke revisions preserved as unknown |
+| Reproducibility | `uv.lock`, configs, identity/storage/revision helpers, CI | IN PROGRESS | Feature and similarity stages have full verification, source-only notebooks, metadata, input/output hashes and local receipts; final experimental reproducibility pending; legacy smoke revisions preserved as unknown |
 | Noise cleaning and panoptic segmentation | Documented group handoff in `architecture.md` | GROUP INTEGRATION | Broader team contribution; neither component is implemented here |
 | Final group pipeline assembly | Documented integration boundary | GROUP INTEGRATION | Future handoff contract, not an assembled pipeline |
 | Production deployment and monitoring | Outside repository research scope | NOT APPLICABLE | Only the first four CRISP-ML(Q) phases are in scope |
@@ -63,3 +65,8 @@ No reduction/clustering combination is selected. The bounded week 6 closure uses
 DINOv2-small and CLIP ViT-B/32; this does not select a downstream winning encoder.
 The [weeks 6–8 matrix](current_status.md) traces the requested closure criteria explicitly;
 the full dated proposal is not included in the repository.
+
+Week 9 adds descriptive evidence without selecting an encoder or downstream
+configuration. [Executed similarity analysis](similarity_analysis.md) documents
+pair units, population statistics, inclusive nested quantiles, filename consensus,
+historical cross-split semantics, neighbor agreement and visual inspection limits.

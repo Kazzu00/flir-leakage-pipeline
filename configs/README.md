@@ -1,6 +1,6 @@
 # Configuration status
 
-Only `embeddings/*.yaml` is executable configuration today. Empty `data/`,
+`embeddings/*.yaml` and `similarity/*.yaml` are executable configuration today. Empty `data/`,
 `reduction/`, `clustering/`, `splits/` and `detection/` directories reserve planned
 configuration boundaries; they do not imply implemented experiments.
 
@@ -29,4 +29,12 @@ and `--device` override YAML runtime settings. The YAML extractor selects the
 adapter. Use separate `--output-root` directories for sampled/full runs sharing
 the same model and feature space, because the cache refuses different selections.
 
-No UMAP, similarity, clustering, split or detector experiments are configured.
+`similarity/dinov2_research.yaml` and `similarity/clip_research.yaml` configure
+the executed week 9 cosine analysis: float32, top-20, six quantiles, frame-index
+bins and explicit analysis rules. They receive the existing full feature directory
+through the CLI; no feature IDs or private paths are hardcoded. They do not select
+the larger models from the similarly named `embeddings/*_research.yaml` files.
+Numerical tolerance and near-unit diagnostic tolerance are not leakage thresholds.
+See [similarity execution and cache semantics](../docs/similarity_analysis.md).
+
+No UMAP, clustering, split or detector experiments are configured.

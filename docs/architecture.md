@@ -7,7 +7,7 @@ to future partition experiments. Existing package boundaries are preserved.
 |---|---|---|
 | Data | ZIP inventory, streaming hashes, lineage/duplicate analysis, occurrence manifest and non-mutating YOLO QA | ACTIVE |
 | Features | DINOv2 CLS / CLIP projected-image adapters, RGB preprocessing, revision tracking, raw/L2 stores, diagnostics, descriptive reports | ACTIVE; both full extractions validated |
-| Similarity | Cosine over normalized content embeddings; conditional distribution-based Bhattacharyya | FUTURE PLANNED |
+| Similarity | Cosine over existing L2 contents, top-k, posterior temporal/split relations, agreement and review | ACTIVE; full cosine validated, inferred temporal analysis partial; Bhattacharyya conditional/planned |
 | Reduction | t-SNE and PaCMAP | FUTURE PLANNED |
 | Clustering | DBSCAN, OPTICS, HDBSCAN and evidence-based cluster selection | FUTURE PLANNED |
 | Splitting | Reproducible baselines and indivisible cluster/scene allocation | FUTURE PLANNED |
@@ -15,7 +15,7 @@ to future partition experiments. Existing package boundaries are preserved.
 
 ```text
 src/flir_pipeline/
-  cli.py                   implemented data/features commands only
+  cli.py                   implemented data/features/similarity commands
   config.py                reserved validated path configuration
   data/
     inventory.py           archive structure, matching and exploratory lineage
@@ -32,7 +32,12 @@ src/flir_pipeline/
     storage.py             content/record indexes and resumable raw/L2 arrays
     diagnostics.py         independent image QA/EDA
     visualization.py       descriptive local reports
-  similarity/              planned; documentation only
+  similarity/
+    cosine.py              float32 dot products, deterministic top-k, distributions
+    temporal.py            occurrence consensus, multi-split sets, posterior pair tables
+    storage.py             config identity, input/output fingerprints, full verification
+    comparison.py          content-aligned neighbor Jaccard across independent spaces
+    reporting.py           aggregate tables, selected ZIP image grids and figures
   reduction/               planned; documentation only
   clustering/              planned; documentation only
   splitting/               planned; documentation only
@@ -52,6 +57,8 @@ content_id (exact image SHA256)
    v  one row per selected content within one feature_space_id
 embedding_row (separate DINOv2 and CLIP stores)
    |
+   +--> similarity_space_id: matrix rows, neighbor IDs, posterior content/record lineage
+   |
    v  FUTURE assignment, including an explicit noise policy
 cluster_id
    |
@@ -70,6 +77,16 @@ Arrays are float32, with raw and L2 versions. Index files map every occurrence
 back to its source ZIP member. A `.partial` checkpoint is local execution state;
 the `metadata.json` completion marker is written after successful quality checks.
 Real manifests, content hashes, arrays and local paths never belong in Git.
+
+Similarity stores use `artifacts/similarity/<extractor>/<dataset_id>/<feature_space_id>/<similarity_space_id>/`.
+The numerical layer receives only L2 vectors and indexing. Afterwards,
+`data.temporal.audit_temporal_lineage` supplies occurrence provenance; content-level
+consensus and split sets annotate pairs. Matrix and pair tables never expand
+duplicate occurrences. Standalone verification checks internal integrity; optional
+feature/manifest arguments also bind outputs to the original source arrays and
+lineage. Comparison stores align queries by content ID, independently of row order.
+The local review contains selected image composites; the versioned notebook has
+no executed outputs. No future cluster or new split is produced by this layer.
 
 ## Individual research and group handoff
 

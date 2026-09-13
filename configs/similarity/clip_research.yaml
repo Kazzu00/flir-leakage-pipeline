@@ -1,0 +1,7 @@
+metric: cosine
+top_k: 20
+pairwise_dtype: float32
+quantiles: [0.90, 0.95, 0.975, 0.99, 0.995, 0.999]
+frame_delta_upper_bounds: [0, 1, 5, 10, 25, 50, 100]
+numerical_atol: 0.00001
+near_unit_atol: 0.000001

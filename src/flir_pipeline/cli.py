@@ -12,8 +12,10 @@ if TYPE_CHECKING:
 app = typer.Typer(help="Reproducible FLIR leakage research pipeline.")
 data_app = typer.Typer(help="Read-only dataset discovery and audit commands.")
 features_app = typer.Typer(help="Content-level visual feature extraction commands.")
+similarity_app = typer.Typer(help="Content-level cosine and post-hoc temporal/historical analysis.")
 app.add_typer(data_app, name="data")
 app.add_typer(features_app, name="features")
+app.add_typer(similarity_app, name="similarity")
 
 
 def _default_root() -> Path | None:
@@ -343,3 +345,60 @@ def features_visualize_embeddings(
 
     result = visualize_embedding_health(feature_directory, output, label=label)
     typer.echo(json.dumps(result["stats"], indent=2))
+
+
+@similarity_app.command("compute")
+def similarity_compute(
+    feature_directory: Path = typer.Option(..., help="Explicit complete feature directory."),
+    manifest: Path = typer.Option(..., help="Canonical manifest, for coverage and post-hoc provenance."),
+    config: Path | None = typer.Option(None, help="Similarity YAML; defaults to cosine/top-20."),
+    output_root: Path = typer.Option(Path("artifacts/similarity"), help="Local ignored artifact root."),
+) -> None:
+    """Compute cosine once per content, then analyze temporal and historical metadata."""
+    from flir_pipeline.similarity.storage import SimilarityConfig, compute_to_store
+
+    settings = SimilarityConfig(**_load_yaml_config(config))
+    output = compute_to_store(feature_directory, manifest, settings, output_root)
+    typer.echo(f"Similarity written to {output}")
+
+
+@similarity_app.command("summary")
+def similarity_summary(similarity_directory: Path) -> None:
+    """Read an executed similarity summary after verifying stored artifacts."""
+    from flir_pipeline.similarity.storage import read_json, verify_similarity_directory
+
+    quality = verify_similarity_directory(similarity_directory)
+    if not quality["quality_valid"]:
+        typer.echo(json.dumps(quality, indent=2))
+        raise typer.Exit(1)
+    metadata = read_json(similarity_directory/"metadata.json")
+    typer.echo(json.dumps({"experiment": {key: metadata[key] for key in ("extractor", "similarity_space_id", "feature_space_id", "content_count", "top_k")},
+                           "summary": read_json(similarity_directory/"similarity_summary.json")}, indent=2))
+
+
+@similarity_app.command("verify")
+def similarity_verify(
+    similarity_directory: Path,
+    feature_directory: Path | None = typer.Option(None, help="Additionally verify against original L2 embeddings and indexes."),
+    manifest: Path | None = typer.Option(None, help="Additionally verify against canonical occurrence provenance."),
+) -> None:
+    """Verify matrix, IDs, ranks, provenance, metadata and artifact fingerprints."""
+    from flir_pipeline.similarity.storage import verify_similarity_directory
+
+    result = verify_similarity_directory(similarity_directory, feature_directory, manifest)
+    typer.echo(json.dumps(result, indent=2))
+    if not result["quality_valid"]:
+        raise typer.Exit(1)
+
+
+@similarity_app.command("compare")
+def similarity_compare(
+    left: Path = typer.Option(..., help="Left verified similarity directory."),
+    right: Path = typer.Option(..., help="Right verified similarity directory."),
+    output_root: Path = typer.Option(Path("artifacts/similarity/comparisons")),
+) -> None:
+    """Compare neighbor sets at k=1/5/10/20 without merging embeddings."""
+    from flir_pipeline.similarity.comparison import compare_to_store
+
+    output = compare_to_store(left, right, output_root)
+    typer.echo(f"Neighbor agreement written to {output}")

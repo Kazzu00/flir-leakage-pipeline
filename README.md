@@ -42,14 +42,15 @@ claim the work of other contributors. The proposed handoff is documented in
 | Dataset characterization and available temporal lineage | DONE; filename heuristics remain explicit |
 | Feature engineering infrastructure and progress reporting | DONE |
 | Full DINOv2 / CLIP extraction | DONE; 1459 contents per encoder, verified against 1657 records |
-| Cosine similarity | PLANNED |
+| Cosine similarity | DONE; two complete matrices, top-20, verified artifacts and HTML review |
+| Visual/temporal correlation analysis | PARTIAL; full descriptive analysis executed, filename-based time remains unverified |
 | t-SNE / PaCMAP | PLANNED |
 | DBSCAN / OPTICS / HDBSCAN | PLANNED |
 | Cluster evaluation and selection | PLANNED |
 | Cluster-aware splitting and random baseline | PLANNED |
 | Detector comparison | PLANNED |
 
-The implementation currently supports **data + features**. A future namespace is
+The implementation currently supports **data + features + similarity**. A future namespace is
 not an implemented experiment. See [current status](docs/current_status.md).
 
 ## Current dataset findings
@@ -88,8 +89,8 @@ Only aggregate results are published here; real identities and hashes remain loc
 
 ## Methodology alignment
 
-DINOv2 and CLIP provide independent image representations. Planned similarity
-uses cosine on L2-normalized embeddings; **Bhattacharyya requires an explicitly
+DINOv2 and CLIP provide independent image representations. Executed similarity
+uses cosine on the original L2-normalized embeddings; **Bhattacharyya requires an explicitly
 defined distributional representation** and is not implemented. The proposal's
 reduction methods are **t-SNE + PaCMAP**, followed by DBSCAN, OPTICS and HDBSCAN.
 
@@ -106,20 +107,20 @@ mAP@50–95. No detector comparison has run. The
 src/flir_pipeline/
   data/          inventory, hashing lineage, canonical manifest, label QA
   features/      DINOv2, CLIP, preprocessing, revisions, storage, diagnostics, plots
-  similarity/    planned
+  similarity/    cosine, top-k, posterior temporal/split analysis, agreement, reports
   reduction/     planned: t-SNE / PaCMAP
   clustering/    planned: DBSCAN / OPTICS / HDBSCAN
   splitting/     planned
   detection/     future evaluation/integration
   evaluation/    planned
   utils/         streaming SHA256
-configs/         active embedding configs; documented future boundaries
+configs/         active embedding/similarity configs; documented future boundaries
 docs/            methodology, decisions, architecture, status
 notebooks/       narrative source without outputs
 scripts/         local report builder and offline notebook check
 tests/           synthetic, offline tests
 data/manifests/  local real manifests, ignored
-artifacts/       local embeddings/diagnostics, ignored
+artifacts/       local embeddings/diagnostics/similarity, ignored
 reports/         local figures, tables, executed notebooks and HTML, ignored
 ```
 
@@ -133,6 +134,9 @@ lockfile define dependencies; YAML configs define extractor settings.
 `dataset_id` fingerprints the supplied annotated manifest.
 `feature_space_id` fingerprints model revision, preprocessing, pooling and
 normalization while excluding runtime device and batch size.
+`similarity_space_id` fingerprints dataset, feature space and analysis rules.
+Input/output fingerprints additionally protect the cache against changes in
+arrays, indices and posterior provenance. See [week 9](docs/similarity_analysis.md).
 
 Sampling uses an explicit seed (default 0). Metadata records model provenance,
 configuration, selected content, seed, Python/library versions and Git commit.
@@ -196,12 +200,14 @@ variables. Run the documented commands from the repository root.
 uv run flir-pipeline --help
 uv run flir-pipeline data --help
 uv run flir-pipeline features --help
+uv run flir-pipeline similarity --help
 ```
 
 | Group | Commands |
 |---|---|
 | `data` | `inventory`, `archive-tree`, `compare-archives`, `build-manifest`, `validate-labels`, `manifest-summary` |
 | `features` | `extract`, `diagnostics`, `summary`, `verify`, `visualize-data`, `visualize-embeddings` |
+| `similarity` | `compute`, `summary`, `verify`, `compare` |
 
 With `FLIR_DATA_ROOT` configured and the source ZIPs available:
 
@@ -228,7 +234,7 @@ diagnostics Parquet. Use each command's `--help` for options.
 
 ### Future planned commands
 
-Similarity, reduction, clustering, splitting, detection and evaluation are
+Reduction, clustering, splitting, detection and evaluation are
 planned stages with no runnable CLI commands. Previous success-returning stubs
 were removed; the documented future package boundaries remain.
 
@@ -245,6 +251,9 @@ uv run python scripts/check_notebook_source.py
 Tests use synthetic ZIP images/labels and model stand-ins. They cover manifests,
 duplicates, offline adapter compatibility, revision provenance, content mapping,
 raw/L2 quality, actual interrupted-batch resume, visualization and report generation.
+Similarity tests cover dot products, deterministic ties, temporal ambiguity,
+multi-split membership, quantile cohorts, Jaccard, cache corruption and posterior
+metadata independence. Both source notebooks are checked without execution.
 They do not require FLIR data, a GPU, model downloads or notebook tooling.
 CI also checks the source notebook using only the standard library.
 
@@ -285,6 +294,20 @@ for executable selection/verification commands and execution provenance.
 
 ## Reports
 
+The new [similarity review notebook](notebooks/similarity_review.ipynb) has 14
+sections and 11 figures: full distributions, neighborhoods, inferred temporal
+relations, historical cross-split candidates, encoder agreement, shared seeded
+queries and maximum-similarity pairs. With explicitly selected verified outputs:
+
+```powershell
+uv run --extra reporting python scripts/build_similarity_review.py --dinov2 <dinov2_similarity_directory> --clip <clip_similarity_directory> --comparison <comparison_directory>
+```
+
+It reads selected images from `FLIR_DATA_ROOT/Imagenes.zip` in memory, checks
+their hashes, and writes local outputs to `reports/similarity/review/`.
+The [similarity runbook](docs/similarity_analysis.md) includes compute/verify/compare
+commands, aggregate results and limitations. No model loading is needed.
+
 The [feature engineering review notebook](notebooks/feature_engineering_review.ipynb)
 is narrative source without outputs. It supports progress reporting, technical
 inspection and academic evaluation. With the required existing local manifest,
@@ -318,21 +341,25 @@ receipts and final audit are in `reports/feature_engineering_closure/`.
 
 ## Repository status
 
-**2026-09-13 — Weeks 6–8 closed** under the explicit criteria of the academic review:
+**2026-09-13 — Weeks 6–8 closed; week 9 descriptive cosine phase completed**:
 
 | Week | Status | Evidence |
 |---|---|---|
 | 6 — preparation / characterization | COMPLETED | Inventory, canonical lineage, label/duplicate QA, class names, instance counts, per-class bbox geometry, empty annotations, full diagnostics and available temporal provenance |
 | 7 — DINOv2 | COMPLETED | implemented; smoke validated historically; full extraction completed (1459 × 384), reverified against all 1657 records |
 | 8 — CLIP / descriptive comparison | COMPLETED | implemented; smoke validated historically; full extraction completed (1459 × 512), reverified; descriptive comparison table |
+| 9 — similarity / temporal relations | COSINE DONE; TEMPORAL PARTIAL | Each encoder: 1459 × 1459 float32, 1063611 unique pairs, 29180 top-20 edges; full verification and executed HTML; no verified timestamps |
 
 Both full extractions already existed; this review reused them after verification.
 The current five source ZIPs match the historical inventory hashes; an additional
 archive listed historically is currently unavailable, without affecting canonical
-coverage. The full dated proposal was not provided. The next phase is
-**frame similarity/correlation**, followed later
-by reduction, clustering, new partitions and controlled detector comparison.
-These stages remain pending and were not executed in this closure.
+coverage. The full dated proposal was not provided. The current cosine medians
+are **0.4724 DINOv2 / 0.8306 CLIP**; nearest neighbors belong to the same inferred
+sequence in **99.59% / 99.25%** of queries. The exact nearest-neighbor agreement
+between encoders is **28.17%**. The top 0.1% contains **328 / 277** historical
+cross-split candidates, respectively; these are not confirmed leakage.
+The next step is the **t-SNE / PaCMAP protocol**, followed later by clustering,
+new partitions and controlled detector comparison. Those stages remain unexecuted.
 See [current status](docs/current_status.md), [week 6 closure](docs/week6_closure.md)
 and [methodology traceability](docs/methodology_traceability.md).
 

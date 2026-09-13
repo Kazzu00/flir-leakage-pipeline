@@ -1,1 +1,4 @@
-"""PLANNED: cosine similarity on L2 embeddings. Bhattacharyya requires a defined distribution; no implementation yet."""
+"""Content-level cosine and descriptive provenance analysis; no clustering.
+
+Bhattacharyya remains conditional on a justified distributional representation.
+"""
