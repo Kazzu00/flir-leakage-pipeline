@@ -18,6 +18,7 @@ from PIL import Image
 from tqdm import tqdm
 
 from flir_pipeline import __version__
+from flir_pipeline.data.classes import class_name
 from flir_pipeline.data.identity import dataset_id_from_manifest
 from flir_pipeline.data.inventory import (
     ArchiveMember,
@@ -438,10 +439,10 @@ def build_manifest(
     _write_csv(
         report_output / "class_distribution.csv",
         [
-            {"split": split, "class_id": class_id, "image_count": value}
+            {"split": split, "class_id": class_id, "class_name": class_name(int(class_id)), "image_count": value}
             for (split, class_id), value in sorted(class_counts.items())
         ],
-        ["split", "class_id", "image_count"],
+        ["split", "class_id", "class_name", "image_count"],
     )
     _write_csv(report_output / "orphan_labels.csv", orphan_rows, list(orphan_rows[0]) if orphan_rows else ["source_archive", "member_path"])
     _write_csv(report_output / "duplicate_groups.csv", duplicate_groups, list(duplicate_groups[0]) if duplicate_groups else ["duplicate_group_id", "content_id"])

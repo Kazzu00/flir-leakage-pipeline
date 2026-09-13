@@ -27,7 +27,8 @@ REQUIRED_FIGURES = [
     "01_dataset_overview.png",
     "02_original_split_distribution.png",
     "03_class_distribution.png",
-    "06_bbox_area_distribution.png",
+    "06_bbox_normalized_area_by_class.png",
+    "17_bbox_aspect_ratio_by_class.png",
     "09_pixel_statistics.png",
     "10_entropy_distribution.png",
     "11_laplacian_variance.png",
@@ -66,6 +67,7 @@ def main() -> None:
     parser.add_argument("--clip", type=Path, help="Existing CLIP feature directory")
     parser.add_argument("--full", action=argparse.BooleanOptionalAction, default=True, help="Require verified full artifacts for both encoders (default); --no-full permits explicitly selected samples")
     parser.add_argument("--labels-archive", type=Path, help="Read-only source labels ZIP; defaults to FLIR_DATA_ROOT/Etiquetas.zip")
+    parser.add_argument("--class-config-archive", type=Path, help="ZIP with the original dataset YAML; defaults to FLIR_DATA_ROOT/dataset_split_completo.zip")
     parser.add_argument("--max-frame-gap", type=int, default=1, help="Transparent near-neighbor rule in inferred frame-index units")
     args = parser.parse_args()
     check_notebook_source(SOURCE_NOTEBOOK)
@@ -73,6 +75,9 @@ def main() -> None:
     diagnostics = args.diagnostics or _find_single("artifacts/features/diagnostics/*/*.parquet")
     data_root = _default_root()
     labels_archive = args.labels_archive or (data_root / "Etiquetas.zip" if data_root else None)
+    class_config_archive = args.class_config_archive or (data_root / "dataset_split_completo.zip" if data_root else None)
+    if class_config_archive is None or not class_config_archive.is_file():
+        raise FileNotFoundError("Provide --class-config-archive or FLIR_DATA_ROOT to validate source class IDs")
     if labels_archive is None or not labels_archive.is_file():
         raise FileNotFoundError("Provide --labels-archive or FLIR_DATA_ROOT to audit actual box instances")
     selected = {name: path for name in ("dinov2", "clip") if (path := getattr(args, name)) is not None}
@@ -91,6 +96,7 @@ def main() -> None:
         feature_dirs=selected,
         labels_archive=labels_archive,
         max_frame_gap=args.max_frame_gap,
+        class_config_archive=class_config_archive,
     )
     missing = [name for name in REQUIRED_FIGURES if not (REPORT_DIR / "figures" / name).is_file()]
     if missing:

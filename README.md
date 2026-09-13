@@ -71,6 +71,15 @@ including 14 objects in 10 orphan labels. Eight duplicate groups have annotation
 conflicts; 190 duplicate groups have consistent annotations. The [status document](docs/current_status.md) explains the scopes.
 
 The reproducible class table separates image presence from individual boxes.
+The validated presentation mapping is **Vehicles (0), Buildings (1), Roads (2),
+Rivers (3), Heavy Machinery (4)**. The source YAML calls class 4 `SDZI`; both names
+are preserved. Correspondence follows the publication class order confirmed by
+the project owner, not a demonstrated expansion of SDZI; the exact bibliography
+is pending. See [class evidence and geometry definitions](docs/dataset_classes.md).
+Background describes empty annotations and is not a sixth detection class.
+Instance counts are 92 / 2295 / 1010 / 642 / 129 in that order. Per-class
+normalized width, height, area and width/height statistics describe all 4168
+canonical boxes; the two primary boxplots show area and ratio by class.
 Two filename-derived sequences cover all 1657 records with medium confidence;
 no verified timestamps are available. A gap ≤ 1 rule finds 598 cross-split pairs:
 198 exact copies and 400 different-content proximity candidates. This is not a
@@ -292,12 +301,15 @@ error. Select other locations with `--manifest`, `--diagnostics`, `--dinov2` and
 `--clip`. Explicit encoder paths select only those encoders; `--full` requires
 both. Use `--no-full` with explicit encoder paths for sampled reports.
 Labels default to `FLIR_DATA_ROOT/Etiquetas.zip` or `--labels-archive`.
+Class-config verification defaults to `FLIR_DATA_ROOT/dataset_split_completo.zip`
+or `--class-config-archive`; it checks the original YAML's actual IDs and names.
 The temporal rule is configurable with `--max-frame-gap` (default 1).
 It never loads a model.
 Executed outputs go to `reports/feature_engineering/review/`.
 
 Class charts distinguish presence per historical record from actual object
-instances; box areas are per-record means. Temporal lineage, annotation conflicts,
+instances; bbox geometry is computed per individual instance and class, with
+sample standard deviation and linear quartiles. Temporal lineage, annotation conflicts,
 orphans and historical baseline have reproducible local tables. Image geometry
 is secondary; L2 is a quality check, without main per-dimension histograms.
 The 16-section narrative calculates completion from both full verifications.
@@ -306,9 +318,19 @@ receipts and final audit are in `reports/feature_engineering_closure/`.
 
 ## Repository status
 
-**2026-09-09 — Data and feature engineering closed** against the documented scope
-through week 6, including both complete encoders. The full dated proposal was
-not provided. The next phase is **frame similarity/correlation**, followed later
+**2026-09-13 — Weeks 6–8 closed** under the explicit criteria of the academic review:
+
+| Week | Status | Evidence |
+|---|---|---|
+| 6 — preparation / characterization | COMPLETED | Inventory, canonical lineage, label/duplicate QA, class names, instance counts, per-class bbox geometry, empty annotations, full diagnostics and available temporal provenance |
+| 7 — DINOv2 | COMPLETED | implemented; smoke validated historically; full extraction completed (1459 × 384), reverified against all 1657 records |
+| 8 — CLIP / descriptive comparison | COMPLETED | implemented; smoke validated historically; full extraction completed (1459 × 512), reverified; descriptive comparison table |
+
+Both full extractions already existed; this review reused them after verification.
+The current five source ZIPs match the historical inventory hashes; an additional
+archive listed historically is currently unavailable, without affecting canonical
+coverage. The full dated proposal was not provided. The next phase is
+**frame similarity/correlation**, followed later
 by reduction, clustering, new partitions and controlled detector comparison.
 These stages remain pending and were not executed in this closure.
 See [current status](docs/current_status.md), [week 6 closure](docs/week6_closure.md)

@@ -30,6 +30,9 @@ class LabelValidationResult:
     warnings: list[str] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)
     canonical: tuple[tuple[int, float, float, float, float], ...] = ()
+    # Parsed source precision/order for instance statistics; canonical is rounded
+    # only for comparing annotation sets and must not supply geometry measurements.
+    boxes: tuple[tuple[int, float, float, float, float], ...] = ()
 
 
 def _number(value: str) -> float:
@@ -132,6 +135,7 @@ def validate_label_text(text: str) -> LabelValidationResult:
         warnings=warnings,
         errors=errors,
         canonical=canonical if syntax_valid else (),
+        boxes=tuple(boxes),
     )
 
 

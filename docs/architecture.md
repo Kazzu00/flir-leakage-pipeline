@@ -6,7 +6,7 @@ to future partition experiments. Existing package boundaries are preserved.
 | Layer | Responsibility and boundary | State |
 |---|---|---|
 | Data | ZIP inventory, streaming hashes, lineage/duplicate analysis, occurrence manifest and non-mutating YOLO QA | ACTIVE |
-| Features | DINOv2 CLS / CLIP projected-image adapters, RGB preprocessing, revision tracking, raw/L2 stores, diagnostics, descriptive reports | ACTIVE; full extraction pending |
+| Features | DINOv2 CLS / CLIP projected-image adapters, RGB preprocessing, revision tracking, raw/L2 stores, diagnostics, descriptive reports | ACTIVE; both full extractions validated |
 | Similarity | Cosine over normalized content embeddings; conditional distribution-based Bhattacharyya | FUTURE PLANNED |
 | Reduction | t-SNE and PaCMAP | FUTURE PLANNED |
 | Clustering | DBSCAN, OPTICS, HDBSCAN and evidence-based cluster selection | FUTURE PLANNED |
@@ -22,6 +22,8 @@ src/flir_pipeline/
     manifest.py            canonical occurrences and label/duplicate reports
     identity.py            shared portable dataset_id
     yolo_labels.py         syntax, normalized coordinates, geometry, canonical boxes
+    classes.py             central original/canonical detection names and YAML verification
+    annotations.py         occurrence-level instances and per-class normalized geometry
   features/
     base.py                extractor contract and synthetic test adapter
     preprocessing.py       read-only ZIP decoding and in-memory RGB conversion

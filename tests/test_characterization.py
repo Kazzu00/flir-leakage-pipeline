@@ -41,7 +41,10 @@ def test_annotation_instances_orphans_conflicts_and_byte_integrity(tmp_path: Pat
     original = archive.read_bytes()
     audit = audit_annotations(manifest, archive)
     counts = audit.classes.set_index("class_id")
-    assert counts.loc[0].to_dict() == {"images_containing_class": 2, "object_instances": 3}
+    assert counts.loc[0, "images_containing_class"] == 2
+    assert counts.loc[0, "instance_count"] == counts.loc[0, "object_instances"] == 3
+    assert counts.loc[0, "class_name"] == "Vehicles"
+    assert counts.loc[0, "percentage_of_total_instances"] == pytest.approx(60)
     assert audit.summary["candidate_objects"] == 5
     assert audit.summary["orphan_objects"] == 2 and audit.summary["archive_objects"] == 7
     assert audit.summary["orphan_labels"] == 1 and audit.summary["candidate_empty_labels"] == 1
@@ -95,6 +98,19 @@ def test_report_builds_annotation_and_temporal_evidence_without_closing_smoke(tm
     assert not result["metadata"]["feature_engineering_completed"]
     assert (output / "figures/15_class_instances.png").is_file()
     assert (output / "figures/16_temporal_lineage.png").is_file()
+    assert (output / "figures/06_bbox_normalized_area_by_class.png").is_file()
+    assert (output / "figures/17_bbox_aspect_ratio_by_class.png").is_file()
+    instances = pd.read_csv(output / "tables/bbox_instances.csv")
+    assert len(instances) == 5
+    assert instances.groupby("frame_id").size().to_dict() == {"frame-0": 3, "frame-1": 2}
+    assert instances["content_id"].eq("same").all()  # Preserve conflicting occurrences.
+    assert not instances.duplicated(["frame_id", "box_index"]).any()
+    counts = pd.read_csv(output / "tables/object_instances_by_class.csv")
+    assert counts["instance_count"].sum() == 5
+    assert counts["percentage_of_total_instances"].sum() == pytest.approx(100)
+    geometry = pd.read_csv(output / "tables/bbox_geometry_by_class.csv")
+    assert len(geometry) == 8  # Two observed classes, four metrics each.
+    assert set(geometry["count"]) == {2, 3}
     baseline = pd.read_csv(output / "tables/historical_baseline.csv")
     pd.testing.assert_frame_equal(baseline, manifest[["frame_id", "content_id", "original_split"]])
     empty = pd.read_csv(output / "tables/empty_annotations.csv")

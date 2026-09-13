@@ -13,6 +13,12 @@ import numpy as np
 import pandas as pd
 
 from flir_pipeline.data.annotations import audit_annotations
+from flir_pipeline.data.classes import (
+    class_catalog_rows,
+    class_display_name,
+    class_name,
+    verify_class_config,
+)
 from flir_pipeline.data.identity import dataset_id_from_manifest
 from flir_pipeline.data.temporal import TemporalAudit, audit_temporal_lineage
 from flir_pipeline.features.storage import verify_features_against_manifest
@@ -121,13 +127,14 @@ def _class_distribution_rows(manifest: pd.DataFrame) -> pd.DataFrame:
         classes = row.get("classes_present", "")
         if pd.isna(classes):
             continue
-        for value in str(classes).split("|"):
+        for value in set(str(classes).split("|")):
             if value:
                 rows.append({"class_id": value, "count": 1})
     if not rows:
         return pd.DataFrame(columns=["class_id", "count"])
     counts = pd.DataFrame(rows).groupby("class_id", as_index=False).sum()
     counts = counts.sort_values("class_id", key=lambda s: s.map(lambda v: int(v) if str(v).isdigit() else -1))
+    counts["class_name"] = counts["class_id"].map(lambda value: class_name(int(value)))
     return counts
 
 
@@ -233,8 +240,8 @@ def _class_distribution_figure(manifest: pd.DataFrame, output_dir: Path) -> None
         ax.text(0.5, 0.5, "No class labels available", ha="center", va="center")
         ax.set_axis_off()
     else:
-        ax.bar(counts["class_id"].astype(str), counts["count"], color="#4C72B0")
-        ax.set_xlabel("class_id")
+        ax.bar(counts["class_id"].map(lambda value: class_display_name(int(value))), counts["count"], color="#4C72B0")
+        ax.set_xlabel("Clase (ID original)")
         ax.set_ylabel("Registros históricos que contienen la clase")
         ax.set_title("Imágenes que contienen cada clase")
         ax.grid(axis="y", alpha=0.2)
@@ -276,35 +283,38 @@ def _empty_labels_figure(manifest: pd.DataFrame, output_dir: Path) -> None:
     _write_csv(output_dir / "tables" / "empty_annotations.csv", summary)
 
 
-def _bbox_area_distribution_figure(manifest: pd.DataFrame, output_dir: Path) -> None:
-    values = pd.to_numeric(manifest.get("bbox_area_mean", pd.Series(dtype=float)), errors="coerce").dropna()
-    fig, ax = plt.subplots(figsize=(7, 5))
-    if values.empty:
-        ax.text(0.5, 0.5, "No bounding-box area data", ha="center", va="center")
-        ax.set_axis_off()
-    else:
-        ax.hist(values, bins=30, color="#8172B3", alpha=0.9)
-        median = float(np.median(values))
-        q25 = float(np.quantile(values, 0.25))
-        q75 = float(np.quantile(values, 0.75))
-        ax.axvline(median, color="#C44E52", linestyle="--", label=f"median={median:.3f}")
-        ax.axvline(q25, color="#CCB974", linestyle=":", label=f"p25={q25:.3f}")
-        ax.axvline(q75, color="#55A868", linestyle=":", label=f"p75={q75:.3f}")
-        ax.set_xlabel("Media del área normalizada de cajas por registro anotado")
-        ax.set_ylabel("Registros históricos")
-        ax.set_title("Área media de bounding boxes por registro")
-        ax.legend(frameon=False)
-        ax.grid(axis="y", alpha=0.2)
-    _savefig(output_dir / "figures" / "06_bbox_area_distribution.png", fig)
+def _bbox_geometry_figures(instances: pd.DataFrame, output_dir: Path) -> None:
+    """Plot individual boxes, retaining outliers without implying invalid labels."""
+    groups = list(instances.groupby("class_id", sort=True))
+    for metric, title, ylabel, filename in (
+        ("normalized_area", "Bounding-box normalized area by class", "Normalized bbox area (width × height)", "06_bbox_normalized_area_by_class.png"),
+        ("aspect_ratio", "Bounding-box aspect ratio by class", "width / height (YOLO normalized coordinates)", "17_bbox_aspect_ratio_by_class.png"),
+    ):
+        fig, ax = plt.subplots(figsize=(10, 5))
+        if groups:
+            ax.boxplot([group[metric].to_numpy() for _, group in groups], patch_artist=True,
+                       boxprops={"facecolor": "#C8D8EB"}, medianprops={"color": "#A33D37"},
+                       flierprops={"marker": ".", "markersize": 3, "alpha": 0.4})
+            ax.set_xticks(range(1, len(groups) + 1), [class_display_name(key) for key, _ in groups])
+            ax.set_xlabel("Clase (ID original)")
+            ax.set_ylabel(ylabel)
+            ax.set_title(title)
+            ax.grid(axis="y", alpha=0.2)
+            ax.text(0.5, -0.20, "Una observación por caja; bigotes 1.5 × IQR; puntos extremos conservados.",
+                    transform=ax.transAxes, ha="center", fontsize=9)
+        else:
+            ax.text(0.5, 0.5, "Sin instancias con geometría válida", ha="center", va="center")
+            ax.set_axis_off()
+        _savefig(output_dir / "figures" / filename, fig)
 
 
 def _annotation_instances_figure(classes: pd.DataFrame, output_dir: Path) -> None:
     """Count every parsed box in matched historical labels, separate from presence."""
     fig, ax = plt.subplots(figsize=(8, 5))
-    ax.bar(classes["class_id"].astype(str), classes["object_instances"], color="#55A868")
+    ax.bar(classes["class_id"].map(class_display_name), classes["object_instances"], color="#55A868")
     for index, count in enumerate(classes["object_instances"]):
         ax.text(index, count, str(count), ha="center", va="bottom")
-    ax.set_xlabel("class_id")
+    ax.set_xlabel("Clase (ID original)")
     ax.set_ylabel("Instancias / bounding boxes")
     ax.set_title("Instancias por clase en las anotaciones del candidato")
     ax.margins(y=0.15)
@@ -567,6 +577,7 @@ def generate_feature_engineering_report(
     feature_dirs: dict[str, Path] | None = None,
     labels_archive: Path | None = None,
     max_frame_gap: int = 1,
+    class_config_archive: Path | None = None,
 ) -> dict:
     """Write descriptive figures, tables, Markdown and local provenance metadata.
 
@@ -587,6 +598,8 @@ def generate_feature_engineering_report(
     diagnostics = pd.read_parquet(diagnostics_path) if diagnostics_path.is_file() else pd.DataFrame()
 
     annotation_summary = None
+    class_evidence = verify_class_config(class_config_archive) if class_config_archive else None
+    _write_csv(tables_dir / "class_catalog.csv", pd.DataFrame(class_catalog_rows()))
     if labels_archive is not None:
         annotations = audit_annotations(manifest, labels_archive)
         annotation_summary = annotations.summary
@@ -594,6 +607,10 @@ def generate_feature_engineering_report(
         _write_csv(tables_dir / "annotation_quality.csv", pd.DataFrame([annotation_summary]))
         _write_csv(tables_dir / "duplicate_annotation_audit.csv", annotations.duplicate_groups)
         _annotation_instances_figure(annotations.classes, output_dir)
+        _write_csv(tables_dir / "object_instances_by_class.csv", annotations.classes[["class_id", "class_name", "instance_count", "percentage_of_total_instances"]])
+        _write_csv(tables_dir / "bbox_instances.csv", annotations.instances)
+        _write_csv(tables_dir / "bbox_geometry_by_class.csv", annotations.geometry)
+        _bbox_geometry_figures(annotations.instances, output_dir)
     temporal = audit_temporal_lineage(manifest, max_frame_gap=max_frame_gap)
     _write_csv(tables_dir / "temporal_summary.csv", temporal.sequences)
     _write_csv(tables_dir / "temporal_coverage.csv", pd.DataFrame([temporal.summary]))
@@ -620,7 +637,6 @@ def generate_feature_engineering_report(
     _class_distribution_figure(manifest, output_dir)
     _objects_per_image_figure(manifest, output_dir)
     _empty_labels_figure(manifest, output_dir)
-    _bbox_area_distribution_figure(manifest, output_dir)
     _dataset_overview_figure(manifest, output_dir)
     _original_split_distribution_figure(manifest, output_dir)
     _pixel_statistics_figure(diagnostics, output_dir)
@@ -668,10 +684,24 @@ def generate_feature_engineering_report(
         clip_df.to_csv(tables_dir / "embedding_health_clip.csv", index=False)
     else:
         pd.DataFrame([{"extractor": "clip", "status": "pending"}]).to_csv(tables_dir / "embedding_health_clip.csv", index=False)
+    comparison_columns = ["extractor", "model_id", "content_embedding_count", "embedding_dimension", "pooling_strategy", "l2_norm_valid"]
+    _write_csv(tables_dir / "representation_comparison.csv", pd.DataFrame(
+        [item["stats"] for item in embedding_stats.values()], columns=comparison_columns
+    ))
 
     manifest_version = str(manifest.get("manifest_version").dropna().unique()[0]) if "manifest_version" in manifest.columns and not manifest.empty else "unknown"
     identity_columns = {"frame_id", "image_sha256", "label_sha256"}
     dataset_id = dataset_id_from_manifest(manifest) if identity_columns <= set(manifest.columns) else "unknown"
+    diagnostic_metrics = ["pixel_mean", "pixel_std", "entropy", "laplacian_variance", "width", "height", "aspect_ratio"]
+    preparation_checks = {
+        "canonical_identity": bool(dataset_id != "unknown" and len(manifest) and manifest["frame_id"].is_unique and manifest["content_id"].notna().all()),
+        "historical_split_metadata": bool(manifest["original_split"].isin(["train", "val", "test"]).all()),
+        "source_class_config_and_mapping": bool(class_evidence and class_evidence["source_config_validated"] and class_evidence["academic_mapping_validated"]),
+        "annotations_and_instance_geometry": bool(annotation_summary and annotation_summary["matched_labels"] == len(manifest) and annotation_summary["candidate_invalid_labels"] == 0 and annotation_summary["geometry_instances"] == dataset_summary["total_objects"]),
+        "diagnostics_content_coverage": bool("content_id" in diagnostics and diagnostics["content_id"].is_unique and set(diagnostics["content_id"]) == set(manifest["content_id"])),
+        "diagnostics_finite": bool(set(diagnostic_metrics) <= set(diagnostics) and np.isfinite(diagnostics[diagnostic_metrics].to_numpy(dtype=float)).all()),
+        "temporal_provenance_accounted_for": bool(temporal.summary["records_with_inferred_order"] + temporal.summary["records_without_inferred_order"] == len(manifest)),
+    }
 
     feature_dir_paths = []
     for item in feature_dirs.values():
@@ -683,6 +713,17 @@ def generate_feature_engineering_report(
         "generated_at": datetime.now(UTC).isoformat(),
         "feature_directories_used": feature_dir_paths,
         "annotation_summary": annotation_summary,
+        "class_mapping_evidence": class_evidence,
+        "class_catalog": class_catalog_rows(),
+        "preparation_report_checks": preparation_checks,
+        "preparation_report_checks_valid": all(preparation_checks.values()),
+        "bbox_geometry": {
+            "unit": "individual bounding box per canonical historical occurrence",
+            "coordinates": "YOLO normalized; area=width*height; aspect_ratio=width/height",
+            "std_ddof": 1, "quartile_interpolation": "linear",
+            "invalid_label_policy": "exclude all boxes of invalid labels from geometry; retain QA and counts",
+            "background_policy": "empty annotations only; no sixth class or synthetic boxes",
+        },
         "temporal_summary": temporal.summary,
         "baseline": "original_split preserved; no new partition generated",
         "feature_engineering_completed": all(embedding_stats.get(name, {}).get("stats", {}).get("reproducible_full_dataset_valid", False) for name in ("dinov2", "clip")),
@@ -705,6 +746,10 @@ def generate_feature_engineering_report(
         "## Anotaciones y duplicados",
         "",
         "- Imágenes que contienen una clase e instancias de objetos son medidas distintas.",
+        "- La geometría usa cada caja individual, con ancho/alto YOLO normalizados, área=ancho×alto y ratio=ancho/alto; no medias por imagen.",
+        "- bbox_geometry_by_class.csv conserva count, mean, std muestral (ddof=1), median, Q1, Q3, min y max; cuartiles lineales.",
+        "- Background describe anotaciones vacías, sin sexta clase ni cajas ficticias. Las distribuciones no prueban causas.",
+        "- El catálogo central conserva SDZI como nombre original de Heavy Machinery (4); la correspondencia usa el orden de clases confirmado entre YAML y publicación, no una expansión del acrónimo.",
         f"- Grupos duplicados: {duplicate_summary['duplicate_groups']}; ocurrencias involucradas: {duplicate_summary['duplicate_records']}.",
         f"- Contenidos exactos train–val / train–test / val–test: {duplicate_summary['train_val_duplicate_content_ids']} / {duplicate_summary['train_test_duplicate_content_ids']} / {duplicate_summary['val_test_duplicate_content_ids']}.",
     ]
@@ -734,9 +779,10 @@ def generate_feature_engineering_report(
         "- Un embedding por content_id; mapping completo de ocurrencias verificado contra el manifest.",
         "- Raw/L2, finitud, normas e índices son controles numéricos; no prueban calidad semántica.",
         "- Dimensiones y relación de aspecto se conservan en tabla secundaria; Laplaciano usa log10(1 + varianza).",
-        "", "## Estado hasta semana 6 y frontera metodológica", "",
+        "", "## Estado de semanas 6–8 y frontera metodológica", "",
         f"- Ingeniería de características completada: {metadata['feature_engineering_completed']}.",
-        "- El alcance documentado llega hasta semana 6; el calendario íntegro de la propuesta no forma parte de este repositorio.",
+        f"- Semana 6, controles de preparación del reporte: {'COMPLETED' if metadata['preparation_report_checks_valid'] else 'IN PROGRESS'}; matriz integral de evidencias en docs/current_status.md.",
+        f"- Semanas 7–8, representaciones completas: {'COMPLETED' if metadata['feature_engineering_completed'] else 'IN PROGRESS'}; verificación de ambos espacios contra el manifest.",
         "- Siguiente fase: similitud entre fotogramas. Bhattacharyya condicional, reducción, clustering, nuevos splits y entrenamiento/evaluación permanecen pendientes.",
         "- Notebook ejecutado y HTML del reporte técnico en review/; código oculto en el HTML.",
     ])

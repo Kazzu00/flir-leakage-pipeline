@@ -1,6 +1,6 @@
 # Methodology traceability
 
-Reviewed 2026-09-09 against the documented scope of the thesis proposal: **“Desarrollo de un pipeline de agrupación, procesamiento y detección de
+Reviewed 2026-09-13 against the documented scope of the thesis proposal: **“Desarrollo de un pipeline de agrupación, procesamiento y detección de
 minería ilegal en videos FLIR de la Amazonía colombiana.”** The full proposal
 document is not included in this repository; this table traces its documented scope.
 
@@ -11,7 +11,7 @@ the local code review. See [current status](current_status.md) for aggregate fac
 
 | Proposal component | Repository component | Status | Evidence |
 |---|---|---|---|
-| Dataset characterization | `data/inventory.py`, `data/yolo_labels.py`, `data/annotations.py` | DONE | Inventory, actual instance vs presence counts, orphan/conflict QA and full diagnostics |
+| Dataset characterization (week 6) | `data/inventory.py`, `data/yolo_labels.py`, `data/classes.py`, `data/annotations.py` | DONE | Original YAML/class-order correspondence; 4168 instances, per-class normalized geometry, orphan/conflict QA and full diagnostics; exact bibliography pending |
 | Available temporal provenance | `data/temporal.py` | DONE WITH LIMITS | Two inferred sequences, 1657 orderable records by name, no verified timestamps; temporal summary/candidate tables |
 | Canonical traceability | `data/manifest.py`, `data/identity.py`, `utils/hashing.py` | DONE | Local candidate v1 manifest: 1657 unique frame_id, 1459 content_id; `tests/test_manifest.py` |
 | DINOv2 | `features/dinov2.py`, `features/storage.py` | DONE | Full 1459 × 384 CLS, resolved revision, raw/L2 and all 1657 canonical occurrence mappings verified |
@@ -61,5 +61,5 @@ are not automatically ground-truth scene clusters. Decide whether a reduction is
 for visualization or a clustering input and document its geometric implications.
 No reduction/clustering combination is selected. The bounded week 6 closure uses
 DINOv2-small and CLIP ViT-B/32; this does not select a downstream winning encoder.
-The [week 6 matrix](current_status.md) traces the documented commitments explicitly;
+The [weeks 6–8 matrix](current_status.md) traces the requested closure criteria explicitly;
 the full dated proposal is not included in the repository.

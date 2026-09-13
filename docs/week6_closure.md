@@ -1,5 +1,11 @@
 # Cierre controlado hasta semana 6
 
+**Nota de revisión 2026-09-13:** este documento conserva el registro del cierre
+anterior, que agrupó preparación y ambas extracciones bajo semana 6. La solicitud
+actual distingue semanas 6, 7 y 8; ver la matriz actualizada de
+[estado](current_status.md) y la [nomenclatura/geometría por clase](dataset_classes.md).
+Las extracciones de abajo no se repitieron en esta revisión; se revalidaron.
+
 La matriz de [estado](current_status.md) responde al alcance documentado de la
 propuesta. El calendario íntegro no forma parte del repositorio.
 Se cierra la preparación de datos y representaciones; la siguiente fase será
@@ -85,6 +91,9 @@ rechaza ambigüedad. Se pueden proporcionar `--dinov2` y `--clip` explícitos;
 `--no-full` permite seleccionar muestras sin exigir cobertura completa.
 `--labels-archive` permite seleccionar el ZIP; el valor por defecto es
 `FLIR_DATA_ROOT/Etiquetas.zip`. `--max-frame-gap 1` documenta el umbral nominal.
+El builder también valida el YAML de `FLIR_DATA_ROOT/dataset_split_completo.zip`,
+seleccionable mediante `--class-config-archive`, y conserva nombres originales y
+canónicos en el catálogo local. Verifica que IDs y nombres no hayan cambiado.
 El builder no carga modelos y calcula el estado de cierre desde las verificaciones.
 
 ## Evidencia y unidades
@@ -111,6 +120,9 @@ Artefactos principales:
 - `reports/feature_engineering/review/feature_engineering_review.executed.ipynb`: notebook ejecutado con código.
 - `reports/feature_engineering/feature_engineering_report.md` y `metadata.json`.
 - `tables/annotation_class_distribution.csv`, `annotation_quality.csv`, `empty_annotations.csv`.
+- `tables/class_catalog.csv`, `object_instances_by_class.csv`, `bbox_instances.csv`, `bbox_geometry_by_class.csv`.
+- `tables/representation_comparison.csv`: modelo, N, dimensión, pooling y L2, sin ranking de encoders.
+- `figures/06_bbox_normalized_area_by_class.png`, `figures/17_bbox_aspect_ratio_by_class.png`.
 - `tables/temporal_summary.csv`, `temporal_coverage.csv`, `temporal_lineage.csv`, `cross_split_temporal_candidates.csv`.
 - `tables/historical_baseline.csv`, `historical_split_summary.csv`, `image_geometry_summary.csv`, quality tables.
 - `reports/feature_engineering_closure/full_extraction_receipt.json`, logs y auditoría final.

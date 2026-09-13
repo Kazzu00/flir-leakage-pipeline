@@ -138,8 +138,9 @@ Report inputs are explicit or unambiguous. The builder's default complete mode (
 by canonical dataset and complete coverage, verifies provenance, requires both
 encoders, and still rejects multiple eligible runs. Hash ordering never chooses an
 experiment. Use `--no-full` and explicit paths to report a sampled artifact.
-Class-presence charts count records, not objects; box-area charts use
-per-record means. Sample sizes and embedding health come from selected artifacts.
+Class-presence charts count records, not objects; box-area and aspect-ratio
+boxplots use individual instances grouped by canonical class name. Sample sizes
+and embedding health come from selected artifacts.
 Source notebooks have no outputs; executed notebooks and HTML stay local.
 
 ## 12. Annotation universes and temporal evidence
@@ -163,3 +164,21 @@ A full closure additionally compares record/content mappings to the canonical
 manifest and requires resolved revision metadata. Equal numerical embeddings for
 different contents are permitted. Full numerical validity does not establish
 semantic quality, clustering structure or detector improvement.
+
+## 13. Class nomenclature and instance geometry
+
+The original YAML explicitly maps IDs 0–4 to vehicle/building/road/river/SDZI.
+Canonical display names follow the publication order confirmed by the project
+owner on 2026-09-13; `SDZI` remains the original label for Heavy Machinery (4).
+This is order correspondence, not a demonstrated expansion of the source term.
+The exact bibliography remains pending; see [evidence and limits](dataset_classes.md).
+One immutable catalog supplies report, plot and manifest-summary names.
+The generic YOLO parser does not impose the five-class ontology.
+
+Geometry uses the source-precision parsed boxes rather than rounded canonical
+tuples intended for conflict comparisons. Historical occurrences each contribute
+their own boxes; orphans are excluded and empty labels do not fabricate boxes.
+The four metrics are normalized width, height, their product and their ratio.
+The ratio of normalized axes differs from pixel aspect ratio on non-square images.
+Report sample standard deviation and linear quartiles, retain outliers, and
+explicitly count geometry exclusions for invalid labels. No label is repaired.
