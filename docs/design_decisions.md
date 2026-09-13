@@ -1,8 +1,8 @@
 # Design decisions
 
 These decisions describe the current implementation and the supplied thesis
-methodology. No similarity, reduction, clustering, new splitting or training was
-implemented during this review.
+methodology. Later sections record the executed similarity/reduction extensions.
+Clustering, new splitting and detector training remain unimplemented.
 
 ## 1. Separate occurrence from exact content
 
@@ -234,3 +234,42 @@ Maximum-similarity pairs are inspected even when no pair meets the numerical
 near-unit tolerance. RGB pixel equality and exact-byte equality remain separate.
 Overlays/menus are visible in source images; their possible influence has not been
 isolated experimentally. All image composites, HTML and executed notebooks stay local.
+
+## 16. Direct L2 reduction and source-bound preservation
+
+t-SNE and PaCMAP use independent full L2 spaces, with no input pre-PCA. PCA
+initializes low-dimensional positions only. PaCMAP's default preliminary PCA is
+disabled explicitly; its remaining scalar rescaling/centering and actual full
+input dimension are recorded. The direct grid is feasible at N=1459, avoiding an
+additional preprocessing experiment at this stage. 3D is supported by configuration
+but only 2D is executed. The numerical adapter accepts no labels, split or time.
+
+Reduction identity includes dataset/feature, method, parameters, seed, dimensions,
+preprocessing and implementation versions; operational paths/time/threads are
+excluded. Evaluation settings are also included because metrics share the stored
+artifact. Input fingerprints protect the original vectors, indices and similarity
+reference. Existing record_index is referenced, not duplicated. Completed runs
+are immutable checkpoints for a grid; partial outputs are preserved and refused.
+
+Exact full ranks define trustworthiness and continuity, with k=5/10/20 and an
+explicit content-ID tie rule. Existing cosine neighbors define set preservation;
+Euclidean distances define reduced neighbors. Canonically sampled unique pairs
+define complementary Spearman; pair dependencies preclude naive significance
+claims. Seed comparisons use neighbor-set Jaccard, not raw coordinate differences.
+
+## 17. Predeclared exploratory references and interpretation
+
+The [protocol](reduction_protocol.md) fixes three configurations per method and
+three seeds, then a Pareto/mean-rank rule over T, C, Jaccard, stability and Spearman.
+The last criterion has one fifth of the rank weight, with no primacy. Criteria
+are correlated; this rule is explicit and exploratory, not a validated objective
+for detector performance. All alternatives remain available. Seed 0 always
+represents a selected configuration. Missing distance correlation in any seed
+precludes candidate eligibility rather than silently averaging fewer seeds.
+
+The report uses a posterior temporal window selected independently of geometry:
+first sorted eligible sequence, longest consecutive unambiguous index stretch,
+centered window of up to 30 contents. All historical memberships are preserved
+as sets. Neither colors nor trajectories influence fitting or selection. Nonlinear
+2D density cannot justify density-based clustering without evaluating stability,
+coherence, noise and original-space relationships in the next phase.

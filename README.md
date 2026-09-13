@@ -44,13 +44,13 @@ claim the work of other contributors. The proposed handoff is documented in
 | Full DINOv2 / CLIP extraction | DONE; 1459 contents per encoder, verified against 1657 records |
 | Cosine similarity | DONE; two complete matrices, top-20, verified artifacts and HTML review |
 | Visual/temporal correlation analysis | PARTIAL; full descriptive analysis executed, filename-based time remains unverified |
-| t-SNE / PaCMAP | PLANNED |
-| DBSCAN / OPTICS / HDBSCAN | PLANNED |
+| t-SNE / PaCMAP | DONE; 36 full 2D runs, preservation/stability, four candidates, verified artifacts and HTML |
+| DBSCAN / OPTICS / HDBSCAN | PLANNED / NEXT |
 | Cluster evaluation and selection | PLANNED |
 | Cluster-aware splitting and random baseline | PLANNED |
 | Detector comparison | PLANNED |
 
-The implementation currently supports **data + features + similarity**. A future namespace is
+The implementation currently supports **data + features + similarity + reduction**. A future namespace is
 not an implemented experiment. See [current status](docs/current_status.md).
 
 ## Current dataset findings
@@ -108,19 +108,19 @@ src/flir_pipeline/
   data/          inventory, hashing lineage, canonical manifest, label QA
   features/      DINOv2, CLIP, preprocessing, revisions, storage, diagnostics, plots
   similarity/    cosine, top-k, posterior temporal/split analysis, agreement, reports
-  reduction/     planned: t-SNE / PaCMAP
+  reduction/     t-SNE / PaCMAP, preservation, seed stability and posterior figures
   clustering/    planned: DBSCAN / OPTICS / HDBSCAN
   splitting/     planned
   detection/     future evaluation/integration
   evaluation/    planned
   utils/         streaming SHA256
-configs/         active embedding/similarity configs; documented future boundaries
+configs/         active embedding/similarity/reduction configs; future boundaries
 docs/            methodology, decisions, architecture, status
 notebooks/       narrative source without outputs
 scripts/         local report builder and offline notebook check
 tests/           synthetic, offline tests
 data/manifests/  local real manifests, ignored
-artifacts/       local embeddings/diagnostics/similarity, ignored
+artifacts/       local embeddings/diagnostics/similarity/reductions, ignored
 reports/         local figures, tables, executed notebooks and HTML, ignored
 ```
 
@@ -137,6 +137,9 @@ normalization while excluding runtime device and batch size.
 `similarity_space_id` fingerprints dataset, feature space and analysis rules.
 Input/output fingerprints additionally protect the cache against changes in
 arrays, indices and posterior provenance. See [week 9](docs/similarity_analysis.md).
+`reduction_space_id` additionally binds method, parameters, seed, output dimension,
+preprocessing, evaluation settings and implementation versions. The [reduction
+protocol](docs/reduction_protocol.md) fixes the grid and candidate rule before fitting.
 
 Sampling uses an explicit seed (default 0). Metadata records model provenance,
 configuration, selected content, seed, Python/library versions and Git commit.
@@ -171,12 +174,14 @@ Core-only use: `uv sync --locked`. Add optional dependencies when needed:
 ```powershell
 uv sync --locked --extra dev --extra vision
 uv sync --locked --extra dev --extra vision --extra reporting
+uv sync --locked --extra dev --extra reduction --extra reporting
 ```
 
 `uv sync` installs the selected extras exactly; keep the extras you want on each
 sync invocation. The vision extra installs libraries, not pretrained model weights.
 The first real extraction may download weights; use `--local-files-only` when the
-required snapshot is already cached. CI installs only core and dev.
+required snapshot is already cached. CI installs core, dev and reduction; no vision
+models or datasets are downloaded by tests.
 
 ## Environment configuration
 
@@ -201,6 +206,7 @@ uv run flir-pipeline --help
 uv run flir-pipeline data --help
 uv run flir-pipeline features --help
 uv run flir-pipeline similarity --help
+uv run flir-pipeline reduction --help
 ```
 
 | Group | Commands |
@@ -208,6 +214,7 @@ uv run flir-pipeline similarity --help
 | `data` | `inventory`, `archive-tree`, `compare-archives`, `build-manifest`, `validate-labels`, `manifest-summary` |
 | `features` | `extract`, `diagnostics`, `summary`, `verify`, `visualize-data`, `visualize-embeddings` |
 | `similarity` | `compute`, `summary`, `verify`, `compare` |
+| `reduction` | `run`, `summary`, `verify`, `benchmark` |
 
 With `FLIR_DATA_ROOT` configured and the source ZIPs available:
 
@@ -234,13 +241,13 @@ diagnostics Parquet. Use each command's `--help` for options.
 
 ### Future planned commands
 
-Reduction, clustering, splitting, detection and evaluation are
+Clustering, splitting, detection and evaluation are
 planned stages with no runnable CLI commands. Previous success-returning stubs
 were removed; the documented future package boundaries remain.
 
 ## Testing
 
-After installing core + dev:
+After installing core + dev + reduction:
 
 ```powershell
 uv run ruff check .
@@ -253,7 +260,9 @@ duplicates, offline adapter compatibility, revision provenance, content mapping,
 raw/L2 quality, actual interrupted-batch resume, visualization and report generation.
 Similarity tests cover dot products, deterministic ties, temporal ambiguity,
 multi-split membership, quantile cohorts, Jaccard, cache corruption and posterior
-metadata independence. Both source notebooks are checked without execution.
+metadata independence. Reduction tests cover exact preservation formulas, seed
+repeatability, geometric invariance, source binding, corruption and candidate
+selection. All three source notebooks are checked without execution.
 They do not require FLIR data, a GPU, model downloads or notebook tooling.
 CI also checks the source notebook using only the standard library.
 
@@ -293,6 +302,21 @@ first run if downloading them is needed. See the [complete runbook](docs/week6_c
 for executable selection/verification commands and execution provenance.
 
 ## Reports
+
+The [reduction review notebook](notebooks/reduction_review.ipynb) contains 14
+sections: all run metrics/times, four reference projections, seed stability,
+deterministic temporal examples and historical membership overlays. Its 11
+figures and executed HTML remain local under `reports/reduction/`.
+
+```powershell
+uv run --extra reporting python scripts/build_reduction_review.py --dinov2 <dinov2_benchmark_directory> --clip <clip_benchmark_directory> --dinov2-similarity <dinov2_similarity_directory> --clip-similarity <clip_similarity_directory>
+```
+
+Use the [reduction runbook](docs/reduction_runbook.md) to execute, reuse and verify
+a single run or the complete small grid. Source feature/similarity directories
+are explicit; no Python editing, model loading or original-image access is needed.
+The [result register](docs/reduction_analysis.md) retains all configurations and
+per-run aggregates; candidates do not establish validated clustering inputs.
 
 The new [similarity review notebook](notebooks/similarity_review.ipynb) has 14
 sections and 11 figures: full distributions, neighborhoods, inferred temporal
@@ -341,7 +365,7 @@ receipts and final audit are in `reports/feature_engineering_closure/`.
 
 ## Repository status
 
-**2026-09-13 — Weeks 6–8 closed; week 9 descriptive cosine phase completed**:
+**2026-09-13 — Weeks 6–8 closed; cosine and weeks 9–10 reduction grids completed**:
 
 | Week | Status | Evidence |
 |---|---|---|
@@ -349,6 +373,7 @@ receipts and final audit are in `reports/feature_engineering_closure/`.
 | 7 — DINOv2 | COMPLETED | implemented; smoke validated historically; full extraction completed (1459 × 384), reverified against all 1657 records |
 | 8 — CLIP / descriptive comparison | COMPLETED | implemented; smoke validated historically; full extraction completed (1459 × 512), reverified; descriptive comparison table |
 | 9 — similarity / temporal relations | COSINE DONE; TEMPORAL PARTIAL | Each encoder: 1459 × 1459 float32, 1063611 unique pairs, 29180 top-20 edges; full verification and executed HTML; no verified timestamps |
+| 9–10 — dimensionality reduction | DONE | 18 t-SNE + 18 PaCMAP runs, all 1459 × 2; exact T/C, Jaccard, Spearman, three-seed stability, four exploratory references and executed 14-section/11-figure HTML |
 
 Both full extractions already existed; this review reused them after verification.
 The current five source ZIPs match the historical inventory hashes; an additional
@@ -358,8 +383,13 @@ are **0.4724 DINOv2 / 0.8306 CLIP**; nearest neighbors belong to the same inferr
 sequence in **99.59% / 99.25%** of queries. The exact nearest-neighbor agreement
 between encoders is **28.17%**. The top 0.1% contains **328 / 277** historical
 cross-split candidates, respectively; these are not confirmed leakage.
-The next step is the **t-SNE / PaCMAP protocol**, followed later by clustering,
-new partitions and controlled detector comparison. Those stages remain unexecuted.
+The reduction grid selected t-SNE perplexity 30 and PaCMAP MN_ratio 1.0 for both
+encoders, with seed 0 as the fixed reference. These are exploratory candidates;
+2D density does not establish original-space density or clustering quality.
+See [all 36 run results and timing](docs/reduction_analysis.md).
+The next step is a **DBSCAN / OPTICS / HDBSCAN evaluation protocol** comparing
+original L2 spaces and candidate reductions, with stability/coherence/noise checks.
+Clustering, new partitions and controlled detector comparison remain unexecuted.
 See [current status](docs/current_status.md), [week 6 closure](docs/week6_closure.md)
 and [methodology traceability](docs/methodology_traceability.md).
 

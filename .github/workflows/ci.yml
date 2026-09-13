@@ -16,14 +16,16 @@ jobs:
         uses: astral-sh/setup-uv@v5
         with:
           version: "latest"
-      - name: Install core and development dependencies
-        run: uv sync --locked --extra dev
+      - name: Install core, development and reduction dependencies
+        run: uv sync --locked --extra dev --extra reduction
       - name: Ruff check
         run: uv run ruff check .
       - name: Tests
         env:
           HF_HUB_OFFLINE: "1"
           TRANSFORMERS_OFFLINE: "1"
+          NUMBA_NUM_THREADS: "1"
+          OMP_NUM_THREADS: "1"
         run: uv run pytest
       - name: Check source notebook
         run: uv run python scripts/check_notebook_source.py

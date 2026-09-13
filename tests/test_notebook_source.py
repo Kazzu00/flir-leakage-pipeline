@@ -1,5 +1,6 @@
 import ast
 import json
+import re
 import runpy
 import subprocess
 from pathlib import Path
@@ -77,5 +78,20 @@ def test_similarity_review_source_has_complete_narrative_without_execution_state
     assert len(sections) == 14
     assert all(heading.startswith(f"## {i}. ") for i, heading in enumerate(sections, 1))
     ignored = ["reports/similarity/review/similarity_review.executed.ipynb", "reports/similarity/review/similarity_review.html", "artifacts/similarity/synthetic/cosine_similarity.npy", "reports/similarity/figures/nearest_neighbors_dinov2.png"]
+    result = subprocess.run(["git", "check-ignore", "--no-index", *ignored], cwd=root, text=True, capture_output=True, check=True)
+    assert result.stdout.splitlines() == ignored
+
+
+def test_reduction_review_preserves_source_and_fourteen_sections():
+    root = Path(__file__).resolve().parents[1]
+    source = root/"notebooks/reduction_review.ipynb"
+    check = runpy.run_path(str(root/"scripts/check_notebook_source.py"))["check_notebook_source"]
+    check(source)
+    notebook = json.loads(source.read_text(encoding="utf-8"))
+    narrative = "\n".join("".join(c["source"]) for c in notebook["cells"] if c["cell_type"] == "markdown")
+    assert narrative.startswith("# FLIR Dimensionality Reduction — Progress Review")
+    assert re.findall(r"^## (\d+)\.", narrative, re.MULTILINE) == [str(i) for i in range(1, 15)]
+    ignored = ["reports/reduction/review/reduction_review.executed.ipynb", "reports/reduction/review/reduction_review.html",
+               "reports/reduction/figures/01_reduction_quality_dinov2.png", "artifacts/reduction/synthetic/coordinates.npy"]
     result = subprocess.run(["git", "check-ignore", "--no-index", *ignored], cwd=root, text=True, capture_output=True, check=True)
     assert result.stdout.splitlines() == ignored

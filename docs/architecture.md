@@ -8,14 +8,14 @@ to future partition experiments. Existing package boundaries are preserved.
 | Data | ZIP inventory, streaming hashes, lineage/duplicate analysis, occurrence manifest and non-mutating YOLO QA | ACTIVE |
 | Features | DINOv2 CLS / CLIP projected-image adapters, RGB preprocessing, revision tracking, raw/L2 stores, diagnostics, descriptive reports | ACTIVE; both full extractions validated |
 | Similarity | Cosine over existing L2 contents, top-k, posterior temporal/split relations, agreement and review | ACTIVE; full cosine validated, inferred temporal analysis partial; Bhattacharyya conditional/planned |
-| Reduction | t-SNE and PaCMAP | FUTURE PLANNED |
+| Reduction | t-SNE and PaCMAP; exact preservation, seed stability, bounded selection and posterior interpretation | ACTIVE; experiment status in current_status.md |
 | Clustering | DBSCAN, OPTICS, HDBSCAN and evidence-based cluster selection | FUTURE PLANNED |
 | Splitting | Reproducible baselines and indivisible cluster/scene allocation | FUTURE PLANNED |
 | Detection / evaluation | Detector comparison, cluster quality, partition similarity and metrics | FUTURE PLANNED; group handoff boundary |
 
 ```text
 src/flir_pipeline/
-  cli.py                   implemented data/features/similarity commands
+  cli.py                   implemented data/features/similarity/reduction commands
   config.py                reserved validated path configuration
   data/
     inventory.py           archive structure, matching and exploratory lineage
@@ -38,7 +38,13 @@ src/flir_pipeline/
     storage.py             config identity, input/output fingerprints, full verification
     comparison.py          content-aligned neighbor Jaccard across independent spaces
     reporting.py           aggregate tables, selected ZIP image grids and figures
-  reduction/               planned; documentation only
+  reduction/
+    base.py                explicit configs and portable reduction identity
+    reducers.py            shared vector-only contract, t-SNE and PaCMAP adapters
+    metrics.py             exact ranks, T/C, Jaccard, distance sampling and stability
+    storage.py             immutable runs, source binding and executable verification
+    benchmark.py           small grids, seed aggregation, predeclared candidates
+    visualization.py       posterior temporal/split interpretation and local reports
   clustering/              planned; documentation only
   splitting/               planned; documentation only
   detection/               future evaluation/integration; documentation only
@@ -58,6 +64,7 @@ content_id (exact image SHA256)
 embedding_row (separate DINOv2 and CLIP stores)
    |
    +--> similarity_space_id: matrix rows, neighbor IDs, posterior content/record lineage
+   +--> reduction_space_id: coordinates in the same content_index order
    |
    v  FUTURE assignment, including an explicit noise policy
 cluster_id
@@ -87,6 +94,22 @@ feature/manifest arguments also bind outputs to the original source arrays and
 lineage. Comparison stores align queries by content ID, independently of row order.
 The local review contains selected image composites; the versioned notebook has
 no executed outputs. No future cluster or new split is produced by this layer.
+
+## Reduction boundary
+
+Reduction receives only full original L2 vectors from verified feature spaces.
+Original cosine tables form the evaluation reference, independently of fitting.
+Output paths extend the feature identity with method/reduction identity; benchmark
+directories bind the exact run set, stability summaries and selection rule.
+Existing record_index is referenced by fingerprint rather than duplicated.
+Metadata retains native preprocessing, library versions, source hashes and the
+actual execution commit. Verified completed runs are resumable grid checkpoints;
+incomplete publications are preserved. No optimizer checkpoint is fabricated.
+
+Posterior reporting joins by content_id and preserves multiple historical split
+memberships. Temporal examples use an explicit nominal-index rule, independently
+of coordinates. Neither layer creates clustering assignments. See the [protocol](reduction_protocol.md)
+and [runbook](reduction_runbook.md); 2D density is not original-space density.
 
 ## Individual research and group handoff
 

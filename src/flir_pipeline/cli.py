@@ -13,9 +13,11 @@ app = typer.Typer(help="Reproducible FLIR leakage research pipeline.")
 data_app = typer.Typer(help="Read-only dataset discovery and audit commands.")
 features_app = typer.Typer(help="Content-level visual feature extraction commands.")
 similarity_app = typer.Typer(help="Content-level cosine and post-hoc temporal/historical analysis.")
+reduction_app = typer.Typer(help="Reproducible t-SNE/PaCMAP, preservation metrics and seed stability.")
 app.add_typer(data_app, name="data")
 app.add_typer(features_app, name="features")
 app.add_typer(similarity_app, name="similarity")
+app.add_typer(reduction_app, name="reduction")
 
 
 def _default_root() -> Path | None:
@@ -402,3 +404,85 @@ def similarity_compare(
 
     output = compare_to_store(left, right, output_root)
     typer.echo(f"Neighbor agreement written to {output}")
+
+
+@reduction_app.command("run")
+def reduction_run(
+    feature_directory: Path = typer.Option(...),
+    similarity_directory: Path = typer.Option(...),
+    manifest: Path = typer.Option(...),
+    config: Path = typer.Option(..., help="Reduction YAML; choose one configuration and seed below."),
+    configuration_index: int = typer.Option(0, min=0, help="Zero-based position among hyperparameter configurations, excluding seeds."),
+    seed: int = typer.Option(0, min=0),
+    output_root: Path = typer.Option(Path("artifacts/reduction")),
+) -> None:
+    """Run one explicitly chosen reduction, without posterior metadata as features."""
+    from dataclasses import replace
+
+    from flir_pipeline.reduction.base import configuration_id, load_grid
+    from flir_pipeline.reduction.storage import load_inputs, run_to_store
+
+    grid = {configuration_id(c): c for c in load_grid(config)}
+    if configuration_index >= len(grid):
+        raise typer.BadParameter("configuration-index is outside the YAML grid")
+    selected = replace(list(grid.values())[configuration_index], seed=seed)
+    inputs = load_inputs(feature_directory, similarity_directory, manifest)
+    typer.echo(f"Reduction written to {run_to_store(inputs, selected, output_root)}")
+
+
+@reduction_app.command("benchmark")
+def reduction_benchmark(
+    feature_directory: Path = typer.Option(...),
+    similarity_directory: Path = typer.Option(...),
+    manifest: Path = typer.Option(...),
+    config: list[Path] = typer.Option(..., help="Repeat --config for the t-SNE and PaCMAP grids."),
+    output_root: Path = typer.Option(Path("artifacts/reduction")),
+) -> None:
+    """Execute a bounded grid and select exploratory references from measured criteria."""
+    from flir_pipeline.reduction.base import load_grid
+    from flir_pipeline.reduction.benchmark import benchmark_to_store
+    from flir_pipeline.reduction.storage import load_inputs
+
+    inputs = load_inputs(feature_directory, similarity_directory, manifest)
+    grid = [configuration for path in config for configuration in load_grid(path)]
+    typer.echo(f"Benchmark written to {benchmark_to_store(inputs, grid, output_root)}")
+
+
+@reduction_app.command("verify")
+def reduction_verify(
+    directory: Path,
+    feature_directory: Path | None = typer.Option(None),
+    similarity_directory: Path | None = typer.Option(None),
+    manifest: Path | None = typer.Option(None),
+) -> None:
+    """Verify a run or benchmark; all three source options also recompute preservation metrics."""
+    from flir_pipeline.reduction.benchmark import verify_benchmark
+    from flir_pipeline.reduction.storage import load_inputs, verify_reduction
+    from flir_pipeline.similarity.storage import read_json
+
+    options = (feature_directory, similarity_directory, manifest)
+    if any(p is not None for p in options) and not all(p is not None for p in options):
+        raise typer.BadParameter("Provide feature-directory, similarity-directory and manifest together")
+    inputs = load_inputs(*options) if all(p is not None for p in options) else None
+    kind = read_json(directory/"metadata.json").get("artifact_kind") if (directory/"metadata.json").is_file() else None
+    result = verify_benchmark(directory, inputs) if kind == "reduction_benchmark" else verify_reduction(directory, inputs)
+    typer.echo(json.dumps(result, indent=2))
+    if not result["quality_valid"]:
+        raise typer.Exit(1)
+
+
+@reduction_app.command("summary")
+def reduction_summary(directory: Path) -> None:
+    """Read completed and verified reduction metrics or benchmark aggregates."""
+    from flir_pipeline.reduction.benchmark import verify_benchmark
+    from flir_pipeline.reduction.storage import verify_reduction
+    from flir_pipeline.similarity.storage import read_json
+
+    meta = read_json(directory/"metadata.json")
+    is_benchmark = meta.get("artifact_kind") == "reduction_benchmark"
+    quality = verify_benchmark(directory) if is_benchmark else verify_reduction(directory)
+    if not quality["quality_valid"]:
+        typer.echo(json.dumps(quality, indent=2))
+        raise typer.Exit(1)
+    payload = read_json(directory/("summary.json" if is_benchmark else "metrics.json"))
+    typer.echo(json.dumps({"method": meta.get("method"), "experiment_id": meta.get("benchmark_id", meta.get("reduction_space_id")), "summary": payload}, indent=2))

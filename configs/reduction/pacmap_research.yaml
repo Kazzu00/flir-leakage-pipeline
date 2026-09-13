@@ -1,0 +1,19 @@
+method: pacmap
+output_dimension: 2
+input_representation: embeddings_l2
+preprocessing: none
+seeds: [0, 1, 2]
+grid:
+  MN_ratio: [0.2, 0.5, 1.0] # 2 / 5 / 10 mid-near pairs; 0.5 is the controlled base.
+hyperparameters:
+  n_neighbors: 10
+  FP_ratio: 2.0
+  distance: euclidean
+  lr: 1.0
+  num_iters: [100, 100, 250]
+  apply_pca: false # Disable native 100D pre-reduction explicitly.
+  init: pca # Initialize output coordinates; do not pre-reduce the input.
+  knn_backend: faiss
+evaluation_ks: [5, 10, 20]
+distance_sample_size: 100000
+distance_sample_seed: 0

@@ -19,11 +19,12 @@ the local code review. See [current status](current_status.md) for aggregate fac
 | Cosine similarity | `similarity/cosine.py`, `storage.py` | DONE | Both full 1459 × 1459 float32 matrices, 1063611 unordered pairs, 29180 directed top-20 edges per encoder; original L2 source verification and executed 14-section HTML |
 | Visual/temporal correlation analysis | `similarity/temporal.py`, `reporting.py` | PARTIAL | Full same/different-sequence and frame-delta analysis executed; all 1459 contents have inferred sequence/index, zero verified timestamps; global visual coherence remains unvalidated |
 | Bhattacharyya distance | `similarity/`, design decision 8 | PLANNED / CONDITIONAL | Conditional on an explicitly defined distributional representation; none selected |
-| t-SNE | `reduction/` | PLANNED | Namespace only; no reductions executed |
-| PaCMAP | `reduction/` | PLANNED | Namespace only; no reductions executed |
-| DBSCAN | `clustering/` | PLANNED | No clustering implementation or experiment |
-| OPTICS | `clustering/` | PLANNED | No clustering implementation or experiment |
-| HDBSCAN | `clustering/` | PLANNED | No clustering implementation or experiment |
+| t-SNE | `reduction/reducers.py`, `storage.py`, `benchmark.py` | DONE | 18 full runs, perplexity 10/30/50 × seeds 0/1/2 × both encoders; direct L2, 1459 × 2, exact preservation, verified artifacts and report |
+| PaCMAP | `reduction/reducers.py`, `storage.py`, `benchmark.py` | DONE | 18 full runs, MN_ratio 0.2/0.5/1.0 × seeds 0/1/2 × both encoders; apply_pca=false, effective pair counts, verified artifacts and report |
+| Reduction preservation and seed stability | `reduction/metrics.py`, `benchmark.py`, `visualization.py` | DONE WITH LIMITS | Exact T/C, original/reduced Jaccard and three seed pairs at k=5/10/20, sampled Spearman; four exploratory references under a predeclared rule, not validated clustering inputs |
+| DBSCAN | `clustering/` | PLANNED / NEXT | No clustering implementation or experiment |
+| OPTICS | `clustering/` | PLANNED / NEXT | No clustering implementation or experiment |
+| HDBSCAN | `clustering/` | PLANNED / NEXT | No clustering implementation or experiment |
 | Stability and visual coherence | `clustering/`, `evaluation/` | PLANNED | Cluster selection protocol and visual review pending |
 | Temporal coherence | `evaluation/` | PLANNED | Filename-based sequence guesses are exploratory, not verified video timestamps |
 | AMI | `evaluation/` | PLANNED | Reference cluster partitions and comparison protocol not yet defined |
@@ -35,7 +36,7 @@ the local code review. See [current status](current_status.md) for aggregate fac
 | Historical inter-partition similarity | `similarity/temporal.py` | DONE WITH LIMITS | Six encoder-specific quantile cohorts, multi-split content sets and non-exact cross-split candidates measured; no automatic leakage claim |
 | New-partition correlation evaluation | `splitting/`, `evaluation/` | PLANNED | New splits do not exist; residual correlation and detector comparison remain pending |
 | YOLO/detector comparison | `detection/`, `evaluation/` | PLANNED | Compare Precision, Recall, mAP@50 and mAP@50–95 across baselines under a controlled detector protocol |
-| Reproducibility | `uv.lock`, configs, identity/storage/revision helpers, CI | IN PROGRESS | Feature and similarity stages have full verification, source-only notebooks, metadata, input/output hashes and local receipts; final experimental reproducibility pending; legacy smoke revisions preserved as unknown |
+| Reproducibility | `uv.lock`, configs, identity/storage/revision helpers, CI | IN PROGRESS | Feature, similarity and reduction stages have full verification, source-only notebooks, metadata, input/output hashes and local receipts; reduction protocol/source snapshot before grid; final experimental reproducibility pending |
 | Noise cleaning and panoptic segmentation | Documented group handoff in `architecture.md` | GROUP INTEGRATION | Broader team contribution; neither component is implemented here |
 | Final group pipeline assembly | Documented integration boundary | GROUP INTEGRATION | Future handoff contract, not an assembled pipeline |
 | Production deployment and monitoring | Outside repository research scope | NOT APPLICABLE | Only the first four CRISP-ML(Q) phases are in scope |
@@ -70,3 +71,11 @@ Week 9 adds descriptive evidence without selecting an encoder or downstream
 configuration. [Executed similarity analysis](similarity_analysis.md) documents
 pair units, population statistics, inclusive nested quantiles, filename consensus,
 historical cross-split semantics, neighbor agreement and visual inspection limits.
+
+Weeks 9–10 add [36 executed reductions](reduction_analysis.md) under a
+[predeclared protocol](reduction_protocol.md). PCA is initialization only; no
+preliminary PCA or 3D experiment was run. Candidate references preserve seed 0,
+while selection uses all three seeds. No reduction/clustering combination has
+been evaluated. The next protocol must compare original L2 and candidate spaces,
+with explicit distance scales, noise handling, stability/coherence and coverage.
+Nonlinear 2D density is not equivalent to original embedding density.

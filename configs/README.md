@@ -1,7 +1,7 @@
 # Configuration status
 
-`embeddings/*.yaml` and `similarity/*.yaml` are executable configuration today. Empty `data/`,
-`reduction/`, `clustering/`, `splits/` and `detection/` directories reserve planned
+`embeddings/*.yaml`, `similarity/*.yaml` and `reduction/*.yaml` are executable configurations.
+Empty `data/`, `clustering/`, `splits/` and `detection/` directories reserve planned
 configuration boundaries; they do not imply implemented experiments.
 
 | File | Purpose | Model | Device / batch |
@@ -38,3 +38,11 @@ Numerical tolerance and near-unit diagnostic tolerance are not leakage threshold
 See [similarity execution and cache semantics](../docs/similarity_analysis.md).
 
 No UMAP, clustering, split or detector experiments are configured.
+
+`reduction/tsne_research.yaml` uses perplexity 10/30/50 and seeds 0/1/2;
+`reduction/pacmap_research.yaml` varies MN_ratio 0.2/0.5/1.0 with the same seeds.
+Both use 2D and direct full L2 input, with PCA initialization only. Generic configs
+receive explicit full feature/similarity directories from the CLI, separately for
+each encoder. The parser rejects unsupported methods, hidden pre-PCA and duplicate
+or oversized grids. See the [predeclared protocol](../docs/reduction_protocol.md)
+and [execution runbook](../docs/reduction_runbook.md).

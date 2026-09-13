@@ -1,1 +1,1 @@
-"""PLANNED: t-SNE and PaCMAP experiments; no implementation yet."""
+"""Reproducible t-SNE/PaCMAP and preservation evaluation; no clustering labels."""

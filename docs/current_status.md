@@ -1,7 +1,7 @@
 # Estado del proyecto
 
-Revisado **2026-09-13**. **Semanas 6, 7 y 8 COMPLETED** y **semana 9: coseno DONE,
-análisis temporal PARTIAL**, según la evidencia descrita a continuación y los criterios
+Revisado **2026-09-13**. **Semanas 6, 7 y 8 COMPLETED**, **semana 9: coseno DONE,
+análisis temporal PARTIAL** y **semanas 9–10: reducción DONE**, según la evidencia descrita a continuación y los criterios
 explícitos de preparación y representaciones de la solicitud de esta revisión.
 El cierre anterior agrupaba ambas extracciones bajo «hasta semana 6»; aquí se
 distinguen preparación (6), DINOv2 (7) y CLIP/comparación descriptiva (8).
@@ -14,6 +14,7 @@ repositorio; no se certifican compromisos adicionales ni su aprobación formal.
 | 7 — DINOv2 | COMPLETED | implemented + smoke validated históricamente + full extraction completed; 1459 × 384, 1657 mappings y revisión efectiva revalidados |
 | 8 — CLIP y comparación descriptiva | COMPLETED | implemented + smoke validated históricamente + full extraction completed; 1459 × 512 y 1657 mappings revalidados; comparación descriptiva sin ranking |
 | 9 — similitud y correlación descriptiva | COSINE DONE / TEMPORAL PARTIAL | Dos matrices completas verificadas; pares, top-20, análisis temporal/histórico, Jaccard y HTML ejecutado; temporalidad aún inferida |
+| 9–10 — reducción dimensional | DONE | 18 t-SNE + 18 PaCMAP completos, ambos encoders; T/C/Jaccard/Spearman, estabilidad de tres semillas, cuatro referencias, verificación con fuentes y HTML de 14 secciones/11 figuras |
 
 Las extracciones completas ya existían desde 2026-09-09. Esta revisión verifica
 arrays, índices, cobertura y metadata; **no vuelve a extraer embeddings**.
@@ -22,6 +23,9 @@ de clases fue confirmado explícitamente por el responsable del proyecto;
 la [evidencia y su límite](dataset_classes.md) se conservan sin inventar una cita.
 
 ## Semana 9: evidencia completa de similitud
+
+El apartado siguiente conserva el cierre de semana 9; la evidencia posterior de
+reducción se registra después, sin reescribir los experimentos anteriores.
 
 Se reutilizaron los embeddings completos, después de verificarlos nuevamente
 contra el manifest. **No se ejecutó extracción adicional** en esta fase.
@@ -66,8 +70,52 @@ ignorados por Git; el notebook versionado carece de outputs.
 
 La fase descriptiva solicitada está cerrada. La validación espaciotemporal
 permanece **PARTIAL**, porque la cobertura nominal no valida tiempos reales ni
-coherencia visual global. No se implementaron ni ejecutaron reducción,
-clustering, nuevas particiones o YOLO; Bhattacharyya sigue condicionado.
+coherencia visual global. Durante esa fase no se implementaron ni ejecutaron
+reducción, clustering, nuevas particiones o YOLO; Bhattacharyya sigue condicionado.
+
+## Semanas 9–10: reducción completa y referencias exploratorias
+
+Se revalidaron ambos espacios completos y las matrices/vecinos de semana 9.
+Se ejecutaron **36 runs: 18 t-SNE y 18 PaCMAP**, sobre **1459 contenidos únicos**
+por run, con salida float32 **1459 × 2**, finitud, índices alineados y rango 2.
+El ajuste usa únicamente L2 original, 384D/512D por separado. No hubo pre-PCA,
+concatenación ni renormalización de archivos; PCA se usa solo para inicializar.
+PaCMAP registra además su transformación afín interna con `apply_pca=false`.
+
+Grid: t-SNE perplexity 10/30/50, 1000 iteraciones máximas, learning rate auto
+(efectivo 50); PaCMAP n_neighbors 10, FP_ratio 2, MN_ratio 0.2/0.5/1.0,
+fases 100/100/250. Cada configuración usa semillas 0/1/2. El protocolo y código
+numérico se conservaron antes del primer fit; sus huellas no cambiaron durante
+el grid. El tiempo de ajuste sumado fue **269.038 s**: t-SNE 251.284 s y PaCMAP
+17.753 s, sin incluir toda la verificación, agregación y reporte.
+
+| Encoder | Método / parámetro seleccionado | reduction_space_id, semilla 0 | T@20 | C@20 | J@20 | Estabilidad@20 | Spearman |
+|---|---|---|---:|---:|---:|---:|---:|
+| DINOv2 | t-SNE, perplexity 30 | 476786e28eb2bcb8 | 0.976688 | 0.976196 | 0.483902 | 0.974223 | 0.430447 |
+| DINOv2 | PaCMAP, MN_ratio 1.0 | 111e0d9dd4a45458 | 0.966748 | 0.959097 | 0.420561 | 0.649487 | 0.389608 |
+| CLIP | t-SNE, perplexity 30 | e273672b3e6b812e | 0.968002 | 0.967658 | 0.407854 | 0.968087 | 0.496726 |
+| CLIP | PaCMAP, MN_ratio 1.0 | 05838df32347c8d8 | 0.959741 | 0.952572 | 0.355739 | 0.631375 | 0.435227 |
+
+T/C/J/Spearman corresponden al run semilla 0; estabilidad es Jaccard de vecinos
+entre los tres pares de semillas. Se preservan métricas de todas las ejecuciones,
+k=5/10/20 y media/mediana/Q1/Q3 de Jaccard. Spearman usa 100000 pares canónicos
+compartidos, semilla 0. La regla de selección se fijó antes: frente no dominado y
+media de rangos de cinco criterios. Las cuatro referencias son **candidatas**,
+sin afirmar calidad de clustering ni superioridad entre encoders.
+
+Los [resultados por run](reduction_analysis.md), [protocolo](reduction_protocol.md)
+y [runbook](reduction_runbook.md) explican parámetros, unidades y trazabilidad.
+Se generó y verificó el HTML local `reports/reduction/review/reduction_review.html`:
+14 secciones, 11 figuras, sin errores, código oculto, sin rutas privadas ni hashes
+de contenido visibles. Se inspeccionaron las 11 figuras. La ventana temporal usa
+los mismos 30 contenidos, índices inferidos 342–371 de video_11min, en ambos
+encoders. Los colores históricos conservan todas las pertenencias por contenido.
+Datos y outputs reales permanecen ignorados por Git.
+
+**Clustering PLANNED / NEXT**: contrastar DBSCAN/OPTICS/HDBSCAN en espacios L2
+originales y candidatos, con estabilidad/coherencia, ruido y cobertura. La densidad
+en 2D no equivale a densidad original. No se ejecutó 3D, clustering, AMI/ARI,
+nuevos splits ni YOLO. La validación temporal sigue PARTIAL.
 
 ## COMPLETADO en este alcance
 
@@ -87,6 +135,8 @@ clustering, nuevas particiones o YOLO; Bhattacharyya sigue condicionado.
 - Reporte técnico en español: 16 secciones, notebook ejecutado local y HTML sin código visible.
 - Similitud coseno completa por encoder y revisión independiente de 14 secciones;
   análisis posterior de secuencia, Δ y pertenencias históricas, y comparación Jaccard.
+- Reducción t-SNE/PaCMAP completa: 36 runs, preservación/estabilidad, cuatro referencias
+  exploratorias y reporte independiente de 14 secciones, con artefactos verificados.
 
 El estado completo de features exige que ambos espacios pasen
 `features verify --manifest ...`. Los smoke N=16 no satisfacen esa condición.
@@ -214,7 +264,7 @@ Ver [ejecución reproducible](week6_closure.md).
 ## PENDIENTE / SIGUIENTE
 
 Validación adicional de procedencia temporal/coherencia visual; Bhattacharyya
-cuando exista una representación distribucional justificada; t-SNE; PaCMAP; DBSCAN; OPTICS;
+cuando exista una representación distribucional justificada; DBSCAN; OPTICS;
 HDBSCAN; evaluación de estabilidad/coherencia, AMI/ARI y selección de agrupamiento;
 partición por clústeres y baseline aleatorio; entrenamiento comparativo;
 evaluación y análisis/reproducibilidad final. No se ejecutaron estas etapas.
@@ -265,3 +315,17 @@ clustering, splits nuevos ni YOLO.
 - Metadata conserva el commit realmente activo, worktree dirty y hashes de fuente
   al computar. El recibo local de validación registra el código final sin atribuir
   retrospectivamente las extracciones o el cálculo inicial a otro commit.
+
+## Validación de semanas 9–10
+
+- `uv run --no-sync pytest`: **81 passed**; `uv run --no-sync ruff check .`:
+  **All checks passed**. Tests sintéticos offline, incluyendo métricas exactas, invariancia geométrica,
+  repetición por semilla, índices, corrupción, selección y procedencia posterior.
+- CLI `reduction run/benchmark/summary/verify` y ayudas validadas; los dos benchmarks
+  completos pasan verificación con features, similitud y manifest, recalculando métricas.
+- Los tres notebooks fuente pasan el checker; el nuevo notebook ejecutado/HTML
+  pasó comprobaciones de 14 secciones, 11 figuras, código oculto y privacidad.
+- Python 3.11.14 con core/dev/reduction/reporting del lockfile; sin GPU ni modelos.
+  Ajustes con scikit-learn 1.9.1, PaCMAP 0.9.1 y una política de hilos explícita.
+- Recibo local `reports/reduction/execution/verification_receipt.json`, logs,
+  snapshot del protocolo/fuentes antes del grid y metadata original conservados.
