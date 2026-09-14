@@ -14,10 +14,12 @@ data_app = typer.Typer(help="Read-only dataset discovery and audit commands.")
 features_app = typer.Typer(help="Content-level visual feature extraction commands.")
 similarity_app = typer.Typer(help="Content-level cosine and post-hoc temporal/historical analysis.")
 reduction_app = typer.Typer(help="Reproducible t-SNE/PaCMAP, preservation metrics and seed stability.")
+clustering_app = typer.Typer(help="Content-level DBSCAN/OPTICS/HDBSCAN screening and noise-aware evaluation.")
 app.add_typer(data_app, name="data")
 app.add_typer(features_app, name="features")
 app.add_typer(similarity_app, name="similarity")
 app.add_typer(reduction_app, name="reduction")
+app.add_typer(clustering_app, name="clustering")
 
 
 def _default_root() -> Path | None:
@@ -486,3 +488,86 @@ def reduction_summary(directory: Path) -> None:
         raise typer.Exit(1)
     payload = read_json(directory/("summary.json" if is_benchmark else "metrics.json"))
     typer.echo(json.dumps({"method": meta.get("method"), "experiment_id": meta.get("benchmark_id", meta.get("reduction_space_id")), "summary": payload}, indent=2))
+
+
+@clustering_app.command("run")
+def clustering_run(
+    inputs: Path = typer.Option(..., help="Local YAML with manifest and exact source directories."),
+    encoder: str = typer.Option(...),
+    representation: str = typer.Option(..., help="original_l2, tsne or pacmap."),
+    config: Path = typer.Option(...),
+    configuration_index: int = typer.Option(0, min=0),
+    reduction_seed: int = typer.Option(0, min=0, max=2),
+    output_root: Path = typer.Option(Path("artifacts/clustering")),
+) -> None:
+    """Fit one conceptual configuration on a verified content representation."""
+    from flir_pipeline.clustering.base import load_grid
+    from flir_pipeline.clustering.experiments import load_families
+    from flir_pipeline.clustering.storage import run_to_store
+
+    families, configs = load_families(inputs), load_grid(config)
+    if encoder not in families or representation not in ("original_l2", "tsne", "pacmap") or configuration_index >= len(configs):
+        raise typer.BadParameter("Unknown encoder, representation or configuration index")
+    family = families[encoder]
+    space = family.spaces[(representation, None if representation == "original_l2" else reduction_seed)]
+    typer.echo(f"Clustering written to {run_to_store(family, space, configs[configuration_index], output_root)}")
+
+
+@clustering_app.command("sweep")
+def clustering_sweep(
+    inputs: Path = typer.Option(...),
+    config: list[Path] = typer.Option(..., help="Repeat for the three algorithm YAML grids."),
+    output_root: Path = typer.Option(Path("artifacts/clustering")),
+) -> None:
+    """Stage A: screen original L2 and seed-0 reduction candidates, then shortlist."""
+    from flir_pipeline.clustering.base import load_grid
+    from flir_pipeline.clustering.experiments import load_families, screening_to_store
+
+    output = screening_to_store(load_families(inputs), [c for path in config for c in load_grid(path)], output_root)
+    typer.echo(f"Screening written to {output}")
+
+
+@clustering_app.command("compare")
+def clustering_compare(
+    screening: Path,
+    inputs: Path = typer.Option(...),
+    output_root: Path = typer.Option(Path("artifacts/clustering")),
+) -> None:
+    """Stage B: shortlist-only reduction seeds, local parameter robustness and Pareto."""
+    from flir_pipeline.clustering.experiments import comparison_to_store, load_families
+
+    typer.echo(f"Comparison written to {comparison_to_store(screening, load_families(inputs), output_root)}")
+
+
+@clustering_app.command("verify")
+def clustering_verify(directory: Path, inputs: Path | None = typer.Option(None, help="Also bind sources and recompute cluster metrics/medoids.")) -> None:
+    """Verify assignments, indices, metadata and collections; optionally recompute evaluation."""
+    from flir_pipeline.clustering.experiments import load_families, verify_collection
+    from flir_pipeline.clustering.storage import verify_run
+    from flir_pipeline.similarity.storage import read_json
+
+    families = load_families(inputs) if inputs is not None else None
+    meta = read_json(directory/"metadata.json") if (directory/"metadata.json").is_file() else {}
+    if meta.get("artifact_kind") in ("clustering_screening", "clustering_comparison"):
+        result = verify_collection(directory, families)
+    else:
+        result = verify_run(directory, families[meta["extractor"]] if families is not None and "extractor" in meta else None)
+    typer.echo(json.dumps(result, indent=2))
+    if not result["quality_valid"]:
+        raise typer.Exit(1)
+
+
+@clustering_app.command("summary")
+def clustering_summary(directory: Path) -> None:
+    """Read only completed, verified clustering results."""
+    from flir_pipeline.clustering.experiments import verify_collection
+    from flir_pipeline.clustering.storage import verify_run
+    from flir_pipeline.similarity.storage import read_json
+
+    meta = read_json(directory/"metadata.json")
+    is_run = meta["artifact_kind"] == "clustering_run"
+    quality = verify_run(directory) if is_run else verify_collection(directory)
+    if not quality["quality_valid"]:
+        typer.echo(json.dumps(quality, indent=2))
+        raise typer.Exit(1)
+    typer.echo(json.dumps(read_json(directory/("metrics.json" if is_run else "summary.json")), indent=2))

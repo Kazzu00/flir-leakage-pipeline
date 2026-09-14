@@ -1,7 +1,7 @@
 # Estado del proyecto
 
 Revisado **2026-09-13**. **Semanas 6, 7 y 8 COMPLETED**, **semana 9: coseno DONE,
-análisis temporal PARTIAL** y **semanas 9–10: reducción DONE**, según la evidencia descrita a continuación y los criterios
+análisis temporal PARTIAL** y **semanas 9–10: reducción DONE**, **semana 10: clustering y candidatos DONE WITH LIMITS**, según la evidencia descrita a continuación y los criterios
 explícitos de preparación y representaciones de la solicitud de esta revisión.
 El cierre anterior agrupaba ambas extracciones bajo «hasta semana 6»; aquí se
 distinguen preparación (6), DINOv2 (7) y CLIP/comparación descriptiva (8).
@@ -15,6 +15,7 @@ repositorio; no se certifican compromisos adicionales ni su aprobación formal.
 | 8 — CLIP y comparación descriptiva | COMPLETED | implemented + smoke validated históricamente + full extraction completed; 1459 × 512 y 1657 mappings revalidados; comparación descriptiva sin ranking |
 | 9 — similitud y correlación descriptiva | COSINE DONE / TEMPORAL PARTIAL | Dos matrices completas verificadas; pares, top-20, análisis temporal/histórico, Jaccard y HTML ejecutado; temporalidad aún inferida |
 | 9–10 — reducción dimensional | DONE | 18 t-SNE + 18 PaCMAP completos, ambos encoders; T/C/Jaccard/Spearman, estabilidad de tres semillas, cuatro referencias, verificación con fuentes y HTML de 14 secciones/11 figuras |
+| 10 — clustering y selección exploratoria | DONE WITH LIMITS | 414 runs completos, tres algoritmos/seis espacios; métricas originales, 204 ARI/AMI de perturbaciones, 54 shortlist, 41 Pareto, verificación con fuentes y HTML de 18 secciones/17 figuras; sin split nuevo |
 
 Las extracciones completas ya existían desde 2026-09-09. Esta revisión verifica
 arrays, índices, cobertura y metadata; **no vuelve a extraer embeddings**.
@@ -112,10 +113,47 @@ los mismos 30 contenidos, índices inferidos 342–371 de video_11min, en ambos
 encoders. Los colores históricos conservan todas las pertenencias por contenido.
 Datos y outputs reales permanecen ignorados por Git.
 
-**Clustering PLANNED / NEXT**: contrastar DBSCAN/OPTICS/HDBSCAN en espacios L2
-originales y candidatos, con estabilidad/coherencia, ruido y cobertura. La densidad
-en 2D no equivale a densidad original. No se ejecutó 3D, clustering, AMI/ARI,
-nuevos splits ni YOLO. La validación temporal sigue PARTIAL.
+Al cerrar reducción, el siguiente paso era contrastar DBSCAN/OPTICS/HDBSCAN.
+Durante esa fase no se ejecutó 3D, clustering, AMI/ARI, nuevos splits ni YOLO.
+La evidencia posterior de clustering se registra a continuación; la validación
+temporal sigue PARTIAL y densidad 2D no equivale a densidad original.
+
+## Semana 10: clustering completo y selección exploratoria
+
+**414 runs sobre 1459 contenidos únicos**: 132 DBSCAN, 186 OPTICS y 96 HDBSCAN.
+El screening ejecutó 342; la shortlist de 54 configuraciones añadió 72 ajustes
+de semillas reducidas 1/2. Los controles L2 originales se conservaron junto a
+t-SNE y PaCMAP. No se recalcularon features, matrices ni reducciones.
+
+Se observaron 39 single-cluster, cero all-noise, 18 nearly-all-noise y 54
+dominant-cluster (flags solapables); rango 1–65 grupos y noise 0–0.984921.
+Se evaluaron silhouette en el encoder original excluyendo noise, cosenos
+intracluster exactos, medoides originales, secuencia dominante/entropía,
+retención temporal@1/5/10 y visual@5/10/20, con cobertura explícita.
+
+**204 comparaciones ARI/AMI**: 108 entre semillas y 96 de parámetros vecinos.
+Se conservan all-points y common-clustered con medias, mínimos, N y cobertura;
+los controles originales no tienen semilla ficticia. El Pareto de B deja **41
+candidatos**, sin ganador único ni suma arbitraria de pesos. Los seis ejemplos
+de figuras maximizan silhouette dentro del frente; R1/R4 originales agrupan solo
+38/61 contenidos (2.60%/4.18%), por lo que no son recomendaciones de split.
+
+Se verificaron los 414 artefactos contra las fuentes y se recalcularon métricas,
+medoides, acuerdos y selección. HTML/notebook ejecutados: 18 secciones, 17 figuras,
+seis galerías y 144 posiciones de imágenes verificadas desde ZIP en memoria.
+Se revisaron las 17 figuras; las galerías muestran tanto vistas semejantes como
+cambios de encuadre, contraste y overlays. Esa revisión no valida cada escena.
+
+[Resultados completos y 41 IDs candidatos](clustering_analysis.md),
+[protocolo previo al grid](clustering_protocol.md) y [runbook](clustering_runbook.md).
+Artefactos y outputs reales permanecen en `artifacts/clustering/` y
+`reports/clustering/`, ignorados por Git. No se introdujeron clases/split/tiempo
+en fit ni se corrigieron conflictos de anotación.
+
+**Siguiente: protocolo de cluster-aware splitting**, política para noise,
+grupos indivisibles y medición de correlación residual. Clustering está
+implementado y ejecutado; la utilidad final para particionar sigue candidata.
+No se generaron splits, balanceo ni resultados de YOLO.
 
 ## COMPLETADO en este alcance
 
@@ -263,11 +301,12 @@ Ver [ejecución reproducible](week6_closure.md).
 
 ## PENDIENTE / SIGUIENTE
 
-Validación adicional de procedencia temporal/coherencia visual; Bhattacharyya
-cuando exista una representación distribucional justificada; DBSCAN; OPTICS;
-HDBSCAN; evaluación de estabilidad/coherencia, AMI/ARI y selección de agrupamiento;
-partición por clústeres y baseline aleatorio; entrenamiento comparativo;
-evaluación y análisis/reproducibilidad final. No se ejecutaron estas etapas.
+Validación adicional de procedencia temporal y escenas; Bhattacharyya cuando
+exista una representación distribucional justificada; protocolo de partición
+por clústeres, política de noise y baseline aleatorio; entrenamiento comparativo,
+evaluación del detector y reproducibilidad final. No se ejecutaron esas etapas.
+DBSCAN/OPTICS/HDBSCAN, métricas, AMI/ARI y selección exploratoria sí se ejecutaron
+en semana 10, con las limitaciones y candidatos registrados arriba.
 
 Los controles numéricos no prueban calidad semántica ni mejora de detección.
 La línea base de datos no implica que un detector baseline esté entrenado.
@@ -329,3 +368,26 @@ clustering, splits nuevos ni YOLO.
   Ajustes con scikit-learn 1.9.1, PaCMAP 0.9.1 y una política de hilos explícita.
 - Recibo local `reports/reduction/execution/verification_receipt.json`, logs,
   snapshot del protocolo/fuentes antes del grid y metadata original conservados.
+
+## Validación de semana 10
+
+- `uv run --no-sync pytest`: **100 passed**, 99.19 s en esta ejecución; pruebas
+  sintéticas offline, sin datos FLIR, modelos, Internet ni GPU.
+- `uv run --no-sync ruff check .`: **All checks passed**; cuatro notebooks
+  fuente sin outputs y con todas sus celdas de código compilables.
+- CLI `clustering run/sweep/compare/verify/summary` y las cinco ayudas validadas.
+  El run individual reutilizó un artefacto completo; los 414 runs no incluyen
+  ese acceso a caché como otro experimento.
+- Verificador final con fuentes: métricas/medoides recalculados para los 414
+  runs, 204 ARI/AMI y agregados/topología de perturbaciones/selección verificados.
+- HTML ejecutado sin errores, 18 secciones, 17 figuras, código oculto, sin
+  rutas privadas, hashes completos ni NaN visibles; revisión visual de las
+  17 figuras. Se guardaron probabilidades en 96 HDBSCAN y diagnósticos en 186 OPTICS.
+- Protocolo, configuraciones y fuentes del ajuste preservados en snapshot previo.
+  Después se reforzaron guards/verificación en `experiments.py`; no cambiaron
+  ajuste, métricas ni selección. Metadata mantiene el commit activo y estado
+  dirty reales del experimento, sin reatribuirlos al commit posterior de cierre.
+- Recibo local `reports/clustering/execution/verification_receipt.json` y logs
+  `final_commands.json`; todos los artefactos/reportes reales están ignorados
+  por Git. Se comprobó ausencia de content IDs reales y rutas privadas en los
+  archivos públicos antes de publicar.

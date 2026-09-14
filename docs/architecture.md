@@ -9,13 +9,13 @@ to future partition experiments. Existing package boundaries are preserved.
 | Features | DINOv2 CLS / CLIP projected-image adapters, RGB preprocessing, revision tracking, raw/L2 stores, diagnostics, descriptive reports | ACTIVE; both full extractions validated |
 | Similarity | Cosine over existing L2 contents, top-k, posterior temporal/split relations, agreement and review | ACTIVE; full cosine validated, inferred temporal analysis partial; Bhattacharyya conditional/planned |
 | Reduction | t-SNE and PaCMAP; exact preservation, seed stability, bounded selection and posterior interpretation | ACTIVE; experiment status in current_status.md |
-| Clustering | DBSCAN, OPTICS, HDBSCAN and evidence-based cluster selection | FUTURE PLANNED |
+| Clustering | DBSCAN, OPTICS, HDBSCAN, original-space metrics, perturbation stability and Pareto candidates | ACTIVE; 414 full runs verified, candidate selection executed |
 | Splitting | Reproducible baselines and indivisible cluster/scene allocation | FUTURE PLANNED |
-| Detection / evaluation | Detector comparison, cluster quality, partition similarity and metrics | FUTURE PLANNED; group handoff boundary |
+| Detection / evaluation | Detector comparison and new-partition quality; current cluster metrics live in clustering/ | FUTURE PLANNED; group handoff boundary |
 
 ```text
 src/flir_pipeline/
-  cli.py                   implemented data/features/similarity/reduction commands
+  cli.py                   implemented data/features/similarity/reduction/clustering commands
   config.py                reserved validated path configuration
   data/
     inventory.py           archive structure, matching and exploratory lineage
@@ -45,7 +45,13 @@ src/flir_pipeline/
     storage.py             immutable runs, source binding and executable verification
     benchmark.py           small grids, seed aggregation, predeclared candidates
     visualization.py       posterior temporal/split interpretation and local reports
-  clustering/              planned; documentation only
+  clustering/
+    base.py / algorithms.py configs, deterministic identity and vector-only adapters
+    metrics.py             original-distance/cosine, medoids, posterior lineage, ARI/AMI
+    storage.py             verified source families, immutable run artifacts
+    selection.py           bounded Pareto shortlist and explicit noise eligibility
+    experiments.py         screening, seed/parameter comparisons and verification
+    visualization.py       existing 2D views and runtime ZIP exemplars
   splitting/               planned; documentation only
   detection/               future evaluation/integration; documentation only
   evaluation/              planned; documentation only
@@ -66,7 +72,7 @@ embedding_row (separate DINOv2 and CLIP stores)
    +--> similarity_space_id: matrix rows, neighbor IDs, posterior content/record lineage
    +--> reduction_space_id: coordinates in the same content_index order
    |
-   v  FUTURE assignment, including an explicit noise policy
+   v  per-clustering_space_id assignment; noise stays -1
 cluster_id
    |
    v  FUTURE indivisible cluster/scene allocation
@@ -75,8 +81,8 @@ split_id
 
 `dataset_id` namespaces an annotated manifest version. `feature_space_id`
 identifies the representation independently of dataset membership. The combination
-of these IDs and the cache signature gives an experiment's lineage. Neither
-future cluster_id nor split_id exists yet. `original_split` remains historical
+of these IDs and the cache signature gives an experiment's lineage. Candidate
+cluster_id assignments exist; no new split_id exists yet. `original_split` remains historical
 metadata and is not a generated split_id.
 
 Storage writes under `artifacts/features/<extractor>/<dataset_id>/<feature_space_id>`.
@@ -111,6 +117,35 @@ memberships. Temporal examples use an explicit nominal-index rule, independently
 of coordinates. Neither layer creates clustering assignments. See the [protocol](reduction_protocol.md)
 and [runbook](reduction_runbook.md); 2D density is not original-space density.
 
+## Clustering boundary
+
+Clustering families bind the original feature/similarity/manifest signatures and
+the selected reduction configuration at seeds 0/1/2. Numerical adapters accept
+vectors and content identity only; sequence, class and historical membership
+never enter fitting. EvaluationContext joins posterior provenance and retains
+the existing original cosine neighbors. Original Euclidean distances define
+primary silhouette and medoids independently of the fitted representation.
+
+Run paths are `artifacts/clustering/<encoder>/<dataset_id>/<representation_id>/<algorithm>/<clustering_space_id>/`.
+Representation identity is feature_space_id for original controls or
+reduction_space_id for reduced inputs. Required files contain one assignment per
+content, summaries, exact metrics and completion metadata; noise remains −1.
+Original record_index is referenced by fingerprint for all historical occurrences.
+No split_id is created, and group identifiers are local to one clustering run.
+
+Stage A stores the complete screening and bounded shortlist. Stage B references
+those runs, computes local parameter agreements, and fits only additional seeds
+for reduced shortlist members. Collection metadata binds every run, comparison
+pair and selection policy. Source-bound verification recomputes metrics and
+medoids; collection verification also reconstructs agreements, their aggregation,
+prescribed perturbations, Pareto membership and review references. A changed
+reduction family cannot be mixed into a previous screening.
+
+The report reads images from the original ZIP into memory to compose ignored
+galleries. It distinguishes fitting space from an existing 2D view, and reports
+coverage beside noise-excluding metrics. The [runbook](clustering_runbook.md)
+documents commands; [analysis](clustering_analysis.md) records observed results.
+
 ## Individual research and group handoff
 
 The individual contribution owns characterization, representation, similarity,
@@ -138,9 +173,10 @@ which is not presented as active environment configuration.
 `vision` contains torch, torchvision and Transformers; torchvision is retained
 for Transformers image processing even without a direct project import.
 `reporting` contains Jupyter/nbformat/nbclient/nbconvert for notebook execution and
-HTML. `dev` contains Ruff, pytest/coverage and pre-commit. Unused accelerate,
-scikit-learn and future clustering/YOLO/tracking extras were removed from declared
-dependencies; they can be introduced with the actual future experiment code.
+HTML. `dev` contains Ruff, pytest/coverage and pre-commit. `reduction` contains
+scikit-learn, PaCMAP and threadpoolctl; clustering reuses its scikit-learn HDBSCAN
+without another library. Unused accelerate and future YOLO/tracking extras
+remain absent. Synthetic CI includes the reduction extra.
 
 The data manifest currently uses some private inventory helpers within the data
 layer. This coupling is documented technical debt; no broad package refactor was

@@ -1,1 +1,1 @@
-"""PLANNED: DBSCAN, OPTICS and HDBSCAN plus cluster selection; no implementation yet."""
+"""Content-level density clustering with posterior evaluation and explicit noise."""

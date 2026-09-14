@@ -1,7 +1,8 @@
 # Configuration status
 
-`embeddings/*.yaml`, `similarity/*.yaml` and `reduction/*.yaml` are executable configurations.
-Empty `data/`, `clustering/`, `splits/` and `detection/` directories reserve planned
+`embeddings/*.yaml`, `similarity/*.yaml`, `reduction/*.yaml` and
+`clustering/*_research.yaml` are executable configurations.
+Empty `data/`, `splits/` and `detection/` directories reserve planned
 configuration boundaries; they do not imply implemented experiments.
 
 | File | Purpose | Model | Device / batch |
@@ -37,7 +38,16 @@ the larger models from the similarly named `embeddings/*_research.yaml` files.
 Numerical tolerance and near-unit diagnostic tolerance are not leakage thresholds.
 See [similarity execution and cache semantics](../docs/similarity_analysis.md).
 
-No UMAP, clustering, split or detector experiments are configured.
+No UMAP, split or detector experiments are configured.
+
+`clustering/dbscan_research.yaml` defines 18 configurations using min_samples
+5/10/20 and k-distance quantiles .80/.85/.90/.95/.97/.99; epsilon is recomputed
+in each space/seed. `optics_research.yaml` defines 27 xi configurations and
+`hdbscan_research.yaml` defines 12 EOM configurations, generic across encoders
+and representations. `clustering/inputs.example.yaml` is a template with
+placeholders, to complete locally with existing verified source paths. The
+[runbook](../docs/clustering_runbook.md) explains screening, bounded stability,
+verification and reporting.
 
 `reduction/tsne_research.yaml` uses perplexity 10/30/50 and seeds 0/1/2;
 `reduction/pacmap_research.yaml` varies MN_ratio 0.2/0.5/1.0 with the same seeds.

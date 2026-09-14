@@ -273,3 +273,59 @@ centered window of up to 30 contents. All historical memberships are preserved
 as sets. Neither colors nor trajectories influence fitting or selection. Nonlinear
 2D density cannot justify density-based clustering without evaluating stability,
 coherence, noise and original-space relationships in the next phase.
+
+## 18. Density clustering controls, geometry and identity
+
+Week 10 executes the [density protocol](clustering_protocol.md) on unique
+contents: original DINOv2/CLIP L2 controls and the four selected 2D reductions.
+Original controls are ablations, preserving t-SNE/PaCMAP in the proposal path.
+Euclidean on unit embeddings preserves cosine neighbor order through
+d²=2(1−cos), subject to numerical ties. No renormalization or coordinate z-score
+is introduced. Nonlinear density remains representation-dependent.
+
+DBSCAN epsilon derives from per-space/per-seed k-distance quantiles, with
+min_samples including self. Identical effective parameters are aliases, not
+extra experiments. OPTICS uses xi with infinite max_eps; HDBSCAN uses the
+installed scikit-learn EOM implementation, avoiding a second library. Its
+membership probabilities are stored; absent persistence/outlier metrics are
+explicitly unavailable. All adapters use a stable content-ID ordering.
+
+clustering_space_id binds dataset, feature, reduction when applicable,
+representation, algorithm, effective/conceptual parameters and implementation
+versions, excluding operational paths, dates and device. Input signatures bind
+the original and reduced sources. Completed runs are grid checkpoints;
+incomplete outputs are preserved. The pre-fit protocol/source snapshot and
+actual fit Git/dirty provenance remain intact after verifier improvements.
+
+## 19. Noise, posterior metrics and bounded candidate selection
+
+Noise remains −1 and is never silently converted into singleton clusters.
+Primary silhouette excludes noise and uses exact distances in the original
+encoder space, even for 2D clustering. Original-distance medoids represent each
+cluster. Cosine cohesion weights unique intra-cluster pairs; member-weighted and
+median-of-cluster-means summaries are separate diagnostics. Coverage accompanies
+every conditional interpretation.
+
+Temporal recall uses all same-sequence pairs within the inferred index window;
+noise endpoints fail retention. Visual neighbor coherence excludes noise queries,
+keeps noise neighbors as failures and reports query coverage plus an all-query
+version. Sequence fraction/entropy and historical membership unions are strictly
+post-fit. Labels/classes are not fitting or selection inputs. Temporal coherence
+can inform posterior selection, so this is not a geometry-only selection rule.
+Sequence purity and cluster count have no automatic better/worse direction.
+
+ARI/AMI are computed on all points and on common clustered points separately,
+with N, coverage, triviality and means/minima. Seeds perturb the reduction,
+whereas adjacent grid parameters perturb clustering. Original controls have no
+fabricated seed experiment. Seed fits apply only to at most three Pareto
+shortlist configurations per encoder × representation × algorithm.
+
+Selection uses Pareto criteria without a weighted scalar score. Clearly
+degenerate assignments and trivial stability intersections cannot justify a
+final candidate; diagnostics such as dominant-cluster or high noise remain
+visible rather than imposing an untested aggressive cutoff. The full front
+is retained. Figure references maximize original silhouette only to bound
+manual review, which selected tiny populations for the original controls.
+That preference is not a final split recommendation. The observed broad front
+and noise sensitivity require an explicit future partition/noise protocol,
+residual-correlation measurements and review of groups of different sizes.

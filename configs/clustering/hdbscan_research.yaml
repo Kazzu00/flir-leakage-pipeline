@@ -1,0 +1,10 @@
+algorithm: hdbscan
+metric: euclidean
+grid:
+  min_cluster_size: [10, 20, 30, 50]
+  min_samples: [5, 10, 20]
+hyperparameters:
+  cluster_selection_method: eom
+  cluster_selection_epsilon: 0.0
+  alpha: 1.0
+  allow_single_cluster: false

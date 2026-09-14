@@ -1,0 +1,12 @@
+# Copy to an ignored local location and replace placeholders with verified paths.
+# Paths are relative to the repository working directory, not to this YAML.
+manifest: data/manifests/flir_canonical_candidate_v1.parquet
+encoders:
+  dinov2:
+    feature_directory: <full_dinov2_feature_directory>
+    similarity_directory: <matching_dinov2_similarity_directory>
+    reduction_benchmark: <completed_dinov2_reduction_benchmark>
+  clip:
+    feature_directory: <full_clip_feature_directory>
+    similarity_directory: <matching_clip_similarity_directory>
+    reduction_benchmark: <completed_clip_reduction_benchmark>

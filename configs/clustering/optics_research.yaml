@@ -1,0 +1,10 @@
+algorithm: optics
+metric: euclidean
+grid:
+  min_samples: [5, 10, 20]
+  xi: [0.03, 0.05, 0.10]
+  min_cluster_size: [10, 20, 30]
+hyperparameters:
+  cluster_method: xi
+  max_eps: infinity
+  predecessor_correction: true

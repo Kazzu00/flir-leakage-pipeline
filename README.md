@@ -45,12 +45,12 @@ claim the work of other contributors. The proposed handoff is documented in
 | Cosine similarity | DONE; two complete matrices, top-20, verified artifacts and HTML review |
 | Visual/temporal correlation analysis | PARTIAL; full descriptive analysis executed, filename-based time remains unverified |
 | t-SNE / PaCMAP | DONE; 36 full 2D runs, preservation/stability, four candidates, verified artifacts and HTML |
-| DBSCAN / OPTICS / HDBSCAN | PLANNED / NEXT |
-| Cluster evaluation and selection | PLANNED |
-| Cluster-aware splitting and random baseline | PLANNED |
+| DBSCAN / OPTICS / HDBSCAN | DONE; 414 full runs across both encoders, original L2 and candidate t-SNE/PaCMAP |
+| Cluster evaluation and selection | DONE WITH LIMITS; 204 stability comparisons, 41 Pareto candidates, verified artifacts and HTML |
+| Cluster-aware splitting and random baseline | PLANNED / NEXT |
 | Detector comparison | PLANNED |
 
-The implementation currently supports **data + features + similarity + reduction**. A future namespace is
+The implementation currently supports **data + features + similarity + reduction + clustering**. A future namespace is
 not an implemented experiment. See [current status](docs/current_status.md).
 
 ## Current dataset findings
@@ -94,8 +94,8 @@ uses cosine on the original L2-normalized embeddings; **Bhattacharyya requires a
 defined distributional representation** and is not implemented. The proposal's
 reduction methods are **t-SNE + PaCMAP**, followed by DBSCAN, OPTICS and HDBSCAN.
 
-Cluster selection will consider stability, visual and temporal coherence, AMI
-and ARI. Historical, reproducible random and cluster-based partitions will be
+Executed cluster selection uses stability, visual and inferred temporal coherence,
+AMI and ARI with explicit noise policies and coverage. Historical, reproducible random and cluster-based partitions will be
 compared using partition similarity and detector Precision, Recall, mAP@50 and
 mAP@50–95. No detector comparison has run. The
 [traceability table](docs/methodology_traceability.md) and
@@ -109,23 +109,23 @@ src/flir_pipeline/
   features/      DINOv2, CLIP, preprocessing, revisions, storage, diagnostics, plots
   similarity/    cosine, top-k, posterior temporal/split analysis, agreement, reports
   reduction/     t-SNE / PaCMAP, preservation, seed stability and posterior figures
-  clustering/    planned: DBSCAN / OPTICS / HDBSCAN
+  clustering/    DBSCAN / OPTICS / HDBSCAN, original-space metrics, stability, Pareto
   splitting/     planned
   detection/     future evaluation/integration
   evaluation/    planned
   utils/         streaming SHA256
-configs/         active embedding/similarity/reduction configs; future boundaries
+configs/         active embedding/similarity/reduction/clustering configs
 docs/            methodology, decisions, architecture, status
 notebooks/       narrative source without outputs
 scripts/         local report builder and offline notebook check
 tests/           synthetic, offline tests
 data/manifests/  local real manifests, ignored
-artifacts/       local embeddings/diagnostics/similarity/reductions, ignored
+artifacts/       local embeddings/diagnostics/similarity/reductions/clustering, ignored
 reports/         local figures, tables, executed notebooks and HTML, ignored
 ```
 
 The [architecture guide](docs/architecture.md) explains
-`frame_id → content_id → embedding_row → future cluster_id → future split_id`.
+`frame_id → content_id → embedding_row → cluster_id → future split_id`.
 
 ## Reproducibility
 
@@ -387,9 +387,25 @@ The reduction grid selected t-SNE perplexity 30 and PaCMAP MN_ratio 1.0 for both
 encoders, with seed 0 as the fixed reference. These are exploratory candidates;
 2D density does not establish original-space density or clustering quality.
 See [all 36 run results and timing](docs/reduction_analysis.md).
-The next step is a **DBSCAN / OPTICS / HDBSCAN evaluation protocol** comparing
-original L2 spaces and candidate reductions, with stability/coherence/noise checks.
-Clustering, new partitions and controlled detector comparison remain unexecuted.
+The subsequent [clustering protocol](docs/clustering_protocol.md) has now run:
+**342 screening + 72 seed runs**, with exact original-space metrics, medoids,
+posterior temporal/visual retention and 204 ARI/AMI comparisons under both noise
+policies. The 54-configuration shortlist yields **41 Pareto candidates**. All
+414 runs and the 18-section/17-figure review were verified. The six figure
+references are descriptive: original-space silhouette extremes cover only
+2.60%/4.18% of CLIP/DINOv2 contents and are not recommended final partitions.
+
+See [all candidates and measured comparisons](docs/clustering_analysis.md) and
+the [clustering runbook](docs/clustering_runbook.md). Execute generic configs with
+`flir-pipeline clustering run/sweep/compare/verify/summary`; source paths are
+provided in a local YAML based on `configs/clustering/inputs.example.yaml`.
+Build the report with `scripts/build_clustering_review.py --comparison <directory>
+--inputs <local-specification>`; output is
+`reports/clustering/review/clustering_review.html`, ignored by Git.
+
+The next step is the **cluster-aware splitting protocol**, including noise policy,
+indivisible groups and residual correlation measurements. New partitions and
+controlled detector comparison remain unexecuted.
 See [current status](docs/current_status.md), [week 6 closure](docs/week6_closure.md)
 and [methodology traceability](docs/methodology_traceability.md).
 
