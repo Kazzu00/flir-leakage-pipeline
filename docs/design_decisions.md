@@ -329,3 +329,45 @@ manual review, which selected tiny populations for the original controls.
 That preference is not a final split recommendation. The observed broad front
 and noise sensitivity require an explicit future partition/noise protocol,
 residual-correlation measurements and review of groups of different sizes.
+
+## 20. Atomic record-weighted partition construction
+
+The subsequent [splitting protocol](splitting_protocol.md) preserves every exact
+content and each selected nonnegative cluster as an indivisible unit. Noise keeps
+cluster_id=-1 with distinct singleton group IDs. Historical membership supplies
+aggregate target ratios only; all new memberships are independently constructed.
+Labels enter group balance here, after clustering, without changing memberships.
+Occurrence-level counts preserve eight observed annotation-conflict groups.
+
+SciPy MILP is already in the stack. Integer allocation of groups with identical
+balance profiles is an exact symmetry reduction, followed by seeded expansion.
+Normalized L1 balances record, class and empty-label families. The solver never
+receives cosine, sequence or temporal proximity. A deterministic node budget and
+recorded gap distinguish optimal results from feasible incumbents; direct primal
+checks handle HiGHS stopping codes not recognized by the installed SciPy wrapper.
+The five-seed content-permutation baseline balances sizes but not classes, an
+explicit confound for attributing downstream differences solely to grouping.
+
+## 21. Residual evaluation and robust candidate selection
+
+Original matrices and neighbor tables of both encoders evaluate every partition,
+irrespective of its clustering encoder. Unique-content NN excludes self, even for
+historical contents with multiple memberships. Exact overlap is separate, while
+non-exact pairs retain the existing existential cross-membership definition.
+Complete matrices avoid truncating cross-split NN searches to stored top-20.
+Encoder-specific quantile cohorts preserve inclusive thresholds and ties.
+
+The preliminary 12-candidate rule balances coverage of encoder, representation,
+algorithm, noise, cluster counts, ARI/AMI and coherence, without silhouette-only
+selection. Final constraints require every seed to preserve identities, cover
+all five classes and respect a declared 10% relative record-size tolerance.
+Pareto uses worst-seed losses plus variability; representative seed 0 is fixed
+in advance. Both full fronts and excluded configurations remain inspectable.
+
+The observed C10 anchor improves visual residuals under both encoders but not
+all temporal residuals against historical. C01 is a class-balance anchor with
+97.4% noise and no uniform residual advantage. These compromises are reported,
+not converted into a universal winner or a claim of eliminated leakage.
+Using two encoders is a cross-representation diagnostic, not an independent
+held-out dataset. Detector generalization and real temporal validation remain
+separate hypotheses and pending experimental stages.

@@ -47,10 +47,10 @@ claim the work of other contributors. The proposed handoff is documented in
 | t-SNE / PaCMAP | DONE; 36 full 2D runs, preservation/stability, four candidates, verified artifacts and HTML |
 | DBSCAN / OPTICS / HDBSCAN | DONE; 414 full runs across both encoders, original L2 and candidate t-SNE/PaCMAP |
 | Cluster evaluation and selection | DONE WITH LIMITS; 204 stability comparisons, 41 Pareto candidates, verified artifacts and HTML |
-| Cluster-aware splitting and random baseline | PLANNED / NEXT |
+| Cluster-aware splitting and random baseline | DONE WITH LIMITS; 66 verified runs, both encoders, six Pareto configurations and two representative splits |
 | Detector comparison | PLANNED |
 
-The implementation currently supports **data + features + similarity + reduction + clustering**. A future namespace is
+The implementation currently supports **data + features + similarity + reduction + clustering + splitting**. A future namespace is
 not an implemented experiment. See [current status](docs/current_status.md).
 
 ## Current dataset findings
@@ -95,9 +95,10 @@ defined distributional representation** and is not implemented. The proposal's
 reduction methods are **t-SNE + PaCMAP**, followed by DBSCAN, OPTICS and HDBSCAN.
 
 Executed cluster selection uses stability, visual and inferred temporal coherence,
-AMI and ARI with explicit noise policies and coverage. Historical, reproducible random and cluster-based partitions will be
-compared using partition similarity and detector Precision, Recall, mAP@50 and
-mAP@50–95. No detector comparison has run. The
+AMI and ARI with explicit noise policies and coverage. Historical, reproducible
+random and cluster-based partitions have been compared using residual partition
+similarity and balance. Detector Precision, Recall, mAP@50 and mAP@50–95 remain
+pending; no detector comparison has run. The
 [traceability table](docs/methodology_traceability.md) and
 [design decisions](docs/design_decisions.md) distinguish evidence from plans.
 
@@ -110,7 +111,7 @@ src/flir_pipeline/
   similarity/    cosine, top-k, posterior temporal/split analysis, agreement, reports
   reduction/     t-SNE / PaCMAP, preservation, seed stability and posterior figures
   clustering/    DBSCAN / OPTICS / HDBSCAN, original-space metrics, stability, Pareto
-  splitting/     planned
+  splitting/     atomic groups, MILP, seeded baselines, residual metrics and Pareto
   detection/     future evaluation/integration
   evaluation/    planned
   utils/         streaming SHA256
@@ -125,7 +126,8 @@ reports/         local figures, tables, executed notebooks and HTML, ignored
 ```
 
 The [architecture guide](docs/architecture.md) explains
-`frame_id → content_id → embedding_row → cluster_id → future split_id`.
+`frame_id → content_id → embedding_row → cluster_id → group_id → new_split`,
+namespaced by `split_space_id`; noise keeps cluster_id=-1 with singleton groups.
 
 ## Reproducibility
 
@@ -241,9 +243,8 @@ diagnostics Parquet. Use each command's `--help` for options.
 
 ### Future planned commands
 
-Clustering, splitting, detection and evaluation are
-planned stages with no runnable CLI commands. Previous success-returning stubs
-were removed; the documented future package boundaries remain.
+Detector training and comparison remain planned. Clustering and splitting now
+have runnable CLI commands; their experiments and limits are documented below.
 
 ## Testing
 
@@ -403,9 +404,33 @@ Build the report with `scripts/build_clustering_review.py --comparison <director
 --inputs <local-specification>`; output is
 `reports/clustering/review/clustering_review.html`, ignored by Git.
 
-The next step is the **cluster-aware splitting protocol**, including noise policy,
-indivisible groups and residual correlation measurements. New partitions and
-controlled detector comparison remain unexecuted.
+The [splitting protocol](docs/splitting_protocol.md) has now executed **66 runs**:
+historical, random content-level seeds 0–4, and 12 diverse clustering candidates
+with five seeds each. New runs preserve content identity and all cluster-aware
+runs have zero cluster fractures. Noise stays singleton. Record targets derive
+from the manifest; SciPy MILP balances counts/classes/empty labels and residual
+correlation is evaluated afterwards in **both original encoders**.
+
+The robust Pareto set has six configurations. Representative **C10**
+(DINOv2 → PaCMAP → DBSCAN, split `88ccf4e12335a83f`) has 1178/107/372 records,
+all five classes in each split, zero exact cross-split duplicates, and **6 / 7**
+cross-split top-0.1% pairs in DINOv2/CLIP, versus historical **328 / 277** and
+random means **478 / 466.8**. Its inferred temporal Δ≤5 cross-split fraction is
+**23.93%**, better than random **43.92%** but worse than historical **14.76%**.
+C01 (`643cd594f431cfc8`) is the class-balance anchor, with substantial residual
+correlation and 97.4% noise. Neither is a universal winner or a validated detector.
+
+See [complete safe aggregate results](docs/splitting_analysis.md) and the
+[splitting runbook](docs/splitting_runbook.md). Commands:
+`flir-pipeline splitting build/baseline/evaluate/compare/summary/verify` and
+`export-lists` for later handoff to already materialized images. Configs live in
+`configs/splits/`. The source notebook is `notebooks/splitting_review.ipynb`;
+the local 18-section/nine-figure HTML is
+`reports/splitting/review/splitting_review.html`. All 65 new assignments were
+reconstructed exactly in a separate reproducibility check.
+
+Next: review selected groups/annotation conflicts and define a controlled
+detector comparison. No real export, image materialization or YOLO training ran.
 See [current status](docs/current_status.md), [week 6 closure](docs/week6_closure.md)
 and [methodology traceability](docs/methodology_traceability.md).
 

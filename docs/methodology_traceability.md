@@ -1,6 +1,6 @@
 # Methodology traceability
 
-Reviewed 2026-09-13 against the documented scope of the thesis proposal: **“Desarrollo de un pipeline de agrupación, procesamiento y detección de
+Reviewed 2026-09-16 against the documented scope of the thesis proposal: **“Desarrollo de un pipeline de agrupación, procesamiento y detección de
 minería ilegal en videos FLIR de la Amazonía colombiana.”** The full proposal
 document is not included in this repository; this table traces its documented scope.
 
@@ -29,14 +29,14 @@ the local code review. See [current status](current_status.md) for aggregate fac
 | Temporal coherence | `clustering/metrics.py` | DONE WITH LIMITS | Posterior sequence fraction/entropy and pair retention at inferred delta 1/5/10, explicit denominators; timestamps still unverified |
 | AMI | `clustering/metrics.py`, `experiments.py` | DONE WITH LIMITS | 204 controlled seed/parameter comparisons, all-points/common-clustered, means/minima, N, coverage and triviality |
 | ARI | `clustering/metrics.py`, `experiments.py` | DONE WITH LIMITS | Same 204 perturbation comparisons, recomputed from assignments; no object-label ground truth used |
-| Cluster-aware splitting | `splitting/` | PLANNED | Every cluster/scene must remain in one partition; preserve content/occurrence mapping and assess class coverage |
+| Cluster-aware splitting | `splitting/construction.py`, `storage.py` | DONE WITH LIMITS | 12 candidates × five seeds, singleton noise, record/class/background MILP; 60 verified runs with zero cluster fracture and exact overlap |
 | Historical data baseline | `original_split`, report `historical_baseline.csv` | DONE | Original membership preserved and exact overlap audited; detector baseline comparison remains a separate pending stage |
-| Random baseline | `splitting/` | PLANNED | Reproducible seeded baseline not generated; must document sampling unit and leakage |
-| Cluster-based baseline | `splitting/` | PLANNED | No new split generated |
+| Random baseline | `splitting/construction.py` | DONE | Content permutations and record-weighted cuts, seeds 0–4, complete mappings, zero exact overlap; no class balancing |
+| Cluster-based baseline | `splitting/selection.py`, `experiments.py` | DONE WITH LIMITS | Six robust Pareto configurations; C10 visual and C01 class-balance representatives, seed 0 fixed in advance; no uniform dominance across metrics |
 | Historical inter-partition similarity | `similarity/temporal.py` | DONE WITH LIMITS | Six encoder-specific quantile cohorts, multi-split content sets and non-exact cross-split candidates measured; no automatic leakage claim |
-| New-partition correlation evaluation | `splitting/`, `evaluation/` | PLANNED | New splits do not exist; residual correlation and detector comparison remain pending |
+| New-partition correlation evaluation | `splitting/metrics.py`, `visualization.py` | DONE WITH LIMITS | Historical + 65 new runs: full NN, top-k, six original quantile cohorts in both encoders, inferred temporal windows, fragmentation/fracture, seed robustness; source-bound verification, 18-section/nine-figure HTML |
 | YOLO/detector comparison | `detection/`, `evaluation/` | PLANNED | Compare Precision, Recall, mAP@50 and mAP@50–95 across baselines under a controlled detector protocol |
-| Reproducibility | `uv.lock`, configs, identity/storage/revision helpers, CI | IN PROGRESS | Feature, similarity, reduction and clustering stages have full verification, source-only notebooks, metadata, input/output hashes and local receipts; reduction protocol/source snapshot before grid; final experimental reproducibility pending |
+| Reproducibility | `uv.lock`, configs, identity/storage/revision helpers, CI | IN PROGRESS | Feature, similarity, reduction, clustering and splitting have source-bound verification, clean notebooks and local receipts; all 65 new split assignments reconstructed exactly; detector-stage reproducibility still pending |
 | Noise cleaning and panoptic segmentation | Documented group handoff in `architecture.md` | GROUP INTEGRATION | Broader team contribution; neither component is implemented here |
 | Final group pipeline assembly | Documented integration boundary | GROUP INTEGRATION | Future handoff contract, not an assembled pipeline |
 | Production deployment and monitoring | Outside repository research scope | NOT APPLICABLE | Only the first four CRISP-ML(Q) phases are in scope |
@@ -63,7 +63,9 @@ units, explicit noise policies and seed/parameter reference pairs for AMI/ARI.
 Detection labels are not scene ground truth. Original L2 controls and selected
 2D inputs are compared using original-space metrics; existing PaCMAP is a view
 only when illustrating original clustering. Forty-one combinations remain
-exploratory candidates, with no final split selected. The bounded week 6 closure uses
+exploratory candidates at that phase. The subsequent splitting protocol evaluates
+12 diverse candidates and retains two representative partitions, without selecting
+a universal clustering winner. The bounded week 6 closure uses
 DINOv2-small and CLIP ViT-B/32; this does not select a downstream winning encoder.
 The [weeks 6–8 matrix](current_status.md) traces the requested closure criteria explicitly;
 the full dated proposal is not included in the repository.
@@ -78,6 +80,10 @@ Weeks 9–10 add [36 executed reductions](reduction_analysis.md) under a
 preliminary PCA or 3D experiment was run. Candidate references preserve seed 0,
 while selection uses all three seeds. The subsequent [clustering analysis](clustering_analysis.md)
 evaluates original L2 and those candidate spaces in 414 runs, with explicit
-distance scales, noise handling, stability/coherence and coverage. The next
-protocol must define indivisible group allocation and residual correlation.
+distance scales, noise handling, stability/coherence and coverage. The subsequent
+[splitting protocol](splitting_protocol.md) defines indivisible allocation and
+residual evaluation; [observed results](splitting_analysis.md) record 66 verified
+runs and exact reconstruction of all 65 new assignments. C10 improves visual
+correlation in both encoders, but its inferred temporal proximity remains worse
+than historical. Labels affect split balance only, not cluster construction.
 Nonlinear 2D density is not equivalent to original embedding density.

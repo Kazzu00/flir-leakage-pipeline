@@ -10,12 +10,12 @@ to future partition experiments. Existing package boundaries are preserved.
 | Similarity | Cosine over existing L2 contents, top-k, posterior temporal/split relations, agreement and review | ACTIVE; full cosine validated, inferred temporal analysis partial; Bhattacharyya conditional/planned |
 | Reduction | t-SNE and PaCMAP; exact preservation, seed stability, bounded selection and posterior interpretation | ACTIVE; experiment status in current_status.md |
 | Clustering | DBSCAN, OPTICS, HDBSCAN, original-space metrics, perturbation stability and Pareto candidates | ACTIVE; 414 full runs verified, candidate selection executed |
-| Splitting | Reproducible baselines and indivisible cluster/scene allocation | FUTURE PLANNED |
-| Detection / evaluation | Detector comparison and new-partition quality; current cluster metrics live in clustering/ | FUTURE PLANNED; group handoff boundary |
+| Splitting | Reproducible baselines, indivisible groups, class balance and residual partition quality | ACTIVE; 66 verified runs, both encoders, robust Pareto and review |
+| Detection / evaluation | Future detector comparison; current cluster/split metrics live in their respective packages | FUTURE PLANNED; group handoff boundary |
 
 ```text
 src/flir_pipeline/
-  cli.py                   implemented data/features/similarity/reduction/clustering commands
+  cli.py                   implemented data/features/similarity/reduction/clustering/splitting commands
   config.py                reserved validated path configuration
   data/
     inventory.py           archive structure, matching and exploratory lineage
@@ -52,7 +52,15 @@ src/flir_pipeline/
     selection.py           bounded Pareto shortlist and explicit noise eligibility
     experiments.py         screening, seed/parameter comparisons and verification
     visualization.py       existing 2D views and runtime ZIP exemplars
-  splitting/               planned; documentation only
+  splitting/
+    base.py                validated configuration and portable split_space_id
+    construction.py        atomic groups, seeded random cuts and profile-count MILP
+    metrics.py             complete cross-split NN, quantile/temporal pairs, balance, QA
+    selection.py           diverse clustering subset and robust split Pareto
+    storage.py             immutable assignments, source binding and recomputation
+    experiments.py         baselines, five-seed comparisons, stability and later lists
+    visualization.py       nine aggregate figures and local review tables
+    cli.py                 lazy construction/evaluation/verification commands
   detection/               future evaluation/integration; documentation only
   evaluation/              planned; documentation only
   utils/hashing.py          streaming exact-byte hashes
@@ -75,15 +83,15 @@ embedding_row (separate DINOv2 and CLIP stores)
    v  per-clustering_space_id assignment; noise stays -1
 cluster_id
    |
-   v  FUTURE indivisible cluster/scene allocation
-split_id
+   v  indivisible cluster units + separate singleton noise group_id
+new_split (train/val/test), within split_space_id
 ```
 
 `dataset_id` namespaces an annotated manifest version. `feature_space_id`
 identifies the representation independently of dataset membership. The combination
 of these IDs and the cache signature gives an experiment's lineage. Candidate
-cluster_id assignments exist; no new split_id exists yet. `original_split` remains historical
-metadata and is not a generated split_id.
+cluster_id assignments and new split_space_id partitions exist. `original_split`
+remains historical metadata; historical multi-memberships are never flattened.
 
 Storage writes under `artifacts/features/<extractor>/<dataset_id>/<feature_space_id>`.
 Arrays are float32, with raw and L2 versions. Index files map every occurrence
@@ -131,7 +139,8 @@ Representation identity is feature_space_id for original controls or
 reduction_space_id for reduced inputs. Required files contain one assignment per
 content, summaries, exact metrics and completion metadata; noise remains −1.
 Original record_index is referenced by fingerprint for all historical occurrences.
-No split_id is created, and group identifiers are local to one clustering run.
+This clustering layer creates no split_id; group identifiers are local to one
+clustering run and downstream splitting provides its own identity namespace.
 
 Stage A stores the complete screening and bounded shortlist. Stage B references
 those runs, computes local parameter agreements, and fits only additional seeds
@@ -146,6 +155,32 @@ galleries. It distinguishes fitting space from an existing 2D view, and reports
 coverage beside noise-excluding metrics. The [runbook](clustering_runbook.md)
 documents commands; [analysis](clustering_analysis.md) records observed results.
 
+## Splitting boundary
+
+Splitting reuses the canonical manifest, audited occurrence annotations and
+verified original similarity sources from both encoders. Twelve diverse members
+of the existing clustering Pareto form the principal input set. The numerical
+assignment layer receives only atomic-unit balance vectors: record/class/empty
+counts. Historical membership supplies target ratios and its separate baseline.
+Classes never change cluster membership; noise remains label -1 with a separate
+singleton group identity. No similarity or temporal objective enters the MILP.
+
+Runs live at `artifacts/splitting/runs/<split_space_id>/`; comparisons live at
+`artifacts/splitting/comparisons/<comparison_id>/`. Content and record assignments,
+source group snapshots, balance tables, original-space NN/quantile metrics and
+temporal summaries are immutable publications with checksums. Standalone QA
+reconstructs identity/indivisibility/balance; source-bound QA additionally
+recomputes residual metrics and binds labels/cluster sources. Historical content
+rows explicitly preserve membership sets, with nullable new_split for overlaps.
+
+Five seeds characterize assignment variability without renaming train/val/test.
+Robust constraint/Pareto selection keeps full eligibility diagnostics and at most
+three predeclared anchors; seed 0 always represents a selected configuration.
+The two observed anchors and their limits are in [analysis](splitting_analysis.md).
+The report uses aggregate data only, without fetching images. Later `export-lists`
+requires a verified split and already materialized occurrence paths; it never
+copies images or silently merges conflicting labels. Real export remains pending.
+
 ## Individual research and group handoff
 
 The individual contribution owns characterization, representation, similarity,
@@ -154,8 +189,8 @@ Noise cleaning, panoptic segmentation and final assembly belong to the broader
 group pipeline. No implementations of these team components are included.
 
 The proposed handoff contract is documentation only: source occurrence/content
-identity, relative provenance, representation metadata, and eventually cluster/
-split assignments plus evaluation summaries. Any group transform that changes
+identity, relative provenance, representation metadata, and the now-available
+cluster/split assignments plus evaluation summaries. Any group transform that changes
 image bytes must produce new content identity and an explicit parent mapping;
 it must preserve historical provenance and record its parameters/version. Group
 interfaces must not overwrite original images or claim old embeddings describe

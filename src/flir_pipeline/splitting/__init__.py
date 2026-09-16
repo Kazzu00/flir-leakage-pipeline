@@ -1,1 +1,1 @@
-"""PLANNED: reproducible random and cluster-aware partitions; no implementation yet."""
+"""Atomic content/group partitions and posterior residual-correlation evaluation."""

@@ -1,7 +1,7 @@
 # Estado del proyecto
 
-Revisado **2026-09-13**. **Semanas 6, 7 y 8 COMPLETED**, **semana 9: coseno DONE,
-análisis temporal PARTIAL** y **semanas 9–10: reducción DONE**, **semana 10: clustering y candidatos DONE WITH LIMITS**, según la evidencia descrita a continuación y los criterios
+Revisado **2026-09-16**. **Semanas 6, 7 y 8 COMPLETED**, **semana 9: coseno DONE,
+análisis temporal PARTIAL** y **semanas 9–10: reducción DONE**, **semana 10: clustering y candidatos DONE WITH LIMITS**, **semanas 10–11: splitting DONE WITH LIMITS**, según la evidencia descrita a continuación y los criterios
 explícitos de preparación y representaciones de la solicitud de esta revisión.
 El cierre anterior agrupaba ambas extracciones bajo «hasta semana 6»; aquí se
 distinguen preparación (6), DINOv2 (7) y CLIP/comparación descriptiva (8).
@@ -16,6 +16,7 @@ repositorio; no se certifican compromisos adicionales ni su aprobación formal.
 | 9 — similitud y correlación descriptiva | COSINE DONE / TEMPORAL PARTIAL | Dos matrices completas verificadas; pares, top-20, análisis temporal/histórico, Jaccard y HTML ejecutado; temporalidad aún inferida |
 | 9–10 — reducción dimensional | DONE | 18 t-SNE + 18 PaCMAP completos, ambos encoders; T/C/Jaccard/Spearman, estabilidad de tres semillas, cuatro referencias, verificación con fuentes y HTML de 14 secciones/11 figuras |
 | 10 — clustering y selección exploratoria | DONE WITH LIMITS | 414 runs completos, tres algoritmos/seis espacios; métricas originales, 204 ARI/AMI de perturbaciones, 54 shortlist, 41 Pareto, verificación con fuentes y HTML de 18 secciones/17 figuras; sin split nuevo |
+| 10–11 — cluster-aware splitting y baselines | DONE WITH LIMITS | 66 runs verificados; historical + random 0–4 + 12 candidatos × cinco seeds; ambos encoders y temporal; cero exact overlap en 65 nuevos runs, cero fracturas en 60 cluster-aware; seis Pareto, dos representantes; 18 secciones/nueve figuras; 65 asignaciones reconstruidas exactamente |
 
 Las extracciones completas ya existían desde 2026-09-09. Esta revisión verifica
 arrays, índices, cobertura y metadata; **no vuelve a extraer embeddings**.
@@ -150,10 +151,48 @@ Artefactos y outputs reales permanecen en `artifacts/clustering/` y
 `reports/clustering/`, ignorados por Git. No se introdujeron clases/split/tiempo
 en fit ni se corrigieron conflictos de anotación.
 
-**Siguiente: protocolo de cluster-aware splitting**, política para noise,
-grupos indivisibles y medición de correlación residual. Clustering está
-implementado y ejecutado; la utilidad final para particionar sigue candidata.
-No se generaron splits, balanceo ni resultados de YOLO.
+Al cerrar semana 10, el siguiente paso era el protocolo de cluster-aware
+splitting. En esa fase no se generaron splits ni balanceo. La ejecución posterior
+se registra a continuación; no existen resultados de YOLO.
+
+## Semanas 10–11: particiones ejecutadas y evaluadas
+
+**66 runs**, todos con 1459 contenidos y 1657 registros verificados. El histórico
+preserva sus memberships y 198 contenidos exactos cross-split. Las cinco
+particiones random content-level y 60 cluster-aware tienen **cero duplicados
+exactos cross-split**; los 60 cluster-aware tienen **cero fracturas**. Se conservaron
+las 4168 instancias, 292 labels vacíos y ocho conflictos de anotación sin corregir.
+
+La selección preparatoria tomó 12 de los 41 Pareto, con diversidad de encoders,
+original/t-SNE/PaCMAP y DBSCAN/OPTICS/HDBSCAN, sin silhouette como criterio.
+Noise singleton y semillas 0–4. SciPy MILP balanceó registros, clases y vacíos
+sin optimizar similitud; 35 solves óptimos dentro de tolerancia y 25 incumbentes
+factibles con gap explícito. Reproducción posterior: **65/65 nuevas asignaciones
+idénticas**. Targets derivados del manifest: 1178/107/372 registros.
+
+Se evaluaron NN cross-split completos, rank-1/top-5/10/20, seis cohortes por
+cuantil de ambos encoders, ventanas temporales Δ≤1/5/10/25, fragmentación de
+secuencia, fracturas y robustez de nombres de split. Seis configuraciones
+satisfacen las restricciones y quedan Pareto; dos anclas representantes seed 0:
+
+| Candidato | split_space_id | Registros train/val/test | HM train/val/test | Vacíos train/val/test | Pares top0.1% DINO / CLIP |
+|---|---|---|---|---|---|
+| C10 — DINOv2/PaCMAP/DBSCAN, ancla visual | 88ccf4e12335a83f | 1178/107/372 | 95/7/27 | 207/19/66 | 6 / 7 |
+| C01 — CLIP/original/OPTICS, ancla de balance | 643cd594f431cfc8 | 1178/107/372 | 92/8/29 | 207/19/66 | 229 / 311 |
+
+El histórico tiene 328/277 pares extremos; random, medias 478/466.8. C10 reduce
+la media NN en ambos encoders, pero su fracción temporal Δ≤5 es **23.93%**, frente
+a random **43.92%** e histórico **14.76%**. No hay mejora uniforme: C01 mantiene
+97.4% de ruido y su media NN supera al histórico en ambos encoders. El histórico
+carece de Vehicles y Heavy Machinery en val; ambas representantes cubren cinco
+clases, con apenas dos instancias Vehicles en val de C10.
+
+[Resultados agregados](splitting_analysis.md), [protocolo](splitting_protocol.md)
+y [runbook](splitting_runbook.md). HTML local de 18 secciones/nueve figuras y
+notebook fuente limpio; **124 tests sintéticos y Ruff aprobados**. Artifacts,
+assignments y reportes ejecutados permanecen ignorados. El protocolo principal
+está ejecutado y validado; la generalización del detector y temporalidad real
+siguen pendientes. No hubo exportación real, materialización ni YOLO.
 
 ## COMPLETADO en este alcance
 
@@ -165,7 +204,7 @@ No se generaron splits, balanceo ni resultados de YOLO.
   boxplots de área y ratio por clase, conservando extremos.
 - Auditoría de duplicados exactos y conflictos de anotación.
 - Caracterización temporal disponible, con heurística y confianza explícitas.
-- Línea base reproducible de datos: pertenencia histórica preservada, sin nuevos splits.
+- Línea base histórica preservada; nuevos splits derivados separados y auditados.
 - Diagnósticos sobre los 1459 contenidos únicos.
 - Pipeline DINOv2/CLIP con checkpoints, metadata, raw/L2 y validaciones.
 - **DINOv2-small completo: 1459 × 384**, con mapping de 1657 registros y revisión resuelta.
@@ -302,9 +341,11 @@ Ver [ejecución reproducible](week6_closure.md).
 ## PENDIENTE / SIGUIENTE
 
 Validación adicional de procedencia temporal y escenas; Bhattacharyya cuando
-exista una representación distribucional justificada; protocolo de partición
-por clústeres, política de noise y baseline aleatorio; entrenamiento comparativo,
-evaluación del detector y reproducibilidad final. No se ejecutaron esas etapas.
+exista una representación distribucional justificada; revisión de grupos y
+conflictos de los splits candidatos, protocolo de comparación del detector,
+materialización posterior, entrenamiento y evaluación controlados. No se
+ejecutaron esas etapas. Particiones, política singleton, random y comparación
+residual ya se ejecutaron en semanas 10–11 con los límites registrados arriba.
 DBSCAN/OPTICS/HDBSCAN, métricas, AMI/ARI y selección exploratoria sí se ejecutaron
 en semana 10, con las limitaciones y candidatos registrados arriba.
 

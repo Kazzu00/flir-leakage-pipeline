@@ -7,6 +7,8 @@ from typing import TYPE_CHECKING, Any
 
 import typer
 
+from flir_pipeline.splitting.cli import app as splitting_app
+
 if TYPE_CHECKING:
     from flir_pipeline.features.base import FeatureExtractor
 app = typer.Typer(help="Reproducible FLIR leakage research pipeline.")
@@ -20,6 +22,7 @@ app.add_typer(features_app, name="features")
 app.add_typer(similarity_app, name="similarity")
 app.add_typer(reduction_app, name="reduction")
 app.add_typer(clustering_app, name="clustering")
+app.add_typer(splitting_app, name="splitting")
 
 
 def _default_root() -> Path | None:

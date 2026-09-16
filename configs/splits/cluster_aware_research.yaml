@@ -1,0 +1,12 @@
+strategy: cluster_aware
+noise_policy: singleton
+target_ratios: null
+seeds: [0, 1, 2, 3, 4]
+node_limit: 32
+mip_rel_gap: 0.001
+# Equal normalized contribution of record, class and empty-label families.
+# Class weight is averaged over five classes; these are construction weights,
+# never a residual-correlation score or final candidate ranking.
+record_weight: 1.0
+class_weight: 1.0
+empty_weight: 1.0

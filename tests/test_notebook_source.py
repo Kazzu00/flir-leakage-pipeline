@@ -95,3 +95,18 @@ def test_reduction_review_preserves_source_and_fourteen_sections():
                "reports/reduction/figures/01_reduction_quality_dinov2.png", "artifacts/reduction/synthetic/coordinates.npy"]
     result = subprocess.run(["git", "check-ignore", "--no-index", *ignored], cwd=root, text=True, capture_output=True, check=True)
     assert result.stdout.splitlines() == ignored
+
+
+def test_splitting_review_has_eighteen_clean_sections():
+    root = Path(__file__).resolve().parents[1]
+    source = root / "notebooks/splitting_review.ipynb"
+    check = runpy.run_path(str(root / "scripts/check_notebook_source.py"))["check_notebook_source"]
+    check(source)
+    notebook = json.loads(source.read_text(encoding="utf-8"))
+    narrative = "\n".join("".join(c["source"]) for c in notebook["cells"] if c["cell_type"] == "markdown")
+    assert narrative.startswith("# FLIR Cluster-Aware Splitting — Progress Review")
+    assert re.findall(r"^## (\d+)\.", narrative, re.MULTILINE) == [str(i) for i in range(1, 19)]
+    ignored = ["reports/splitting/review/splitting_review.executed.ipynb", "reports/splitting/review/splitting_review.html",
+               "reports/splitting/figures/01_split_sizes_comparison.png", "artifacts/splitting/runs/synthetic/split_assignments.parquet"]
+    result = subprocess.run(["git", "check-ignore", "--no-index", *ignored], cwd=root, text=True, capture_output=True, check=True)
+    assert result.stdout.splitlines() == ignored

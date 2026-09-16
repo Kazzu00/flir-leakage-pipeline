@@ -1,8 +1,8 @@
 # Configuration status
 
 `embeddings/*.yaml`, `similarity/*.yaml`, `reduction/*.yaml` and
-`clustering/*_research.yaml` are executable configurations.
-Empty `data/`, `splits/` and `detection/` directories reserve planned
+`clustering/*_research.yaml` and `splits/*.yaml` are executable configurations.
+Empty `data/` and `detection/` directories reserve planned
 configuration boundaries; they do not imply implemented experiments.
 
 | File | Purpose | Model | Device / batch |
@@ -38,7 +38,16 @@ the larger models from the similarly named `embeddings/*_research.yaml` files.
 Numerical tolerance and near-unit diagnostic tolerance are not leakage thresholds.
 See [similarity execution and cache semantics](../docs/similarity_analysis.md).
 
-No UMAP, split or detector experiments are configured.
+No UMAP or detector experiments are configured.
+
+`splits/random_baseline.yaml` defines the content-level random baseline with
+seeds 0–4. `splits/cluster_aware_research.yaml` defines singleton noise, five
+assignment seeds and deterministic SciPy MILP limits. Both derive target record
+ratios from the supplied historical manifest when `target_ratios: null`; an
+explicit train/val/test ratio tuple is supported. Neither file contains local
+paths or clustering IDs. The [splitting protocol](../docs/splitting_protocol.md)
+defines diverse candidate selection and posterior evaluation in both encoders;
+the [runbook](../docs/splitting_runbook.md) documents execution and later export.
 
 `clustering/dbscan_research.yaml` defines 18 configurations using min_samples
 5/10/20 and k-distance quantiles .80/.85/.90/.95/.97/.99; epsilon is recomputed

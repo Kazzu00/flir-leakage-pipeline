@@ -1,0 +1,4 @@
+strategy: random_content
+noise_policy: singleton
+target_ratios: null  # derive train/val/test record ratios from the supplied manifest
+seeds: [0, 1, 2, 3, 4]
