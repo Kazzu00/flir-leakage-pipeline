@@ -1,6 +1,6 @@
 # Estado del proyecto
 
-Revisado **2026-09-16**. **Semanas 6, 7 y 8 COMPLETED**, **semana 9: coseno DONE,
+Revisado **2026-09-17** (consolidación documental; sin nuevos experimentos). **Semanas 6, 7 y 8 COMPLETED**, **semana 9: coseno DONE,
 análisis temporal PARTIAL** y **semanas 9–10: reducción DONE**, **semana 10: clustering y candidatos DONE WITH LIMITS**, **semanas 10–11: splitting DONE WITH LIMITS**, según la evidencia descrita a continuación y los criterios
 explícitos de preparación y representaciones de la solicitud de esta revisión.
 El cierre anterior agrupaba ambas extracciones bajo «hasta semana 6»; aquí se
@@ -24,6 +24,20 @@ arrays, índices, cobertura y metadata; **no vuelve a extraer embeddings**.
 La referencia bibliográfica exacta de la nomenclatura sigue pendiente. El orden
 de clases fue confirmado explícitamente por el responsable del proyecto;
 la [evidencia y su límite](dataset_classes.md) se conservan sin inventar una cita.
+
+## Reporte acumulativo de avance
+
+`notebooks/progress_review.ipynb` consolida las etapas existentes en 22 secciones
+en español, con pregunta, fuentes y hallazgo por sección. Reutiliza 14 figuras
+y añade un diagrama del pipeline. El HTML local, con código oculto, se construye
+con `uv run --extra reporting python scripts/build_progress_review.py` en
+`reports/progress/review/`; no reemplaza los reportes específicos.
+
+El builder verifica disponibilidad, checksums registrados, consistencia de
+resúmenes, identidad/conteos del manifest y privacidad del HTML. Reutiliza los
+recibos de validación numérica anteriores; no vuelve a ejecutar experimentos ni
+modifica resultados. Los faltantes se muestran como `missing / invalid`.
+El estado científico no cambia. Véase [guía y mapa de fuentes](progress_review.md).
 
 ## Detector: infraestructura y piloto del portátil
 

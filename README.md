@@ -264,7 +264,9 @@ Similarity tests cover dot products, deterministic ties, temporal ambiguity,
 multi-split membership, quantile cohorts, Jaccard, cache corruption and posterior
 metadata independence. Reduction tests cover exact preservation formulas, seed
 repeatability, geometric invariance, source binding, corruption and candidate
-selection. All three source notebooks are checked without execution.
+selection. All seven source notebooks are checked without execution. Progress
+report tests cover missing/stale evidence, full versus smoke coverage, aggregate
+versus representative selection, detector status changes and visible privacy.
 They do not require FLIR data, a GPU, model downloads or notebook tooling.
 CI also checks the source notebook using only the standard library.
 
@@ -304,6 +306,26 @@ first run if downloading them is needed. See the [complete runbook](docs/week6_c
 for executable selection/verification commands and execution provenance.
 
 ## Reports
+
+The cumulative [project progress review](notebooks/progress_review.ipynb) brings
+the complete academic narrative into one Spanish report: **22 sections, 14 reused
+figures and one pipeline diagram**, from data audit to evaluated partitions and
+the pending controlled detector experiment. Each section states its question,
+sources and main finding. Stage-specific reviews remain available below.
+
+```powershell
+uv run python scripts/build_progress_review.py --check
+uv run --extra reporting python scripts/build_progress_review.py
+```
+
+The builder reads existing tables, summaries, verification receipts and figures;
+it checks manifest identity/counts and recorded checksums. It never extracts
+features, recomputes similarity, fits reduction/clustering, creates splits or runs
+YOLO. Missing or inconsistent evidence is shown as `missing / invalid`, with a
+nonzero exit code. It does not repeat numerical experiment verification.
+Local outputs: `reports/progress/review/progress_review.html` (code hidden),
+`progress_review.executed.ipynb` and `build_receipt.json`. All outputs stay ignored
+by Git. See the [source map, validation scope and reproduction guide](docs/progress_review.md).
 
 The [reduction review notebook](notebooks/reduction_review.ipynb) contains 14
 sections: all run metrics/times, four reference projections, seed stability,
@@ -367,7 +389,9 @@ receipts and final audit are in `reports/feature_engineering_closure/`.
 
 ## Repository status
 
-**2026-09-13 — Weeks 6–8 closed; cosine and weeks 9–10 reduction grids completed**:
+**2026-09-17 — Audit through splitting completed with documented limits;
+controlled detector comparison pending**. The table below records the initial
+phases; subsequent clustering, splitting and detector evidence follows it.
 
 | Week | Status | Evidence |
 |---|---|---|
