@@ -2,7 +2,9 @@
 
 These decisions describe the current implementation and the supplied thesis
 methodology. Later sections record the executed similarity/reduction extensions.
-Clustering, new splitting and detector training remain unimplemented.
+Clustering and splitting have executed experiments. Detector infrastructure and
+four small CPU pilots are validated; the final controlled detector experiment
+remains pending. Earlier dated decisions retain their original scope.
 
 ## 1. Separate occurrence from exact content
 
@@ -371,3 +373,22 @@ not converted into a universal winner or a claim of eliminated leakage.
 Using two encoders is a cross-representation diagnostic, not an independent
 held-out dataset. Detector generalization and real temporal validation remain
 separate hypotheses and pending experimental stages.
+
+## 31. Detector controls and a measured laptop budget
+
+The detector candidate review keeps C10 primary and selects C12 through explicit
+cross-seed constraints, before YOLO. C01 remains a descriptive balance ablation.
+Original occurrence labels, including conflicts, survive materialization. Raw
+ZIPs are read-only; generated image lists reuse an ignored occurrence store.
+
+YOLO11n is a single fixed architecture; no per-strategy tuning. Fixed-confidence
+P/R is separated from the upstream test-best-F1 display, and image bootstrap
+recomputes pooled AP. The primary endpoint is five-class macro mAP50-95. Runtime
+weights/configuration are frozen before real-data training, after measuring
+device, memory and feasible batch; CPU is not silently treated as CUDA.
+
+Four tiny real CPU pilots validate infrastructure only. Automatic Stage B on CPU
+is disabled: extrapolations of roughly 408–593 training hours for 48 runs are
+disproportionate on this laptop. No final detector outcome, causal leakage
+effect, seed variability or model ranking is inferred from those pilots.
+See the detector protocol, runbook and pilot analysis for the executed scope.

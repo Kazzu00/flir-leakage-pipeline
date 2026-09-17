@@ -1,1 +1,4 @@
-"""FUTURE evaluation/integration boundary for detector comparison; no detector, noise cleaning or panoptic segmentation is implemented."""
+"""Controlled detector comparison; scientific results require a complete experiment.
+
+Noise cleaning and panoptic segmentation remain external group integrations.
+"""

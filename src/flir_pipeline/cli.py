@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Any
 
 import typer
 
+from flir_pipeline.detection.cli import app as detection_app
 from flir_pipeline.splitting.cli import app as splitting_app
 
 if TYPE_CHECKING:
@@ -23,6 +24,7 @@ app.add_typer(similarity_app, name="similarity")
 app.add_typer(reduction_app, name="reduction")
 app.add_typer(clustering_app, name="clustering")
 app.add_typer(splitting_app, name="splitting")
+app.add_typer(detection_app, name="detection")
 
 
 def _default_root() -> Path | None:

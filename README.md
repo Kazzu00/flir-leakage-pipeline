@@ -48,9 +48,9 @@ claim the work of other contributors. The proposed handoff is documented in
 | DBSCAN / OPTICS / HDBSCAN | DONE; 414 full runs across both encoders, original L2 and candidate t-SNE/PaCMAP |
 | Cluster evaluation and selection | DONE WITH LIMITS; 204 stability comparisons, 41 Pareto candidates, verified artifacts and HTML |
 | Cluster-aware splitting and random baseline | DONE WITH LIMITS; 66 verified runs, both encoders, six Pareto configurations and two representative splits |
-| Detector comparison | PLANNED |
+| Detector comparison | INFRASTRUCTURE + FOUR SMALL CPU PILOTS VALIDATED; final Stage A/B pending compute budget |
 
-The implementation currently supports **data + features + similarity + reduction + clustering + splitting**. A future namespace is
+The implementation currently supports **data + features + similarity + reduction + clustering + splitting + controlled detector infrastructure**. A future namespace is
 not an implemented experiment. See [current status](docs/current_status.md).
 
 ## Current dataset findings
@@ -97,8 +97,8 @@ reduction methods are **t-SNE + PaCMAP**, followed by DBSCAN, OPTICS and HDBSCAN
 Executed cluster selection uses stability, visual and inferred temporal coherence,
 AMI and ARI with explicit noise policies and coverage. Historical, reproducible
 random and cluster-based partitions have been compared using residual partition
-similarity and balance. Detector Precision, Recall, mAP@50 and mAP@50–95 remain
-pending; no detector comparison has run. The
+similarity and balance. Final detector Precision, Recall, mAP@50 and mAP@50–95 remain
+pending; four tiny operational CPU pilots have run, without scientific comparison. The
 [traceability table](docs/methodology_traceability.md) and
 [design decisions](docs/design_decisions.md) distinguish evidence from plans.
 
@@ -112,7 +112,7 @@ src/flir_pipeline/
   reduction/     t-SNE / PaCMAP, preservation, seed stability and posterior figures
   clustering/    DBSCAN / OPTICS / HDBSCAN, original-space metrics, stability, Pareto
   splitting/     atomic groups, MILP, seeded baselines, residual metrics and Pareto
-  detection/     future evaluation/integration
+  detection/     frozen protocol, dataset views, optional YOLO runtime, metrics/bootstrap, review
   evaluation/    planned
   utils/         streaming SHA256
 configs/         active embedding/similarity/reduction/clustering configs
@@ -241,10 +241,11 @@ nonzero exit code when quality invariants fail. `features diagnostics` needs the
 manifest and source ZIP, and `features visualize-data` needs the manifest and
 diagnostics Parquet. Use each command's `--help` for options.
 
-### Future planned commands
+### Controlled detector commands
 
-Detector training and comparison remain planned. Clustering and splitting now
-have runnable CLI commands; their experiments and limits are documented below.
+`flir-pipeline detection plan/materialize/environment/probe/freeze/pilot-small/run/verify`
+implements the staged detector protocol. Hardware is measured before training;
+automatic Stage B on CPU is disabled. See the [runbook](docs/detector_runbook.md).
 
 ## Testing
 
@@ -429,10 +430,32 @@ the local 18-section/nine-figure HTML is
 `reports/splitting/review/splitting_review.html`. All 65 new assignments were
 reconstructed exactly in a separate reproducibility check.
 
-Next: review selected groups/annotation conflicts and define a controlled
-detector comparison. No real export, image materialization or YOLO training ran.
+No image materialization or detector training ran during that splitting phase.
+The subsequent detector infrastructure/pilot phase is documented below.
 See [current status](docs/current_status.md), [week 6 closure](docs/week6_closure.md)
 and [methodology traceability](docs/methodology_traceability.md).
+
+## Controlled detector protocol and CPU pilot
+
+Historical, content-level random, C10 and C12 are selected **before YOLO**.
+C10 remains primary. C12 improves temporal/visual residual correlation at a
+class-balance cost; C01 is a descriptive balance ablation, not a detector candidate.
+The frozen plan contains 16 splits and 48 target runs (split seeds 0–4;
+detector seeds 42/43/44), preserving every original annotation occurrence.
+
+**Implemented and validated:** 16 generated dataset views, hardware/batch probe,
+four small real CPU pilots, isolated YOLO11n initialization/checkpoints, fixed
+confidence P/R, per-class AP, 1000 image-bootstrap replicates, verification and
+an 18-section notebook/HTML. Pilots use 24/12/20 images, two epochs, batch 2,
+imgsz 640. The portable workstation exposes no CUDA; the measured CPU budget
+is disproportionate for the complete matrix, so final Stage A/B were not started.
+Tiny-pilot detector metrics are not scientific comparison results.
+
+See [protocol](docs/detector_experiment_protocol.md), [pilot evidence and limits](docs/detector_comparison_analysis.md)
+and [runbook](docs/detector_runbook.md). The source notebook is
+`notebooks/detector_comparison_review.ipynb`; the local review is
+`reports/detection/review/detector_comparison_review.html`. Eight metric figure
+panels remain visibly pending until the final matrix is complete and controlled.
 
 ## References
 

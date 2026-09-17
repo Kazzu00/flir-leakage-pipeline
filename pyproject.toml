@@ -22,6 +22,11 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+detection = [
+    "ultralytics==8.3.203",
+    "torch==2.8.0",
+    "torchvision==0.23.0",
+]
 reduction = [
     "scikit-learn>=1.5,<2",
     "pacmap==0.9.1",

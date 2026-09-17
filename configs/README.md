@@ -38,7 +38,9 @@ the larger models from the similarly named `embeddings/*_research.yaml` files.
 Numerical tolerance and near-unit diagnostic tolerance are not leakage thresholds.
 See [similarity execution and cache semantics](../docs/similarity_analysis.md).
 
-No UMAP or detector experiments are configured.
+No UMAP experiments are configured. `detection/yolo11n.yaml` predefines a single
+controlled detector configuration and target matrix; batch is chosen by a
+hardware probe and frozen before real training. CPU Stage B is never automatic.
 
 `splits/random_baseline.yaml` defines the content-level random baseline with
 seeds 0–4. `splits/cluster_aware_research.yaml` defines singleton noise, five

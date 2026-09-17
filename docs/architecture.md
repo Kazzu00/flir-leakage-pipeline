@@ -1,7 +1,8 @@
 # Architecture
 
 The package follows data provenance through independent visual representations
-to future partition experiments. Existing package boundaries are preserved.
+to verified partition experiments and controlled detector evaluation infrastructure.
+Existing package boundaries are preserved.
 
 | Layer | Responsibility and boundary | State |
 |---|---|---|
@@ -11,7 +12,8 @@ to future partition experiments. Existing package boundaries are preserved.
 | Reduction | t-SNE and PaCMAP; exact preservation, seed stability, bounded selection and posterior interpretation | ACTIVE; experiment status in current_status.md |
 | Clustering | DBSCAN, OPTICS, HDBSCAN, original-space metrics, perturbation stability and Pareto candidates | ACTIVE; 414 full runs verified, candidate selection executed |
 | Splitting | Reproducible baselines, indivisible groups, class balance and residual partition quality | ACTIVE; 66 verified runs, both encoders, robust Pareto and review |
-| Detection / evaluation | Future detector comparison; current cluster/split metrics live in their respective packages | FUTURE PLANNED; group handoff boundary |
+| Detection | Frozen split/model matrix, immutable dataset views, optional YOLO11 runtime, image statistics/bootstrap and review | INFRASTRUCTURE + SMALL CPU PILOTS VALIDATED; final comparison pending |
+| Evaluation | Reserved cross-component boundary; operational metrics live beside their experiments | GROUP INTEGRATION / FUTURE |
 
 ```text
 src/flir_pipeline/
@@ -61,7 +63,13 @@ src/flir_pipeline/
     experiments.py         baselines, five-seed comparisons, stability and later lists
     visualization.py       nine aggregate figures and local review tables
     cli.py                 lazy construction/evaluation/verification commands
-  detection/               future evaluation/integration; documentation only
+  detection/
+    protocol.py            pre-YOLO constraints, immutable plan and matrix identities
+    materialization.py     occurrence-preserving byte-checked generated views
+    runtime.py             optional YOLO, hardware/batch probe, pilot, gate/resume
+    metrics.py             fixed-threshold P/R, pooled AP, image bootstrap, hierarchy
+    reporting.py           complete-matrix gate, real context and pending panels
+    cli.py                 lazy detector commands, no optional runtime import in CI
   evaluation/              planned; documentation only
   utils/hashing.py          streaming exact-byte hashes
 ```
@@ -210,8 +218,9 @@ for Transformers image processing even without a direct project import.
 `reporting` contains Jupyter/nbformat/nbclient/nbconvert for notebook execution and
 HTML. `dev` contains Ruff, pytest/coverage and pre-commit. `reduction` contains
 scikit-learn, PaCMAP and threadpoolctl; clustering reuses its scikit-learn HDBSCAN
-without another library. Unused accelerate and future YOLO/tracking extras
-remain absent. Synthetic CI includes the reduction extra.
+without another library. The optional `detection` extra pins YOLO11-compatible
+Ultralytics/PyTorch/torchvision; core and CI do not install it. Unused accelerate
+and tracking extras remain absent. Synthetic CI includes the reduction extra.
 
 The data manifest currently uses some private inventory helpers within the data
 layer. This coupling is documented technical debt; no broad package refactor was

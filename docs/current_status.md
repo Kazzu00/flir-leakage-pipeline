@@ -17,12 +17,45 @@ repositorio; no se certifican compromisos adicionales ni su aprobación formal.
 | 9–10 — reducción dimensional | DONE | 18 t-SNE + 18 PaCMAP completos, ambos encoders; T/C/Jaccard/Spearman, estabilidad de tres semillas, cuatro referencias, verificación con fuentes y HTML de 14 secciones/11 figuras |
 | 10 — clustering y selección exploratoria | DONE WITH LIMITS | 414 runs completos, tres algoritmos/seis espacios; métricas originales, 204 ARI/AMI de perturbaciones, 54 shortlist, 41 Pareto, verificación con fuentes y HTML de 18 secciones/17 figuras; sin split nuevo |
 | 10–11 — cluster-aware splitting y baselines | DONE WITH LIMITS | 66 runs verificados; historical + random 0–4 + 12 candidatos × cinco seeds; ambos encoders y temporal; cero exact overlap en 65 nuevos runs, cero fracturas en 60 cluster-aware; seis Pareto, dos representantes; 18 secciones/nueve figuras; 65 asignaciones reconstruidas exactamente |
+| Detector — protocolo e infraestructura | IMPLEMENTED + SMALL CPU PILOTS VALIDATED; FINAL PENDING | Historical/random_content/C10/C12 congelados; 16 vistas; cuatro pilotos 24/12/20 imágenes × dos epochs, batch 2/640 CPU, cinco clases test y 1000 bootstrap revalidados; Stage A/B completos no ejecutados por coste |
 
 Las extracciones completas ya existían desde 2026-09-09. Esta revisión verifica
 arrays, índices, cobertura y metadata; **no vuelve a extraer embeddings**.
 La referencia bibliográfica exacta de la nomenclatura sigue pendiente. El orden
 de clases fue confirmado explícitamente por el responsable del proyecto;
 la [evidencia y su límite](dataset_classes.md) se conservan sin inventar una cita.
+
+## Detector: infraestructura y piloto del portátil
+
+Se seleccionaron **historical, random_content, C10 y C12** antes de YOLO.
+C10 conserva su papel principal; C12 reduce similitud media y temporalidad
+residual a cambio de peor balance. C01 queda como referencia descriptiva.
+Plan local `ace1ffd6bb4775d0`: 16 splits, 48 celdas objetivo, detector seeds
+42/43/44 y split seeds 0–4. No se reoptimizó ninguna asignación.
+
+Implementados protocolo y runbook, vistas por ocurrencia con hashes de bytes,
+extra opcional Ultralytics, prueba de hardware/batch, freeze, piloto, gate
+Stage A/B, resume aislado, P/R a umbral fijo, AP, bootstrap y agregación jerárquica.
+El freeze CPU es `9897062efdb32450`. El portátil detectado tiene Ryzen 7 7730U,
+8 núcleos/16 hilos, ~21.84 GiB de RAM utilizable, sin CUDA en PyTorch.
+
+**Ejecutado y revalidado:** 16 vistas del dataset; probe de batches 1/2 a 640;
+cuatro pilotos reales pequeños de YOLO11n con CPU/batch 2/imgsz 640, dos epochs,
+24/12/20 imágenes y seeds 0/42. Training total 140.39 s; evaluación/bootstrap
+57.46 s. Se reconstruyeron métricas y 1000 bootstrap de cada piloto; hashes,
+soporte de annotations del loader, cinco clases test y configuración efectiva
+coinciden. Los originales no se alteraron.
+
+**Pendiente:** Stage A completo a 50 epochs, Stage B, métricas científicas
+multi-seed, variabilidad e interpretación del detector. El piloto extrapola
+~408–593 horas para los 48 runs (dos métodos, no intervalo de confianza).
+Se detuvo antes del protocolo costoso CPU por instrucción explícita del usuario.
+No hay ejecución GPU ni prueba de resume interrumpido en GPU.
+
+Notebook/HTML de 18 secciones; una figura de contexto real y ocho paneles
+explícitamente pendientes. Evidencia local en `artifacts/detection/` y
+`reports/detection/review/`. Detalle en [análisis del piloto](detector_comparison_analysis.md),
+[protocolo](detector_experiment_protocol.md) y [runbook](detector_runbook.md).
 
 ## Semana 9: evidencia completa de similitud
 
@@ -153,7 +186,8 @@ en fit ni se corrigieron conflictos de anotación.
 
 Al cerrar semana 10, el siguiente paso era el protocolo de cluster-aware
 splitting. En esa fase no se generaron splits ni balanceo. La ejecución posterior
-se registra a continuación; no existen resultados de YOLO.
+se registra a continuación; durante esa fase no se ejecutó YOLO. El piloto
+pequeño posterior del detector se describe al inicio de este documento.
 
 ## Semanas 10–11: particiones ejecutadas y evaluadas
 
@@ -342,9 +376,10 @@ Ver [ejecución reproducible](week6_closure.md).
 
 Validación adicional de procedencia temporal y escenas; Bhattacharyya cuando
 exista una representación distribucional justificada; revisión de grupos y
-conflictos de los splits candidatos, protocolo de comparación del detector,
-materialización posterior, entrenamiento y evaluación controlados. No se
-ejecutaron esas etapas. Particiones, política singleton, random y comparación
+conflictos de los splits candidatos y ejecución final controlada del detector
+con presupuesto viable. El protocolo, 16 vistas y cuatro pilotos pequeños CPU
+ya existen; los 48 entrenamientos finales y sus conclusiones no se ejecutaron.
+Particiones, política singleton, random y comparación
 residual ya se ejecutaron en semanas 10–11 con los límites registrados arriba.
 DBSCAN/OPTICS/HDBSCAN, métricas, AMI/ARI y selección exploratoria sí se ejecutaron
 en semana 10, con las limitaciones y candidatos registrados arriba.

@@ -1,0 +1,75 @@
+# One candidate configuration, selected before any detector outcome.
+# Batch is selected by a hardware probe, before any real-data training.
+protocol: controlled_detector_v1
+model: yolo11n.pt
+ultralytics_version: 8.3.203
+torch_version: 2.8.0
+training_seeds: [42, 43, 44]
+split_seeds: [0, 1, 2, 3, 4]
+compute:
+  cpu_batch_candidates: [1, 2]
+  cuda_batch_candidates: [1, 2, 4, 8]
+  small_pilot_epochs: 2
+  small_pilot_train_images: 24
+  small_pilot_val_images: 12
+  small_pilot_test_images: 20
+  cpu_stage_b_automatic: false
+train:
+  epochs: 50
+  imgsz: 640
+  batch: null
+  optimizer: SGD
+  lr0: 0.01
+  lrf: 0.01
+  momentum: 0.937
+  weight_decay: 0.0005
+  cos_lr: false
+  warmup_epochs: 3.0
+  warmup_momentum: 0.8
+  warmup_bias_lr: 0.1
+  nbs: 64
+  patience: 0
+  deterministic: true
+  amp: false
+  workers: 0
+  cache: false
+  rect: false
+  multi_scale: false
+  fraction: 1.0
+  pretrained: true
+  freeze: null
+  single_cls: false
+  close_mosaic: 10
+  hsv_h: 0.015
+  hsv_s: 0.7
+  hsv_v: 0.4
+  degrees: 0.0
+  translate: 0.1
+  scale: 0.5
+  shear: 0.0
+  perspective: 0.0
+  flipud: 0.0
+  fliplr: 0.5
+  bgr: 0.0
+  mosaic: 1.0
+  mixup: 0.0
+  cutmix: 0.0
+  copy_paste: 0.0
+  box: 7.5
+  cls: 0.5
+  dfl: 1.5
+  val: true
+  plots: false
+  conf: 0.001
+  iou: 0.7
+  max_det: 300
+evaluation:
+  confidence_floor: 0.001
+  precision_recall_confidence: 0.25
+  precision_recall_iou: 0.5
+  nms_iou: 0.7
+  max_det: 300
+  bootstrap_resamples: 1000
+  bootstrap_seed: 20260916
+  confidence_level: 0.95
+  metric_version: image_stats_ap101_v1
