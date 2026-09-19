@@ -308,8 +308,8 @@ for executable selection/verification commands and execution provenance.
 ## Reports
 
 The cumulative [project progress review](notebooks/progress_review.ipynb) brings
-the complete academic narrative into one Spanish report: **22 sections, 14 reused
-figures and one pipeline diagram**, from data audit to evaluated partitions and
+the complete academic narrative into one Spanish report: **22 sections, 14
+figures (12 reused + two temporal summaries) and one pipeline diagram**, from data audit to evaluated partitions and
 the pending controlled detector experiment. Each section states its question,
 sources and main finding. Stage-specific reviews remain available below.
 
@@ -319,7 +319,8 @@ uv run --extra reporting python scripts/build_progress_review.py
 ```
 
 The builder reads existing tables, summaries, verification receipts and figures;
-it checks manifest identity/counts and recorded checksums. It never extracts
+it checks manifest identity/counts and recorded checksums. Temporal figures show
+saved medians and Q1–Q3 in human-readable index-gap bins. It never extracts
 features, recomputes similarity, fits reduction/clustering, creates splits or runs
 YOLO. Missing or inconsistent evidence is shown as `missing / invalid`, with a
 nonzero exit code. It does not repeat numerical experiment verification.
@@ -458,6 +459,22 @@ No image materialization or detector training ran during that splitting phase.
 The subsequent detector infrastructure/pilot phase is documented below.
 See [current status](docs/current_status.md), [week 6 closure](docs/week6_closure.md)
 and [methodology traceability](docs/methodology_traceability.md).
+
+## Interactive cluster/split inspection
+
+Open existing clustering runs and historical/random/cluster-aware partitions in
+the local, read-only Streamlit explorer:
+
+```powershell
+uv run --extra explorer streamlit run apps/cluster_split_explorer.py
+```
+
+Visit `http://127.0.0.1:8501`. Browse clusters, splits and singleton noise; compare
+partition timelines, inspect paginated galleries and play reconstructed frame
+sequences separately by inferred sequence. C10/C12 appear through artifact
+discovery. Original ZIPs are decoded in memory through `FLIR_DATA_ROOT`.
+Playback FPS is for visualization only; source timing is unknown. No scientific
+artifacts are changed. See [setup, navigation and limits](docs/cluster_split_explorer.md).
 
 ## Controlled detector protocol and CPU pilot
 

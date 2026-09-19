@@ -28,8 +28,9 @@ la [evidencia y su límite](dataset_classes.md) se conservan sin inventar una ci
 ## Reporte acumulativo de avance
 
 `notebooks/progress_review.ipynb` consolida las etapas existentes en 22 secciones
-en español, con pregunta, fuentes y hallazgo por sección. Reutiliza 14 figuras
-y añade un diagrama del pipeline. El HTML local, con código oculto, se construye
+en español, con pregunta, fuentes y hallazgo por sección. Reutiliza 12 figuras,
+presenta dos resúmenes temporales nuevos desde cuartiles registrados y añade un
+diagrama del pipeline. El HTML local, con código oculto, se construye
 con `uv run --extra reporting python scripts/build_progress_review.py` en
 `reports/progress/review/`; no reemplaza los reportes específicos.
 
@@ -38,6 +39,13 @@ resúmenes, identidad/conteos del manifest y privacidad del HTML. Reutiliza los
 recibos de validación numérica anteriores; no vuelve a ejecutar experimentos ni
 modifica resultados. Los faltantes se muestran como `missing / invalid`.
 El estado científico no cambia. Véase [guía y mapa de fuentes](progress_review.md).
+
+La iteración de inspección del **2026-09-19** añade un [explorador local](cluster_split_explorer.md)
+Streamlit opcional para clusters, splits, comparación y noise singleton. Lee
+asignaciones existentes y ZIPs en memoria; el playback separa secuencias y gaps
+inferidos, con FPS exclusivamente de visualización. No cambia C10/C12, métricas
+ni experimentos. Los hexbins permanecen en similarity_review; el acumulativo usa
+mediana/Q1–Q3 y conteos en los siete bins ya poblados.
 
 ## Detector: infraestructura y piloto del portátil
 

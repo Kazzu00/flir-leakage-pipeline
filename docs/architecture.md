@@ -70,11 +70,22 @@ src/flir_pipeline/
     metrics.py             fixed-threshold P/R, pooled AP, image bootstrap, hierarchy
     reporting.py           complete-matrix gate, real context and pending panels
     cli.py                 lazy detector commands, no optional runtime import in CI
+  explorer/
+    discovery.py / models.py existing run discovery and display-only contracts
+    data.py                  validated ID joins, historical occurrences and split overlays
+    frames.py                hash-checked original ZIP decoding in memory
+    timeline.py / preview.py inferred ordering/gaps and bounded per-sequence GIFs
   evaluation/              planned; documentation only
   utils/hashing.py          streaming exact-byte hashes
 ```
 
 ## Identity flow
+
+`apps/cluster_split_explorer.py` is an optional local Streamlit UI over the
+read-only `explorer` package. It never imports fitting or split optimization
+implementations. GIF cache is memory-only and is not a scientific artifact.
+`similarity/temporal_display.py` presents recorded quartiles for progress_review;
+it does not read embeddings or recompute similarities.
 
 ```text
 frame_id (occurrence, all historical records)

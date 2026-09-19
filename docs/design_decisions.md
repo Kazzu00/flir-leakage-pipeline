@@ -392,3 +392,21 @@ is disabled: extrapolations of roughly 408–593 training hours for 48 runs are
 disproportionate on this laptop. No final detector outcome, causal leakage
 effect, seed variability or model ranking is inferred from those pilots.
 See the detector protocol, runbook and pilot analysis for the executed scope.
+
+## 32. Inspection is a read-only presentation layer
+
+The local Streamlit explorer consumes completed run metadata and immutable
+assignments, never fitting or split optimization routines. Joins preserve content
+identity and every historical occurrence. A cluster-aware overlay must bind to
+its source clustering; noise stays -1 with separate singleton group IDs.
+Filename consensus controls playback ordering. Distinct sequences and unknown
+provenance cannot be silently concatenated. Gap cuts and bounded GIF pages are
+display segments only; requested playback FPS is not a dataset property.
+
+Progress review now renders saved median/Q1/Q3 per pre-existing inferred-index
+bin. All seven positive-gap bins have support (1438–398800 pairs per bin in the
+current artifacts); no bin merging or trend-driven boundaries were needed.
+The empty zero-gap bin has count zero and is omitted; future populated zero gaps
+remain visible. Y axes are independent, and IQR describes pair dispersion,
+not a confidence interval. Original hexbins and scientific artifacts are retained.
+This iteration does not change candidates, metrics or experimental completion.

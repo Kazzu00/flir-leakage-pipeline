@@ -71,8 +71,21 @@ embeddings, reducción, clustering o asignaciones.
 
 ## Figuras seleccionadas
 
-Catorce PNG se reutilizan byte a byte; se incorpora además un diagrama HTML
-sencillo del pipeline (15 figuras en total). No se regeneran gráficos de etapas.
+Doce PNG se reutilizan byte a byte; dos PNG nuevos presentan medianas y Q1–Q3
+ya registrados y se incorpora un diagrama HTML del pipeline (15 figuras en total).
+Los hexbins originales siguen disponibles en similarity_review y sus archivos
+no se modifican.
+
+Los bins conservados son 1, 2–5, 6–10, 11–25, 26–50, 51–100 y >100. El soporte
+verificado de cada encoder es respectivamente 1438, 5721, 7068, 20847, 33772,
+64101 y 398800 pares: no se necesitó combinar bins. El bin cero está vacío.
+Se reutilizan `count` (presentado como pair_count), mediana, Q1 y Q3 de
+`reports/similarity/tables/frame_delta_similarity.csv`, cuyo checksum registrado
+se comprueba antes de dibujar. La población son pares de contenidos distintos
+de la misma secuencia con diferencia inferida conocida; no se vuelven a abrir
+matrices ni embeddings. La banda es IQR, no intervalo de confianza; cada encoder
+tiene escala Y propia. Los PNG nuevos y sus hashes se registran en el recibo
+del build del acumulativo, sin reescribir el recibo de similarity.
 
 | Sección | Carpeta bajo `reports/` | Figura existente |
 |---|---|---|
@@ -80,7 +93,7 @@ sencillo del pipeline (15 figuras en total). No se regeneran gráficos de etapas
 | 4 | `feature_engineering/figures/` | `15_class_instances.png` |
 | 5 | `feature_engineering/figures/` | `06_bbox_normalized_area_by_class.png`; `17_bbox_aspect_ratio_by_class.png` |
 | 7 | `similarity/figures/` | `03_rank1_similarity_comparison.png` |
-| 8 | `similarity/figures/` | `05_similarity_vs_frame_delta_dinov2.png`; `06_similarity_vs_frame_delta_clip.png` |
+| 8 | `progress/review/figures/` | `temporal_median_dinov2.png`; `temporal_median_clip.png` (desde estadísticas existentes) |
 | 10 | `reduction/figures/` | `05_tsne_dinov2_reference.png`; `03_pacmap_dinov2_reference.png` |
 | 12 | `clustering/figures/` | `R6_dinov2_tsne_clusters.png` |
 | 15 | `splitting/figures/` | `06_high_similarity_cross_split_pairs.png`; `04_cross_split_nn_similarity_dinov2.png`; `07_temporal_cross_split_rates.png` |

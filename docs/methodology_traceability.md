@@ -87,3 +87,9 @@ runs and exact reconstruction of all 65 new assignments. C10 improves visual
 correlation in both encoders, but its inferred temporal proximity remains worse
 than historical. Labels affect split balance only, not cluster construction.
 Nonlinear 2D density is not equivalent to original embedding density.
+
+The [local cluster/split explorer](cluster_split_explorer.md) supports human visual
+inspection of these existing assignments; it is not a new scientific stage or
+evidence of validated scenes. Preview gaps/FPS affect presentation only. Progress
+review presents existing temporal-bin medians and quartiles without recomputing
+similarity or changing scientific results and candidate selection.

@@ -39,6 +39,7 @@ videos/
 *.tif
 *.tiff
 *.webp
+*.gif
 *.mp4
 *.mov
 *.avi

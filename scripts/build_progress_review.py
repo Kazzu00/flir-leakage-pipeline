@@ -21,6 +21,11 @@ from pathlib import Path
 
 import pandas as pd
 
+from flir_pipeline.similarity.temporal_display import (
+    temporal_display_table,
+    temporal_summary_png,
+)
+
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = Path("reports/progress/review")
 SOURCE = Path("notebooks/progress_review.ipynb")
@@ -53,14 +58,13 @@ for prefix, stage, names in [
 for prefix, stage in [("v", "similarity"), ("r", "reduction"), ("c", "clustering"), ("s", "splitting")]:
     SOURCES[f"{prefix}_meta"] = f"reports/{stage}/report_metadata.json"
 
-# Fourteen existing PNGs plus one small HTML pipeline diagram: fifteen figures.
+# Twelve existing PNGs, two presentations of saved quartiles, one HTML diagram.
 # No galleries are needed; this report never opens source images or label ZIPs.
 FIGURES = {
     3: [("feature_engineering/01_dataset_overview.png", "Universo de registros históricos y contenidos únicos."), ("feature_engineering/13_cross_split_duplicate_matrix.png", "Contenidos exactos compartidos entre particiones históricas; la diagonal no representa overlap entre splits.")],
     4: [("feature_engineering/15_class_instances.png", "Instancias anotadas por clase; una imagen puede contener varios objetos.")],
     5: [("feature_engineering/06_bbox_normalized_area_by_class.png", "Área normalizada por instancia y clase; se conservan extremos."), ("feature_engineering/17_bbox_aspect_ratio_by_class.png", "Ratio de ancho/alto en coordenadas YOLO normalizadas, no ratio en píxeles.")],
     7: [("similarity/03_rank1_similarity_comparison.png", "Distribución por consulta del coseno rank-1 y de la media de 5/10/20 vecinos; escalas propias de cada encoder.")],
-    8: [("similarity/05_similarity_vs_frame_delta_dinov2.png", "DINOv2: similitud frente a log(1 + Δ inferido) dentro de una secuencia; el color cuenta pares por celda en escala logarítmica."), ("similarity/06_similarity_vs_frame_delta_clip.png", "CLIP: similitud frente a log(1 + Δ inferido), no segundos. El color cuenta pares por celda en escala logarítmica; ese rótulo está parcialmente recortado en el PNG original.")],
     10: [("reduction/05_tsne_dinov2_reference.png", "Referencia DINOv2 t-SNE, semilla 0; la apariencia no determina la selección."), ("reduction/03_pacmap_dinov2_reference.png", "Referencia DINOv2 PaCMAP, semilla 0; densidad 2D no equivale a densidad original.")],
     12: [("clustering/R6_dinov2_tsne_clusters.png", "R6: ejemplo exploratorio DINOv2/t-SNE/OPTICS, con ruido visible; no es C10 ni un ganador global.")],
     15: [("splitting/06_high_similarity_cross_split_pairs.png", "Fracción porcentual cross-split en seis cohortes de similitud: medias entre cinco semillas, para random y los 12 candidatos. La tabla principal muestra conteos top 0.1% y C10 seed 0; las magnitudes no son intercambiables."), ("splitting/04_cross_split_nn_similarity_dinov2.png", "Distribución residual DINOv2 en seed 0 para random y los 12 candidatos. La tabla principal usa la media random de cinco semillas. C01 es una referencia de balance; correlación mínima por sí sola no determina elegibilidad."), ("splitting/07_temporal_cross_split_rates.png", "Fracciones temporales inferidas: medias entre cinco semillas, para random y los 12 candidatos. La tabla principal muestra C10 seed 0; se conservan los valores y leyendas originales.")],
@@ -167,6 +171,7 @@ class Review:
         self.issues = {}
         self.sections = {}
         self.sensitive_ids = set()
+        self.generated_figures = {}
         for key, relative in SOURCES.items():
             path = self.root / relative
             entry = {"path": relative, "state": "missing"}
@@ -282,6 +287,14 @@ class Review:
             return '<div class="missing"><b>LIMITACIÓN · missing / invalid</b>' + details + '<p><b>Hallazgo principal:</b> esta sección no puede acreditar resultados con las fuentes disponibles. No se ejecutó ningún cálculo experimental para reemplazarlas.</p></div>'
         try:
             body, finding, state = self._section(number)
+            if number == 8:
+                for encoder in ("DINOv2", "CLIP"):
+                    filename = f"temporal_median_{encoder.lower()}.png"
+                    png = temporal_summary_png(self.data["v_frame_delta_similarity"], encoder)
+                    self.generated_figures[filename] = png
+                    encoded = base64.b64encode(png).decode("ascii")
+                    caption = f"{encoder}: mediana y Q1–Q3 de pares de la misma secuencia con índice inferido conocido. Conteos por bin; escala Y propia."
+                    body += f'<figure class="progress-figure"><img alt="{caption}" src="data:image/png;base64,{encoded}"><figcaption>{caption}<br>Fuente: {SOURCES["v_frame_delta_similarity"]}</figcaption></figure>'
         except (ValueError, KeyError, IndexError, TypeError, AttributeError) as exc:
             # Do not expose exceptions containing private source values or paths.
             self.sections[number] = {"state": "invalid", "sources": keys, "error_type": type(exc).__name__}
@@ -345,14 +358,19 @@ class Review:
             finding = "Los vecinos cercanos presentan mayor coseno que el par global típico dentro de cada encoder; las escalas no son directamente comparables entre encoders."
         elif number == 8:
             rows = []
+            decreasing = True
             for encoder in ["DINOv2", "CLIP"]:
                 nn = d["v_temporal_neighbors"]
                 seq = d["v_sequence_similarity"]
                 delta = d["v_frame_delta_similarity"]
+                displayed = temporal_display_table(delta, encoder)
+                medians = displayed.loc[displayed.pair_count.gt(0), "median"]
+                decreasing &= len(medians) > 1 and medians.is_monotonic_decreasing
                 rows.append([encoder, f'{one(nn, extractor=encoder, neighborhood="rank1").same_sequence_percentage_all:.4f}%', f'{one(nn, extractor=encoder, neighborhood="topk").same_sequence_percentage_all:.4f}%', one(seq, extractor=encoder, relation="same_sequence")["median"], one(seq, extractor=encoder, relation="different_sequence")["median"], one(delta, extractor=encoder, frame_delta_bin="1")["median"], one(delta, extractor=encoder, frame_delta_bin=">100")["median"]])
             body = table(["Encoder", "Rank-1 misma secuencia", "Top-20 misma secuencia"], [r[:3] for r in rows])
             body += table(["Encoder", "Mediana misma sec.", "Mediana distinta sec.", "Mediana Δ=1", "Mediana Δ>100"], [[r[0]] + r[3:] for r in rows])
-            finding = "Ambos encoders recuperan fuertemente la estructura secuencial inferida. La asociación visual/temporal es descriptiva: no valida timestamps ni confirma leakage temporal."
+            body += '<p>Bins reproducibles heredados de la tabla de pares. Q1–Q3 describe dispersión, no incertidumbre de la mediana. No hay timestamps verificados; el índice no equivale necesariamente a tiempo físico.</p>'
+            finding = ("En los pares pertenecientes a la misma secuencia y con índice inferido disponible, la similitud visual tiende a disminuir a medida que aumenta la separación entre índices." if decreasing else "Las medianas por separación de índices no muestran un descenso uniforme en ambos encoders; véanse los bins y su soporte.")
         elif number == 9:
             a = d["v_neighbor_agreement_summary"]
             body = table(["k", "Jaccard medio"], a[["k", "mean_jaccard"]].values.tolist())
@@ -571,6 +589,13 @@ def main():
     target = output / "progress_review.html"
     nbformat.write(notebook, executed)
     target.write_text(body, encoding="utf-8")
+    figures = output / "figures"
+    figures.mkdir(parents=True, exist_ok=True)
+    generated = []
+    for name, png in review.generated_figures.items():
+        path = figures / name
+        path.write_bytes(png)
+        generated.append(path)
     commit = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True, check=True).stdout.strip()
     receipt = {
         "created_at": datetime.now(UTC).isoformat(), "source_git_commit": commit,
@@ -579,7 +604,8 @@ def main():
         "complete": not errors, "source_notebook_sha256": digest(ROOT / SOURCE),
         "sources": review.inventory, "source_issues": review.issues, "sections": review.sections,
         "qa": qa, "existing_sources_unchanged": True,
-        "output_sha256": {p.name: digest(p) for p in [executed, target]},
+        "temporal_figures": "Recorded count/median/linear Q1/Q3; existing fixed bins; no similarity recomputation",
+        "output_sha256": {p.relative_to(output).as_posix(): digest(p) for p in [executed, target, *generated]},
     }
     (output / "build_receipt.json").write_text(json.dumps(receipt, indent=2, ensure_ascii=False), encoding="utf-8")
     print(f"Built {OUTPUT / target.name}; 22 sections; {qa['figures']} figures; complete={not errors}")
