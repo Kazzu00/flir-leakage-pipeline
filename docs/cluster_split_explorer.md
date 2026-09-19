@@ -5,6 +5,12 @@ asignaciones y resúmenes existentes. No ejecuta modelos, similitud, reducción,
 clustering, optimización de splits ni detección. La inspección no acredita una
 nueva validación científica de escenas ni una selección distinta de candidatos.
 
+[VIKUS Viewer](vikus_explorer.md) complementa esta herramienta con el overview
+de imágenes por cluster/candidate scene, secuencia, split y proyecciones guardadas.
+Streamlit conserva detalle, playback, timelines, gaps y comparación. El overview
+muestra `clustering_space_id`; junto con `cluster_id` y el ID de split permite
+localizar el mismo grupo en ambas interfaces.
+
 ## Instalar y lanzar
 
 Desde la raíz del repositorio, con Python 3.11 y `FLIR_DATA_ROOT` configurado en

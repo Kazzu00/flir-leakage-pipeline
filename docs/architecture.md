@@ -75,6 +75,9 @@ src/flir_pipeline/
     data.py                  validated ID joins, historical occurrences and split overlays
     frames.py                hash-checked original ZIP decoding in memory
     timeline.py / preview.py inferred ordering/gaps and bounded per-sequence GIFs
+    vikus.py / cli.py         content-level local bundle from saved assignments/coordinates
+    vikus_upstream.py         pinned MIT runtime and explicit presentation adaptations
+    vikus_server.py           verified static bundle, read-only loopback serving
   evaluation/              planned; documentation only
   utils/hashing.py          streaming exact-byte hashes
 ```
@@ -86,6 +89,12 @@ read-only `explorer` package. It never imports fitting or split optimization
 implementations. GIF cache is memory-only and is not a scientific artifact.
 `similarity/temporal_display.py` presents recorded quartiles for progress_review;
 it does not read embeddings or recompute similarities.
+
+VIKUS complements Streamlit with a collection overview. Each sprite is one
+content_id; its metadata preserves every historical occurrence. Saved reductions
+are joined by ID without fitting or changing coordinates. Generated previews,
+runtime and receipts stay ignored under `reports/explorer/vikus/`; original
+ZIPs are read-only. See [version, schema and adaptations](vikus_explorer.md).
 
 ```text
 frame_id (occurrence, all historical records)

@@ -1,0 +1,23 @@
+/* Local collection overview; original VIKUS canvas and interactions retained. */
+body { background: #edf2f4; color: #203846; }
+#flir-header { position: fixed; inset: 0 0 auto; z-index: 1000; height: 50px; padding: 0 20px; display: flex; align-items: center; gap: 20px; background: #173b4a; color: white; font-size: 13px; }
+#flir-header strong { font-size: 17px; white-space: nowrap; }
+#flir-status { margin-left: auto; white-space: nowrap; }
+#flir-header button { background: #fff; color: #173b4a; border: 0; border-radius: 4px; padding: 7px 10px; cursor: pointer; white-space: nowrap; }
+.crossfilter { top: 64px; left: 12px; width: 240px; max-height: calc(100vh - 115px); overflow-y: auto; margin: 0; padding: 10px; border: 1px solid #d5e0e5; border-radius: 8px; background: rgba(255,255,255,.96); font-size: 12px; }
+.crossfilter .label { font-weight: bold; color: #173b4a; }
+.crossfilter .keys .item { border-color: #b5c8d1; border-radius: 4px; }
+.crossfilter.hide { display: flex; opacity: 1; pointer-events: auto !important; }
+.navi { position: fixed; top: 64px; left: 290px; width: auto; display: flex; gap: 6px; z-index: 150; background: rgba(255,255,255,.95); border-radius: 6px; }
+.navi .button { width: auto; padding: 10px 12px; margin: 0; font-size: 12px; }
+.navi .button:not(.active) { background: #fff; color: #173b4a; border: 1px solid #c5d5de; }
+.navi .button.active, .navi .button:hover:not(.active) { background: #176b87; color: #fff; }
+.infobar .infobutton { top: auto; bottom: 12px; height: 32px; }
+.infobar .infobutton svg { top: 0; }
+.sidebar .outer { color: #203846; }
+.sidebar .content { overflow-wrap: anywhere; }
+.infobar .inner { font-size: 13px; }
+.searchbar { top: 60px; right: 20px; }
+.timeline .year { white-space: nowrap; }
+.detailLoader, .sideLoader { top: 50px; }
+@media (max-width: 1000px) { #flir-experiment { display: none; } .crossfilter { width: 190px; font-size: 11px; } }

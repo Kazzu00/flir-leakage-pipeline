@@ -47,6 +47,12 @@ inferidos, con FPS exclusivamente de visualización. No cambia C10/C12, métrica
 ni experimentos. Los hexbins permanecen en similarity_review; el acumulativo usa
 mediana/Q1–Q3 y conteos en los siete bins ya poblados.
 
+La integración [VIKUS local](vikus_explorer.md) complementa Streamlit con un
+overview por content_id, grupos y layouts guardados. Exporta previews/sprites
+ignorados y conserva todas las ocurrencias; no cambia el estado científico ni
+ejecuta nuevos experimentos. La coherencia humana de candidate scenes sigue
+siendo una revisión separada de la infraestructura de visualización.
+
 ## Detector: infraestructura y piloto del portátil
 
 Se seleccionaron **historical, random_content, C10 y C12** antes de YOLO.

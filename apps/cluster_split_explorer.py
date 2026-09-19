@@ -232,6 +232,7 @@ def main():
     overview = st.columns(2)
     overview[0].markdown(f"**{selected.encoder.upper()} · {selected.representation} · {selected.algorithm.upper()}**")
     overview[0].caption(f"{cluster.metrics['n_clusters_excluding_noise']} clústeres · noise {cluster.metrics['noise_fraction']:.1%}")
+    overview[0].caption(f"clustering_space_id: {selected.space_id} · mismo ID en VIKUS")
     overview[1].markdown(f"**{split_run.candidate or split_run.strategy if split_run else 'Sin partición seleccionada'}**")
     if split:
         counts = split.records.new_split.value_counts()

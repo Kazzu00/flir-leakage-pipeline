@@ -476,6 +476,23 @@ discovery. Original ZIPs are decoded in memory through `FLIR_DATA_ROOT`.
 Playback FPS is for visualization only; source timing is unknown. No scientific
 artifacts are changed. See [setup, navigation and limits](docs/cluster_split_explorer.md).
 
+[VIKUS Viewer](docs/vikus_explorer.md) complements Streamlit with a local WebGL
+collection overview: Clusters, Sequences, Cluster-aware split and the exact saved
+PaCMAP layout (optional aligned t-SNE). Each image is a unique content_id with
+all historical occurrences retained in metadata. Cluster, sequence, split, noise
+and post-hoc class filters support inspection of **candidate scenes**.
+
+```powershell
+uv run flir-pipeline explorer vikus-build --candidate C10 --seed 0 --name c10-seed0-local
+uv run flir-pipeline explorer vikus-serve --bundle reports/explorer/vikus/c10-seed0-local
+```
+
+Visit `http://127.0.0.1:8765`. The first build downloads a checksum-pinned MIT
+VIKUS runtime; cached builds support `--offline`. Previews, sprites and receipts
+stay ignored under `reports/explorer/vikus/`. Original ZIPs remain read-only;
+no experiments are rerun. Never publish this local image bundle. Streamlit
+retains playback, timelines, gaps and partition comparison.
+
 ## Controlled detector protocol and CPU pilot
 
 Historical, content-level random, C10 and C12 are selected **before YOLO**.
