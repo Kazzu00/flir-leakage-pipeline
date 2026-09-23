@@ -1,4 +1,4 @@
-# Semana 10: clustering ejecutado y candidatos exploratorios
+# Clustering ejecutado y candidatos exploratorios
 
 Ejecución local del **2026-09-13** (America/Bogota; metadata en UTC). Se evaluaron
 **1459 contenidos únicos por run**, conservando el mapping a 1657 ocurrencias.
@@ -9,7 +9,7 @@ reajustaron reducciones. La validación temporal sigue **PARTIAL**: secuencia e
 
 ## Protocolo y ejecución
 
-El [protocolo preregistrado](clustering_protocol.md) y sus fuentes/configs se
+El [protocolo preregistrado](../protocols/clustering.md) y sus fuentes/configs se
 copiaron localmente antes del primer ajuste. Se ejecutaron 342 runs de Fase A:
 18 DBSCAN + 27 OPTICS + 12 HDBSCAN por cada uno de los seis espacios. Los
 cuantiles k-distance no produjeron parámetros efectivos idénticos ni epsilon
@@ -260,26 +260,27 @@ no cubren toda la incertidumbre. Las galerías son muestras dirigidas y los dato
 temporales siguen siendo inferidos. No se hicieron bootstrap, ablation de overlays,
 análisis de clases, variantes leaf, nuevos splits, balanceo ni YOLO.
 
-## Siguiente paso y reproducción
+## Reproducción y consumo posterior
 
-Validación de cierre: **100 tests passed**, Ruff **All checks passed**, cuatro
+Validación registrada: **100 tests passed**, Ruff **All checks passed**, cuatro
 notebooks fuente limpios; cinco comandos CLI y sus ayudas validados. HTML
 ejecutado sin errores, código oculto, UTF-8 correcto, 18 secciones y 17 figuras,
 sin hashes protegidos, rutas privadas ni NaN en texto visible. Se comprobaron
 `.gitignore`, archivos públicos, `git status`, `git diff` y staging antes del
 commit; los recibos y logs ejecutados permanecen locales.
 
-Definir el protocolo de cluster-aware splitting con una política explícita para
-noise y cobertura. Revisar candidatos de distinta granularidad del frente; las
+El [protocolo de splitting](../protocols/splitting.md) define posteriormente una
+política explícita para noise y cobertura. Revisar candidatos de distinta granularidad del frente; las
 referencias de silhouette con cobertura mínima no son una elección final útil
-por defecto. No convertir noise automáticamente en singletons independientes.
+por defecto. La conversión de noise en unidades singleton debe permanecer una política
+explícita de splitting; no modifica las etiquetas de clustering.
 Mantener indivisibles cada grupo y todas las ocurrencias de cada content_id;
 medir overlap exacto y relaciones visuales/temporales residuales entre splits.
 Comparar después con histórico y aleatorio reproducible, y evaluar cobertura de
 clases/conflictos como restricciones de partición posteriores. No se genera un
 split en esta fase.
 
-Comandos y reglas de visualización: [runbook](clustering_runbook.md).
+Comandos y reglas de visualización: [runbook](../runbooks/clustering.md).
 Artefactos locales ignorados: `artifacts/clustering/`, `reports/clustering/`;
 HTML: `reports/clustering/review/clustering_review.html`.
 Código principal: `src/flir_pipeline/clustering/`; configs genéricos:

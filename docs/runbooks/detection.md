@@ -1,6 +1,6 @@
 # Ejecución reproducible de la comparación del detector
 
-Leer primero `detector_experiment_protocol.md`. Datos originales fuera del repo,
+Leer primero el [protocolo del detector](../protocols/detection.md). Datos originales fuera del repo,
 `FLIR_DATA_ROOT` definido localmente y ZIPs read-only. Nunca publicar artifacts,
 pesos, imágenes, labels, hashes reales, manifest, outputs o `.env`.
 
@@ -23,8 +23,8 @@ uv pip install torch==2.8.0 torchvision==0.23.0 --index-url https://download.pyt
 uv run --no-sync flir-pipeline detection environment
 ```
 
-En este workspace se usa el entorno existente `.venv-academic`; sus comandos
-equivalentes llevan `UV_PROJECT_ENVIRONMENT=.venv-academic` y `uv run --no-sync`.
+Si se reutiliza un entorno aislado, configurar `UV_PROJECT_ENVIRONMENT` con su
+ubicación y usar `uv run --no-sync` después de comprobar sus dependencias.
 El lock fija dependencias; el freeze registra los wheels concretos, incluido
 el sufijo CPU/CUDA. Cambiar de runtime requiere un experimento separado.
 
@@ -48,6 +48,8 @@ locales: reconstruirlas en un output nuevo después de mover el proyecto.
 No se cambian asignaciones para hacer coincidir rutas o mejorar métricas.
 
 ## Capacidad y piloto pequeño
+
+Referencias: **C10 — DINOv2 / PaCMAP / DBSCAN**; **C12 — DINOv2 / t-SNE / HDBSCAN**.
 
 Antes de cualquier entrenamiento real:
 

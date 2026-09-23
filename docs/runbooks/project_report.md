@@ -1,6 +1,6 @@
-# Reporte acumulativo de avance
+# Reporte consolidado del proyecto
 
-El [notebook fuente](../notebooks/progress_review.ipynb) reúne el avance académico
+El [notebook fuente](../../notebooks/progress_review.ipynb) reúne la evidencia del pipeline
 en 22 secciones. La narrativa está en español; cada sección comienza con una
 pregunta y termina con un hallazgo. Las etiquetas OBSERVADO, VALIDADO, LIMITACIÓN
 y PENDIENTE separan resultados, validaciones existentes y trabajo futuro.
@@ -39,6 +39,8 @@ Un cambio del estado final del detector requiere revisar la narrativa.
 
 ## Mapa de evidencia por sección
 
+Referencias: **C10 — DINOv2 / PaCMAP / DBSCAN**; **C12 — DINOv2 / t-SNE / HDBSCAN**.
+
 Las rutas siguientes son relativas al repositorio. Cada sección del HTML incluye
 su lista de fuentes desplegable; el recibo local vincula el archivo exacto leído.
 
@@ -54,12 +56,12 @@ su lista de fuentes desplegable; el recibo local vincula el archivo exacto leíd
 | 9 · Acuerdo | `reports/similarity/tables/neighbor_agreement_summary.csv` | Acuerdo rank-1 y Jaccard@1/5/10/20 |
 | 10 · Reducción | `reports/reduction/tables/{runs,candidate_reference_metrics,input_spaces}.csv` | Grid, parámetros, seeds y métricas de las cuatro referencias |
 | 11–12 · Clustering | `reports/clustering/summary.json`; `reports/clustering/tables/{all_runs,candidates,references}.csv` | Grid, Pareto, ARI/AMI registrados y ejemplo R6 |
-| 13–14 · Splitting y C10 | `reports/splitting/summary.json`; `reports/splitting/tables/{runs,clustering_candidates}.csv`; `docs/splitting_protocol.md` | Invariantes, noise singleton, MILP, tamaños y balance de C10 seed 0 |
+| 13–14 · Splitting y C10 | `reports/splitting/summary.json`; `reports/splitting/tables/{runs,clustering_candidates}.csv`; `docs/protocols/splitting.md` | Invariantes, noise singleton, MILP, tamaños y balance de C10 seed 0 |
 | 15 · Histórico/random/C10 | `reports/splitting/tables/{runs,metric_variation}.csv` | Histórico y C10 seed 0 frente a medias random seeds 0–4 ya calculadas |
 | 16 · C12 | Las dos tablas anteriores; `artifacts/detection/protocol/plan.json`; `reports/detection/tables/split_context.csv` | Compromiso entre NN medio, temporalidad, balance y pares extremos; selección secundaria |
-| 17 · Detector | `reports/detection/{report_metadata,verification_receipt}.json`; `reports/detection/tables/pilot_validation.csv`; `artifacts/detection/{environment.json,protocol/plan.json}`; `docs/detector_comparison_analysis.md` | Hardware registrado, configuración de pilotos y ausencia de resultados finales |
+| 17 · Detector | `reports/detection/{report_metadata,verification_receipt}.json`; `reports/detection/tables/pilot_validation.csv`; `artifacts/detection/{environment.json,protocol/plan.json}`; `docs/analysis/detection.md` | Hardware registrado, configuración de pilotos y ausencia de resultados finales |
 | 18 · Cómputo | `artifacts/detection/compute_budget.json`; plan y metadata del detector | Dos extrapolaciones existentes para la matriz final; no intervalo de confianza |
-| 19–21 · Estado, resultados, límites | Fuentes anteriores; `docs/current_status.md` | Estado derivado de evidencia, conflictos de anotación e incumbentes MILP |
+| 19–21 · Estado, resultados, límites | Fuentes anteriores; `docs/status.md` | Estado derivado de evidencia, conflictos de anotación e incumbentes MILP |
 | 22 · Próximos pasos | `artifacts/detection/protocol/plan.json` | Plan pendiente, sin ejecutarlo |
 
 Los `report_metadata.json` de similitud, reducción, clustering, splitting y
@@ -70,6 +72,8 @@ manifest y recibos existentes. Esto no es una nueva verificación numérica de
 embeddings, reducción, clustering o asignaciones.
 
 ## Figuras seleccionadas
+
+Referencias: **C10 — DINOv2 / PaCMAP / DBSCAN**; **C01 — CLIP / original L2 / OPTICS**.
 
 Doce PNG se reutilizan byte a byte; dos PNG nuevos presentan medianas y Q1–Q3
 ya registrados y se incorpora un diagrama HTML del pipeline (15 figuras en total).

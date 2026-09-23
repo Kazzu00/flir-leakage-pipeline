@@ -1,4 +1,4 @@
-# Protocolo de particionamiento — semanas 10–11
+# Protocolo de particionamiento
 
 Fijado antes de la primera comparación completa. La entrada son el manifest y
 los artefactos verificados existentes; no se ajustan encoders, reducciones ni

@@ -2,528 +2,166 @@
 
 ## Overview
 
-Video-derived FLIR frames have strong visual and temporal correlation. A naïve
-frame-level split can place exact copies or closely related scenes across
-train/val/test, making detector evaluation overly optimistic. This research
-repository studies visual grouping and traceable partitioning to investigate
-that leakage. Historical exact overlap is already measured; improvements in
-detector generalization remain a hypothesis to evaluate.
+A reproducible pipeline for auditing FLIR frames, measuring visual correlation,
+grouping related contents and constructing leakage-aware train/validation/test
+partitions. Exact copies and nearby scenes can cross a frame-level split;
+content identities and indivisible groups make those relationships auditable.
 
-## Research context
+The system compares historical, reproducible random and cluster-aware partitions
+using residual visual and inferred temporal relationships. Reduced correlation
+has been observed for selected candidates; improved detector generalization
+remains untested by a full controlled comparison.
 
-This work contributes to the thesis proposal **“Desarrollo de un pipeline de
-agrupación, procesamiento y detección de minería ilegal en videos FLIR de la
-Amazonía colombiana.”** It follows the first four CRISP-ML(Q) phases: business
-and data understanding, data preparation, modeling, and evaluation. Production
-deployment and production monitoring/maintenance are outside the research scope.
+## Pipeline
 
-## Individual scope
+```text
+Data audit & canonicalization
+        ↓
+Visual representations
+        ↓
+Similarity analysis
+        ↓
+Dimensionality reduction
+        ↓
+Density-based clustering
+        ↓
+Cluster-aware splitting
+        ↓
+Interactive inspection
+        ↓
+Detector evaluation
+```
 
-**INDIVIDUAL RESEARCH SCOPE:** dataset characterization, visual representation,
-frame similarity, dimensionality reduction, clustering and cluster selection,
-cluster-aware partitioning, and evaluation of partition quality. Each scene or
-cluster must eventually remain entirely within one partition, with traceability
-and adequate class coverage.
+See [inputs, outputs and execution order](docs/pipeline.md).
 
-## Group integration scope
+## Key capabilities
 
-**GROUP INTEGRATION SCOPE:** noise cleaning, panoptic segmentation and final
-group pipeline assembly. These belong to the broader team project and are
-integration targets. This repository does not implement those components or
-claim the work of other contributors. The proposed handoff is documented in
-[architecture](docs/architecture.md).
-
-## Research pipeline
-
-| Stage | Current state |
-|---|---|
-| Data understanding and exact duplicate audit | DONE |
-| Canonical candidate manifest | DONE |
-| Dataset characterization and available temporal lineage | DONE; filename heuristics remain explicit |
-| Feature engineering infrastructure and progress reporting | DONE |
-| Full DINOv2 / CLIP extraction | DONE; 1459 contents per encoder, verified against 1657 records |
-| Cosine similarity | DONE; two complete matrices, top-20, verified artifacts and HTML review |
-| Visual/temporal correlation analysis | PARTIAL; full descriptive analysis executed, filename-based time remains unverified |
-| t-SNE / PaCMAP | DONE; 36 full 2D runs, preservation/stability, four candidates, verified artifacts and HTML |
-| DBSCAN / OPTICS / HDBSCAN | DONE; 414 full runs across both encoders, original L2 and candidate t-SNE/PaCMAP |
-| Cluster evaluation and selection | DONE WITH LIMITS; 204 stability comparisons, 41 Pareto candidates, verified artifacts and HTML |
-| Cluster-aware splitting and random baseline | DONE WITH LIMITS; 66 verified runs, both encoders, six Pareto configurations and two representative splits |
-| Detector comparison | INFRASTRUCTURE + FOUR SMALL CPU PILOTS VALIDATED; final Stage A/B pending compute budget |
-
-The implementation currently supports **data + features + similarity + reduction + clustering + splitting + controlled detector infrastructure**. A future namespace is
-not an implemented experiment. See [current status](docs/current_status.md).
-
-## Current dataset findings
-
-| Aggregate finding | Value |
-|---|---|
-| Historical records | 1657 |
-| Unique exact contents | 1459 |
-| Original train / val / test | 1178 / 107 / 372 |
-| Exact duplicate groups | 198 |
-| Train–val overlap | 57 shared contents |
-| Train–test overlap | 141 shared contents |
-| Val–test overlap | 0 |
-| Validation / test with exact train copies | 53.27% / 37.90% |
-
-All 1657 matched labels are valid, with five classes and 292 empty labels.
-The candidate contains **4168 objects**; the full label archive contains **4182**,
-including 14 objects in 10 orphan labels. Eight duplicate groups have annotation
-conflicts; 190 duplicate groups have consistent annotations. The [status document](docs/current_status.md) explains the scopes.
-
-The reproducible class table separates image presence from individual boxes.
-The validated presentation mapping is **Vehicles (0), Buildings (1), Roads (2),
-Rivers (3), Heavy Machinery (4)**. The source YAML calls class 4 `SDZI`; both names
-are preserved. Correspondence follows the publication class order confirmed by
-the project owner, not a demonstrated expansion of SDZI; the exact bibliography
-is pending. See [class evidence and geometry definitions](docs/dataset_classes.md).
-Background describes empty annotations and is not a sixth detection class.
-Instance counts are 92 / 2295 / 1010 / 642 / 129 in that order. Per-class
-normalized width, height, area and width/height statistics describe all 4168
-canonical boxes; the two primary boxplots show area and ratio by class.
-Two filename-derived sequences cover all 1657 records with medium confidence;
-no verified timestamps are available. A gap ≤ 1 rule finds 598 cross-split pairs:
-198 exact copies and 400 different-content proximity candidates. This is not a
-complete characterization of spatiotemporal correlation.
-Only aggregate results are published here; real identities and hashes remain local.
-
-## Methodology alignment
-
-DINOv2 and CLIP provide independent image representations. Executed similarity
-uses cosine on the original L2-normalized embeddings; **Bhattacharyya requires an explicitly
-defined distributional representation** and is not implemented. The proposal's
-reduction methods are **t-SNE + PaCMAP**, followed by DBSCAN, OPTICS and HDBSCAN.
-
-Executed cluster selection uses stability, visual and inferred temporal coherence,
-AMI and ARI with explicit noise policies and coverage. Historical, reproducible
-random and cluster-based partitions have been compared using residual partition
-similarity and balance. Final detector Precision, Recall, mAP@50 and mAP@50–95 remain
-pending; four tiny operational CPU pilots have run, without scientific comparison. The
-[traceability table](docs/methodology_traceability.md) and
-[design decisions](docs/design_decisions.md) distinguish evidence from plans.
+- ZIP-safe audit, annotation QA and canonical occurrence/content identities.
+- Independent DINOv2 CLS and CLIP projected-image embeddings, raw/L2 stores,
+  pinned model revisions and resumable extraction.
+- Content-level cosine similarity, neighborhoods and posterior temporal analysis.
+- t-SNE / PaCMAP with preservation metrics and seed stability.
+- DBSCAN / OPTICS / HDBSCAN with original-space metrics, ARI/AMI and explicit noise.
+- Atomic cluster-aware splitting, seeded baselines and residual cross-split analysis.
+- Local Streamlit inspection and VIKUS collection overview.
+- Controlled YOLO11n evaluation infrastructure, bootstrap and small CPU pilots.
 
 ## Architecture
 
-```text
-src/flir_pipeline/
-  data/          inventory, hashing lineage, canonical manifest, label QA
-  features/      DINOv2, CLIP, preprocessing, revisions, storage, diagnostics, plots
-  similarity/    cosine, top-k, posterior temporal/split analysis, agreement, reports
-  reduction/     t-SNE / PaCMAP, preservation, seed stability and posterior figures
-  clustering/    DBSCAN / OPTICS / HDBSCAN, original-space metrics, stability, Pareto
-  splitting/     atomic groups, MILP, seeded baselines, residual metrics and Pareto
-  detection/     frozen protocol, dataset views, optional YOLO runtime, metrics/bootstrap, review
-  evaluation/    planned
-  utils/         streaming SHA256
-configs/         active embedding/similarity/reduction/clustering configs
-docs/            methodology, decisions, architecture, status
-notebooks/       narrative source without outputs
-scripts/         local report builder and offline notebook check
-tests/           synthetic, offline tests
-data/manifests/  local real manifests, ignored
-artifacts/       local embeddings/diagnostics/similarity/reductions/clustering, ignored
-reports/         local figures, tables, executed notebooks and HTML, ignored
-```
+`src/flir_pipeline/` separates `data`, `features`, `similarity`, `reduction`,
+`clustering`, `splitting`, `detection`, `explorer` and `utils`. Metrics live beside
+their experiments; optional model/UI dependencies load only where needed.
+Source notebooks and report builders consume those components.
 
-The [architecture guide](docs/architecture.md) explains
-`frame_id → content_id → embedding_row → cluster_id → group_id → new_split`,
-namespaced by `split_space_id`; noise keeps cluster_id=-1 with singleton groups.
+See [architecture](docs/architecture.md) and the [data model](docs/data_model.md).
 
-## Reproducibility
+## Quick start
 
-Python **3.11** is required. [uv](https://docs.astral.sh/uv/) and the committed
-lockfile define dependencies; YAML configs define extractor settings.
-`dataset_id` fingerprints the supplied annotated manifest.
-`feature_space_id` fingerprints model revision, preprocessing, pooling and
-normalization while excluding runtime device and batch size.
-`similarity_space_id` fingerprints dataset, feature space and analysis rules.
-Input/output fingerprints additionally protect the cache against changes in
-arrays, indices and posterior provenance. See [week 9](docs/similarity_analysis.md).
-`reduction_space_id` additionally binds method, parameters, seed, output dimension,
-preprocessing, evaluation settings and implementation versions. The [reduction
-protocol](docs/reduction_protocol.md) fixes the grid and candidate rule before fitting.
-
-Sampling uses an explicit seed (default 0). Metadata records model provenance,
-configuration, selected content, seed, Python/library versions and Git commit.
-Record a clean commit and hardware details for final experiments: a seed alone
-does not guarantee bit-identical results across CPU/GPU or precision modes.
-
-The executed `*_full.yaml` configurations pin full Hugging Face commit SHAs.
-New loads capture the resolved SHA when available and use it for the processor
-and feature identity. Existing smoke metadata with `unknown` is preserved.
-See [revision and cache semantics](docs/design_decisions.md).
-
-## Data safety
-
-Original FLIR datasets are external and treated as read-only. ZIP members are
-streamed or decoded in memory; source images and labels are never rewritten.
-Real manifests, hash inventories, embeddings, figures, reports, executed
-notebooks, model caches/weights, credentials and local environment files are
-not versioned. Generated outputs belong under ignored `artifacts/` or `reports/`.
-The public notebook contains narrative and code only.
-
-## Installation
+Python 3.11 and `uv` are required. Run commands from the repository root:
 
 ```powershell
 git clone https://github.com/Kazzu00/flir-leakage-pipeline.git
 cd flir-leakage-pipeline
-uv sync --locked --extra dev
+uv sync --locked --extra dev --extra reduction
 uv run flir-pipeline --help
 ```
 
-Core-only use: `uv sync --locked`. Add optional dependencies when needed:
-
-```powershell
-uv sync --locked --extra dev --extra vision
-uv sync --locked --extra dev --extra vision --extra reporting
-uv sync --locked --extra dev --extra reduction --extra reporting
-```
-
-`uv sync` installs the selected extras exactly; keep the extras you want on each
-sync invocation. The vision extra installs libraries, not pretrained model weights.
-The first real extraction may download weights; use `--local-files-only` when the
-required snapshot is already cached. CI installs core, dev and reduction; no vision
-models or datasets are downloaded by tests.
-
-## Environment configuration
-
-Use [.env.example](.env.example) as a reference and create your own ignored
-`.env`; keep the example file unchanged and available in Git:
+Create an ignored `.env` using [.env.example](.env.example) as a reference:
 
 ```dotenv
 FLIR_DATA_ROOT=/path/to/external/flir-data
 ```
 
-Replace the illustrative path locally. The CLI reads `FLIR_DATA_ROOT` from the
-environment first, then the repository-root `.env`. Data commands accept explicit
-paths as an alternative. Artifact roots are command options, not environment
-variables. Run the documented commands from the repository root.
+The environment takes precedence over `.env`; data commands also accept explicit
+paths. Public clones contain no real data or executed artifacts.
+Optional extras are `vision`, `reporting`, `explorer` and `detection`.
+`uv sync` installs exactly the selected extras; include all extras you need.
+Model weights are separate from the lockfile. See [runbooks](docs/README.md).
 
 ## CLI
 
-### Implemented commands
+Use `uv run flir-pipeline <namespace> --help` for options.
 
-```powershell
-uv run flir-pipeline --help
-uv run flir-pipeline data --help
-uv run flir-pipeline features --help
-uv run flir-pipeline similarity --help
-uv run flir-pipeline reduction --help
-```
-
-| Group | Commands |
+| Namespace | Implemented commands |
 |---|---|
 | `data` | `inventory`, `archive-tree`, `compare-archives`, `build-manifest`, `validate-labels`, `manifest-summary` |
 | `features` | `extract`, `diagnostics`, `summary`, `verify`, `visualize-data`, `visualize-embeddings` |
 | `similarity` | `compute`, `summary`, `verify`, `compare` |
-| `reduction` | `run`, `summary`, `verify`, `benchmark` |
+| `reduction` | `run`, `benchmark`, `verify`, `summary` |
+| `clustering` | `run`, `sweep`, `compare`, `verify`, `summary` |
+| `splitting` | `build`, `baseline`, `evaluate`, `compare`, `summary`, `verify`, `export-lists` |
+| `detection` | `plan`, `materialize`, `environment`, `smoke`, `probe`, `pilot-small`, `freeze`, `run`, `verify` |
+| `explorer` | `vikus-build`, `vikus-serve` |
 
-With `FLIR_DATA_ROOT` configured and the source ZIPs available:
+## Interactive exploration
 
-```powershell
-uv run flir-pipeline data inventory --inspect-archives --hash-members
-uv run flir-pipeline data compare-archives
-uv run flir-pipeline data build-manifest
-uv run flir-pipeline data validate-labels
-uv run flir-pipeline data manifest-summary data/manifests/flir_canonical_candidate_v1.parquet
-```
-
-Example smoke extraction (runs a real model; it is not part of CI):
-
-```powershell
-uv run --extra vision flir-pipeline features extract --manifest data/manifests/flir_canonical_candidate_v1.parquet --config configs/embeddings/dinov2_smoke.yaml --limit-content 16 --seed 0 --output-root artifacts/features_smoke
-uv run --extra vision flir-pipeline features extract --manifest data/manifests/flir_canonical_candidate_v1.parquet --config configs/embeddings/clip_smoke.yaml --limit-content 16 --seed 0 --output-root artifacts/features_smoke
-```
-
-Use the returned local directory with `features summary`, `features verify`, or
-`features visualize-embeddings --feature-directory ...`. Verification returns a
-nonzero exit code when quality invariants fail. `features diagnostics` needs the
-manifest and source ZIP, and `features visualize-data` needs the manifest and
-diagnostics Parquet. Use each command's `--help` for options.
-
-### Controlled detector commands
-
-`flir-pipeline detection plan/materialize/environment/probe/freeze/pilot-small/run/verify`
-implements the staged detector protocol. Hardware is measured before training;
-automatic Stage B on CPU is disabled. See the [runbook](docs/detector_runbook.md).
-
-## Testing
-
-After installing core + dev + reduction:
-
-```powershell
-uv run ruff check .
-uv run pytest
-uv run python scripts/check_notebook_source.py
-```
-
-Tests use synthetic ZIP images/labels and model stand-ins. They cover manifests,
-duplicates, offline adapter compatibility, revision provenance, content mapping,
-raw/L2 quality, actual interrupted-batch resume, visualization and report generation.
-Similarity tests cover dot products, deterministic ties, temporal ambiguity,
-multi-split membership, quantile cohorts, Jaccard, cache corruption and posterior
-metadata independence. Reduction tests cover exact preservation formulas, seed
-repeatability, geometric invariance, source binding, corruption and candidate
-selection. All seven source notebooks are checked without execution. Progress
-report tests cover missing/stale evidence, full versus smoke coverage, aggregate
-versus representative selection, detector status changes and visible privacy.
-They do not require FLIR data, a GPU, model downloads or notebook tooling.
-CI also checks the source notebook using only the standard library.
-
-## Feature engineering
-
-| Validated real smoke | Contents | Dimension | Representation |
-|---|---|---|---|
-| `facebook/dinov2-small` | 16 | 384 | CLS token |
-| `openai/clip-vit-base-patch32` | 16 | 512 | Projected image embedding |
-
-One embedding is computed per `content_id`; a separate mapping retains every
-historical `frame_id`. Raw and L2 arrays are stored separately. Unselected smoke
-contents map to row -1, not a fabricated vector. Labels, boxes and
-`original_split` do not enter either encoder. The spaces are not concatenated.
-
-Pixel statistics, entropy, Laplacian variance, pHash and dHash remain QA/EDA.
-See [configuration status](configs/README.md) for smoke vs research candidates.
-**Full embeddings are complete and verified** for both requested models.
-DINOv2-small: 1459 × 384, space `c6df9d274f46cca7`; CLIP ViT-B/32: 1459 × 512,
-space `585246e6ed6c4cf8`. Both have all 1657 occurrence mappings and resolved
-model commits. Raw and L2 are two representations of the same extracted vectors.
-The table above records the preserved older smoke, not the completion evidence.
-New N=16 checks using pinned revisions were also run in a separate root.
-
-```powershell
-uv run flir-pipeline features diagnostics --manifest data/manifests/flir_canonical_candidate_v1.parquet
-uv run --extra vision flir-pipeline features extract --manifest data/manifests/flir_canonical_candidate_v1.parquet --config configs/embeddings/dinov2_full.yaml --seed 0 --local-files-only --output-root artifacts/features
-uv run --extra vision flir-pipeline features extract --manifest data/manifests/flir_canonical_candidate_v1.parquet --config configs/embeddings/clip_full.yaml --seed 0 --local-files-only --output-root artifacts/features
-```
-
-Use `features verify <returned-directory> --manifest data/manifests/flir_canonical_candidate_v1.parquet`
-to require full canonical coverage and resolved provenance. Ordinary verification
-without a manifest also supports samples. Repeat the extraction command to resume
-or reuse a verified complete output. Use separate smoke/full roots.
-`--local-files-only` requires the pinned snapshots in local cache; omit it on the
-first run if downloading them is needed. See the [complete runbook](docs/week6_closure.md)
-for executable selection/verification commands and execution provenance.
-
-## Reports
-
-The cumulative [project progress review](notebooks/progress_review.ipynb) brings
-the complete academic narrative into one Spanish report: **22 sections, 14
-figures (12 reused + two temporal summaries) and one pipeline diagram**, from data audit to evaluated partitions and
-the pending controlled detector experiment. Each section states its question,
-sources and main finding. Stage-specific reviews remain available below.
-
-```powershell
-uv run python scripts/build_progress_review.py --check
-uv run --extra reporting python scripts/build_progress_review.py
-```
-
-The builder reads existing tables, summaries, verification receipts and figures;
-it checks manifest identity/counts and recorded checksums. Temporal figures show
-saved medians and Q1–Q3 in human-readable index-gap bins. It never extracts
-features, recomputes similarity, fits reduction/clustering, creates splits or runs
-YOLO. Missing or inconsistent evidence is shown as `missing / invalid`, with a
-nonzero exit code. It does not repeat numerical experiment verification.
-Local outputs: `reports/progress/review/progress_review.html` (code hidden),
-`progress_review.executed.ipynb` and `build_receipt.json`. All outputs stay ignored
-by Git. See the [source map, validation scope and reproduction guide](docs/progress_review.md).
-
-The [reduction review notebook](notebooks/reduction_review.ipynb) contains 14
-sections: all run metrics/times, four reference projections, seed stability,
-deterministic temporal examples and historical membership overlays. Its 11
-figures and executed HTML remain local under `reports/reduction/`.
-
-```powershell
-uv run --extra reporting python scripts/build_reduction_review.py --dinov2 <dinov2_benchmark_directory> --clip <clip_benchmark_directory> --dinov2-similarity <dinov2_similarity_directory> --clip-similarity <clip_similarity_directory>
-```
-
-Use the [reduction runbook](docs/reduction_runbook.md) to execute, reuse and verify
-a single run or the complete small grid. Source feature/similarity directories
-are explicit; no Python editing, model loading or original-image access is needed.
-The [result register](docs/reduction_analysis.md) retains all configurations and
-per-run aggregates; candidates do not establish validated clustering inputs.
-
-The new [similarity review notebook](notebooks/similarity_review.ipynb) has 14
-sections and 11 figures: full distributions, neighborhoods, inferred temporal
-relations, historical cross-split candidates, encoder agreement, shared seeded
-queries and maximum-similarity pairs. With explicitly selected verified outputs:
-
-```powershell
-uv run --extra reporting python scripts/build_similarity_review.py --dinov2 <dinov2_similarity_directory> --clip <clip_similarity_directory> --comparison <comparison_directory>
-```
-
-It reads selected images from `FLIR_DATA_ROOT/Imagenes.zip` in memory, checks
-their hashes, and writes local outputs to `reports/similarity/review/`.
-The [similarity runbook](docs/similarity_analysis.md) includes compute/verify/compare
-commands, aggregate results and limitations. No model loading is needed.
-
-The [feature engineering review notebook](notebooks/feature_engineering_review.ipynb)
-is narrative source without outputs. It supports progress reporting, technical
-inspection and academic evaluation. With the required existing local manifest,
-diagnostics, source labels ZIP and complete artifacts, build the executed notebook
-and Spanish HTML presentation with code cells hidden:
-
-```powershell
-uv run --extra reporting python scripts/build_feature_engineering_review.py
-```
-
-By default, the builder selects verified full artifacts for the supplied
-manifest, ignoring samples and other datasets; more than one eligible run is an
-error. Select other locations with `--manifest`, `--diagnostics`, `--dinov2` and
-`--clip`. Explicit encoder paths select only those encoders; `--full` requires
-both. Use `--no-full` with explicit encoder paths for sampled reports.
-Labels default to `FLIR_DATA_ROOT/Etiquetas.zip` or `--labels-archive`.
-Class-config verification defaults to `FLIR_DATA_ROOT/dataset_split_completo.zip`
-or `--class-config-archive`; it checks the original YAML's actual IDs and names.
-The temporal rule is configurable with `--max-frame-gap` (default 1).
-It never loads a model.
-Executed outputs go to `reports/feature_engineering/review/`.
-
-Class charts distinguish presence per historical record from actual object
-instances; bbox geometry is computed per individual instance and class, with
-sample standard deviation and linear quartiles. Temporal lineage, annotation conflicts,
-orphans and historical baseline have reproducible local tables. Image geometry
-is secondary; L2 is a quality check, without main per-dimension histograms.
-The 16-section narrative calculates completion from both full verifications.
-The original local review is `reports/code_review/project_review.md`; closure
-receipts and final audit are in `reports/feature_engineering_closure/`.
-
-## Repository status
-
-**2026-09-17 — Audit through splitting completed with documented limits;
-controlled detector comparison pending**. The table below records the initial
-phases; subsequent clustering, splitting and detector evidence follows it.
-
-| Week | Status | Evidence |
-|---|---|---|
-| 6 — preparation / characterization | COMPLETED | Inventory, canonical lineage, label/duplicate QA, class names, instance counts, per-class bbox geometry, empty annotations, full diagnostics and available temporal provenance |
-| 7 — DINOv2 | COMPLETED | implemented; smoke validated historically; full extraction completed (1459 × 384), reverified against all 1657 records |
-| 8 — CLIP / descriptive comparison | COMPLETED | implemented; smoke validated historically; full extraction completed (1459 × 512), reverified; descriptive comparison table |
-| 9 — similarity / temporal relations | COSINE DONE; TEMPORAL PARTIAL | Each encoder: 1459 × 1459 float32, 1063611 unique pairs, 29180 top-20 edges; full verification and executed HTML; no verified timestamps |
-| 9–10 — dimensionality reduction | DONE | 18 t-SNE + 18 PaCMAP runs, all 1459 × 2; exact T/C, Jaccard, Spearman, three-seed stability, four exploratory references and executed 14-section/11-figure HTML |
-
-Both full extractions already existed; this review reused them after verification.
-The current five source ZIPs match the historical inventory hashes; an additional
-archive listed historically is currently unavailable, without affecting canonical
-coverage. The full dated proposal was not provided. The current cosine medians
-are **0.4724 DINOv2 / 0.8306 CLIP**; nearest neighbors belong to the same inferred
-sequence in **99.59% / 99.25%** of queries. The exact nearest-neighbor agreement
-between encoders is **28.17%**. The top 0.1% contains **328 / 277** historical
-cross-split candidates, respectively; these are not confirmed leakage.
-The reduction grid selected t-SNE perplexity 30 and PaCMAP MN_ratio 1.0 for both
-encoders, with seed 0 as the fixed reference. These are exploratory candidates;
-2D density does not establish original-space density or clustering quality.
-See [all 36 run results and timing](docs/reduction_analysis.md).
-The subsequent [clustering protocol](docs/clustering_protocol.md) has now run:
-**342 screening + 72 seed runs**, with exact original-space metrics, medoids,
-posterior temporal/visual retention and 204 ARI/AMI comparisons under both noise
-policies. The 54-configuration shortlist yields **41 Pareto candidates**. All
-414 runs and the 18-section/17-figure review were verified. The six figure
-references are descriptive: original-space silhouette extremes cover only
-2.60%/4.18% of CLIP/DINOv2 contents and are not recommended final partitions.
-
-See [all candidates and measured comparisons](docs/clustering_analysis.md) and
-the [clustering runbook](docs/clustering_runbook.md). Execute generic configs with
-`flir-pipeline clustering run/sweep/compare/verify/summary`; source paths are
-provided in a local YAML based on `configs/clustering/inputs.example.yaml`.
-Build the report with `scripts/build_clustering_review.py --comparison <directory>
---inputs <local-specification>`; output is
-`reports/clustering/review/clustering_review.html`, ignored by Git.
-
-The [splitting protocol](docs/splitting_protocol.md) has now executed **66 runs**:
-historical, random content-level seeds 0–4, and 12 diverse clustering candidates
-with five seeds each. New runs preserve content identity and all cluster-aware
-runs have zero cluster fractures. Noise stays singleton. Record targets derive
-from the manifest; SciPy MILP balances counts/classes/empty labels and residual
-correlation is evaluated afterwards in **both original encoders**.
-
-The robust Pareto set has six configurations. Representative **C10**
-(DINOv2 → PaCMAP → DBSCAN, split `88ccf4e12335a83f`) has 1178/107/372 records,
-all five classes in each split, zero exact cross-split duplicates, and **6 / 7**
-cross-split top-0.1% pairs in DINOv2/CLIP, versus historical **328 / 277** and
-random means **478 / 466.8**. Its inferred temporal Δ≤5 cross-split fraction is
-**23.93%**, better than random **43.92%** but worse than historical **14.76%**.
-C01 (`643cd594f431cfc8`) is the class-balance anchor, with substantial residual
-correlation and 97.4% noise. Neither is a universal winner or a validated detector.
-
-See [complete safe aggregate results](docs/splitting_analysis.md) and the
-[splitting runbook](docs/splitting_runbook.md). Commands:
-`flir-pipeline splitting build/baseline/evaluate/compare/summary/verify` and
-`export-lists` for later handoff to already materialized images. Configs live in
-`configs/splits/`. The source notebook is `notebooks/splitting_review.ipynb`;
-the local 18-section/nine-figure HTML is
-`reports/splitting/review/splitting_review.html`. All 65 new assignments were
-reconstructed exactly in a separate reproducibility check.
-
-No image materialization or detector training ran during that splitting phase.
-The subsequent detector infrastructure/pilot phase is documented below.
-See [current status](docs/current_status.md), [week 6 closure](docs/week6_closure.md)
-and [methodology traceability](docs/methodology_traceability.md).
-
-## Interactive cluster/split inspection
-
-Open existing clustering runs and historical/random/cluster-aware partitions in
-the local, read-only Streamlit explorer:
+[Streamlit](docs/visualization/streamlit.md) provides detailed cluster/split
+inspection, galleries, reconstructed frame playback, timelines, gaps and comparisons:
 
 ```powershell
 uv run --extra explorer streamlit run apps/cluster_split_explorer.py
 ```
 
-Visit `http://127.0.0.1:8501`. Browse clusters, splits and singleton noise; compare
-partition timelines, inspect paginated galleries and play reconstructed frame
-sequences separately by inferred sequence. C10/C12 appear through artifact
-discovery. Original ZIPs are decoded in memory through `FLIR_DATA_ROOT`.
-Playback FPS is for visualization only; source timing is unknown. No scientific
-artifacts are changed. See [setup, navigation and limits](docs/cluster_split_explorer.md).
-
-[VIKUS Viewer](docs/vikus_explorer.md) complements Streamlit with a local WebGL
-collection overview: Clusters, Sequences, Cluster-aware split and the exact saved
-PaCMAP layout (optional aligned t-SNE). Each image is a unique content_id with
-all historical occurrences retained in metadata. Cluster, sequence, split, noise
-and post-hoc class filters support inspection of **candidate scenes**.
+[VIKUS](docs/visualization/vikus.md) provides a global collection view by cluster,
+sequence, split and saved PaCMAP coordinates. For the existing
+**C10 — DINOv2 / PaCMAP / DBSCAN** candidate:
 
 ```powershell
 uv run flir-pipeline explorer vikus-build --candidate C10 --seed 0 --name c10-seed0-local
 uv run flir-pipeline explorer vikus-serve --bundle reports/explorer/vikus/c10-seed0-local
 ```
 
-Visit `http://127.0.0.1:8765`. The first build downloads a checksum-pinned MIT
-VIKUS runtime; cached builds support `--offline`. Previews, sprites and receipts
-stay ignored under `reports/explorer/vikus/`. Original ZIPs remain read-only;
-no experiments are rerun. Never publish this local image bundle. Streamlit
-retains playback, timelines, gaps and partition comparison.
+Both require existing local artifacts and read original ZIPs without mutation.
+Playback FPS controls display only; there are no verified timestamps.
+The first VIKUS build downloads a checksum-pinned runtime; cached builds support
+`--offline`. Image bundles remain private and local.
 
-## Controlled detector protocol and CPU pilot
+## Data and artifacts
 
-Historical, content-level random, C10 and C12 are selected **before YOLO**.
-C10 remains primary. C12 improves temporal/visual residual correlation at a
-class-balance cost; C01 is a descriptive balance ablation, not a detector candidate.
-The frozen plan contains 16 splits and 48 target runs (split seeds 0–4;
-detector seeds 42/43/44), preserving every original annotation occurrence.
+Original ZIPs live outside Git under `FLIR_DATA_ROOT` and remain read-only.
+Local manifests, embeddings, assignments, previews, VIKUS bundles, figures,
+executed notebooks and HTML are protected by [.gitignore](.gitignore).
+Only source code, generic configurations, aggregate documentation and clean
+notebook sources are versioned. See [data safety](docs/data_safety.md).
 
-**Implemented and validated:** 16 generated dataset views, hardware/batch probe,
-four small real CPU pilots, isolated YOLO11n initialization/checkpoints, fixed
-confidence P/R, per-class AP, 1000 image-bootstrap replicates, verification and
-an 18-section notebook/HTML. Pilots use 24/12/20 images, two epochs, batch 2,
-imgsz 640. The portable workstation exposes no CUDA; the measured CPU budget
-is disproportionate for the complete matrix, so final Stage A/B were not started.
-Tiny-pilot detector metrics are not scientific comparison results.
+## Reproducibility
 
-See [protocol](docs/detector_experiment_protocol.md), [pilot evidence and limits](docs/detector_comparison_analysis.md)
-and [runbook](docs/detector_runbook.md). The source notebook is
-`notebooks/detector_comparison_review.ipynb`; the local review is
-`reports/detection/review/detector_comparison_review.html`. Eight metric figure
-panels remain visibly pending until the final matrix is complete and controlled.
+Deterministic dataset/space IDs, configurations, seeds, source checksums and
+artifact metadata preserve lineage from each `frame_id` to its `content_id`,
+embedding row, cluster and partition. Historical membership and labels never
+enter visual representation or clustering. Labels support later split balance.
+See [reproducibility](docs/reproducibility.md), [configuration status](configs/README.md)
+and [pipeline traceability](docs/pipeline_traceability.md).
 
-## References
+```powershell
+uv run ruff check .
+uv run python -m pytest
+uv run python scripts/check_notebook_source.py
+```
 
-- Acosta-Bernal et al.: cited in the supplied proposal context; exact title/DOI
-  awaits confirmation from the proposal bibliography.
-- Figueiredo & Mendes (2024), [Analyzing Information Leakage on Video Object
-  Detection Datasets by Splitting Images Into Clusters With High Spatiotemporal
-  Correlation](https://doi.org/10.1109/ACCESS.2024.3383047).
-- Radford et al. (2021), [CLIP](https://arxiv.org/abs/2103.00020).
-- Oquab et al. (2023), [DINOv2](https://arxiv.org/abs/2304.07193).
-- Wang et al. (2021), [PaCMAP and dimensionality-reduction analysis](https://jmlr.org/papers/v22/20-1061.html).
-- McInnes, Healy & Astels (2017), [hdbscan](https://joss.theoj.org/papers/10.21105/joss.00205).
-- Studer et al. (2021), [CRISP-ML(Q)](https://www.mdpi.com/2504-4990/3/2/20).
+Tests are synthetic and offline, with no FLIR data, model downloads or GPU.
+
+## Current status
+
+| Component | State |
+|---|---|
+| Audit and canonicalization | Validated: 1657 historical records / 1459 unique contents |
+| DINOv2 / CLIP and cosine similarity | Validated on complete content coverage |
+| t-SNE / PaCMAP | Validated: 36 executed reductions |
+| Density clustering | Validated with limitations: 414 runs; exploratory candidates |
+| Cluster-aware splitting | Validated with limitations: 66 runs; residual correlation remains |
+| Temporal interpretation | Experimental: filename-derived indices; no verified timing |
+| Streamlit / VIKUS | Available for local inspection |
+| Detector infrastructure | Available; four small CPU pilots validated |
+| Full detector comparison | Pending compute; no final comparative Precision/Recall/mAP results |
+
+Detailed evidence, candidate roles and remaining limits are in [status](docs/status.md).
+
+## Documentation
+
+Start with the [documentation index](docs/README.md): architecture, data model,
+pipeline, reproducibility, safety, status and design decisions; functional
+analysis, protocols, runbooks and visualization guides.
+The [consolidated project report](docs/runbooks/project_report.md) reuses existing
+results without rerunning experiments. Technical sources are in
+[references](docs/references.md).

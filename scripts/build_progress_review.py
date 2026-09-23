@@ -41,9 +41,9 @@ SOURCES = {
     "d_plan": "artifacts/detection/protocol/plan.json",
     "d_budget": "artifacts/detection/compute_budget.json",
     "d_verify": "reports/detection/verification_receipt.json",
-    "status_doc": "docs/current_status.md",
-    "detector_doc": "docs/detector_comparison_analysis.md",
-    "split_protocol": "docs/splitting_protocol.md",
+    "status_doc": "docs/status.md",
+    "detector_doc": "docs/analysis/detection.md",
+    "split_protocol": "docs/protocols/splitting.md",
 }
 for prefix, stage, names in [
     ("f", "feature_engineering", ["dataset_summary", "historical_split_summary", "duplicate_summary", "class_catalog", "object_instances_by_class", "annotation_quality", "bbox_geometry_by_class", "embedding_health_dinov2", "embedding_health_clip"]),
@@ -577,7 +577,7 @@ def main():
     NotebookClient(notebook, timeout=180, kernel_name="python3", resources={"metadata": {"path": str(ROOT)}}).execute()
     nbformat.validate(notebook)
     exporter = HTMLExporter(template_name="lab", exclude_input=True, exclude_input_prompt=True, exclude_output_prompt=True)
-    body, _ = exporter.from_notebook_node(notebook, resources={"metadata": {"name": "FLIR Leakage-Aware Pipeline — Progress Review"}})
+    body, _ = exporter.from_notebook_node(notebook, resources={"metadata": {"name": "FLIR Leakage-Aware Pipeline — Project Report"}})
     qa = audit_html(body, review.sensitive_ids)
     if qa["sections"] != 22 or (not errors and qa["figures"] != 15):
         raise ValueError("Unexpected report structure")

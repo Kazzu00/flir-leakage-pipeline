@@ -1,4 +1,6 @@
-# Análisis de particiones — semanas 10–11
+# Análisis de particiones
+
+Referencias: **C10 — DINOv2 / PaCMAP / DBSCAN**; **C01 — CLIP / original L2 / OPTICS**.
 
 Ejecución completa del protocolo principal: **66 runs verificados**, sobre
 **1459 contenidos y 1657 registros** por run. Una baseline histórica, cinco
@@ -30,7 +32,7 @@ diagnóstico original. La reproducción posterior reconstruyó exactamente las
 **65 asignaciones nuevas**, con el código final, sin reutilizar el solver cache.
 
 La formulación, reglas de diversidad y selección están en el
-[protocolo](splitting_protocol.md); comandos en el [runbook](splitting_runbook.md).
+[protocolo](../protocols/splitting.md); comandos en el [runbook](../runbooks/splitting.md).
 Las 4168 instancias, 292 labels vacíos y ocho grupos con conflictos de anotación
 se revalidaron. No se corrigieron labels ni se eligieron etiquetas representativas.
 
@@ -57,6 +59,8 @@ silhouette. Los controles originales se mantienen como ablation de representaci�
 | C12 | dinov2 | tsne | hdbscan | 854148e2dbb27bfd | 0.125428 | 22 |
 
 ## Validez, Pareto y candidatos finales
+
+Referencias: **C10 — DINOv2 / PaCMAP / DBSCAN**; **C12 — DINOv2 / t-SNE / HDBSCAN**; **C01 — CLIP / original L2 / OPTICS**.
 
 Los 65 nuevos runs tienen cero contenidos exactos cross-split. Los 60
 cluster-aware tienen cero fracturas de los clusters utilizados. El histórico
@@ -102,6 +106,8 @@ El frente completo también conserva C05, C07, C09 y C12. C12 tiene menor fracci
 temporal que C10, pero no desplaza automáticamente las anclas fijadas por el protocolo.
 
 ## Tamaños, cobertura y anotaciones vacías
+
+Referencias: **C10 — DINOv2 / PaCMAP / DBSCAN**; **C01 — CLIP / original L2 / OPTICS**.
 
 Orden de las ternas: **train / val / test**. El conteo de contenidos históricos
 por split suma 1657 porque 198 contenidos pertenecen a más de un split; el universo
@@ -150,6 +156,8 @@ las cinco clases. El background se reporta aparte.
 
 ## NN cross-split y retención de vecinos
 
+Referencia: **C01 — CLIP / original L2 / OPTICS**.
+
 NN sobre la matriz completa, un valor por contenido y sin self-content. En el
 histórico se usa existencia de memberships distintos entre dos contenidos, sin
 aplanar conjuntos ni mezclar duplicados exactos. Coseno entre encoders no comparte
@@ -175,6 +183,8 @@ escala. Cada fila corresponde a la representante seed 0.
 | C01 | clip | 0.288554 | 0.321316 | 0.341193 | 0.360212 |
 
 ## Pares de alta similitud por cuantil
+
+Referencias: **C10 — DINOv2 / PaCMAP / DBSCAN**; **C01 — CLIP / original L2 / OPTICS**.
 
 Cantidades de pares únicos i<j cross-split. Cohortes inclusivos con empates y
 thresholds originales propios del encoder. Los cohortes son anidados, no sumables.
@@ -205,6 +215,8 @@ Random es la **media de cinco seeds**, por eso algunas cantidades son fraccionar
 
 ## Temporalidad residual y fragmentación de secuencias
 
+Referencias: **C10 — DINOv2 / PaCMAP / DBSCAN**; **C01 — CLIP / original L2 / OPTICS**.
+
 Pares de contenidos distintos, misma secuencia inferida y Δ de índices, no segundos.
 Los denominadores son 1438 / 7159 / 14227 / 35074 para Δ≤1/5/10/25. No hay
 unknowns en esta ejecución; esa cobertura no verifica el origen temporal real.
@@ -228,6 +240,8 @@ previos de auditoría temporal deriva del universo: aquí son pares de contenido
 distintos, no todos los pares de ocurrencias ni duplicados exactos.
 
 ## Fracturas y estabilidad entre semillas
+
+Referencias: **C10 — DINOv2 / PaCMAP / DBSCAN**; **C12 — DINOv2 / t-SNE / HDBSCAN**; **C01 — CLIP / original L2 / OPTICS**.
 
 Cada porcentaje de fractura evalúa los clusters del mismo candidato; noise queda
 excluido. Historical usa sus conjuntos completos, random promedia cinco semillas.
@@ -306,6 +320,8 @@ Variabilidad de random; std poblacional sobre cinco seeds, no intervalos de conf
 
 ## Límites y siguiente paso
 
+Referencias: **C10 — DINOv2 / PaCMAP / DBSCAN**; **C01 — CLIP / original L2 / OPTICS**.
+
 La selección sigue siendo exploratoria sobre los mismos datos; evaluar ambos
 encoders no equivale a disponer de un test externo. El solver balancea clases
 y random no, por lo que una futura ablación singleton balanceado permitiría
@@ -319,9 +335,10 @@ con compromisos temporales y pocas instancias de algunas clases en val. Persiste
 ocho conflictos de anotación y multiplicidades históricas. No se ha demostrado
 causalidad ni mejora en Precision, Recall o mAP.
 
-**Cierre: protocolo principal ejecutado y validado, con límites**, no detector
-validado. Siguiente: revisar casos y anotaciones de los candidatos, fijar un
-protocolo común de comparación del detector y solo después materializar imágenes.
-El exportador está implementado y probado sintéticamente, pero no se ejecutó
+**Protocolo principal ejecutado y validado, con límites**, no detector
+validado. El [protocolo del detector](../protocols/detection.md) y su
+[análisis de pilotos](detection.md) documentan la selección y materialización
+posteriores. La revisión de casos y anotaciones sigue siendo necesaria.
+El exportador está implementado y probado sintéticamente, pero en este experimento de splitting no se ejecutó
 exportación real, copia/movimiento de imágenes, similarity-components, naive
 record-random ni entrenamiento YOLO.

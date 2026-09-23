@@ -71,7 +71,7 @@ para este reporte; las nueve figuras usan estadísticas ya verificadas.
 Si el launcher está bloqueado en Windows, utilizar el equivalente
 `uv run python -c "from flir_pipeline.cli import app; app()"` y los mismos argumentos.
 `UV_PROJECT_ENVIRONMENT` permite reutilizar un entorno existente; `--no-sync`
-evita alterarlo. La ejecución registrada reutilizó `.venv-academic`, SciPy 1.17.1,
+evita alterarlo. La ejecución registrada reutilizó un entorno uv aislado, SciPy 1.17.1,
 y una instalación local ignorada de uv porque uv no estaba en PATH.
 
 ## Exportación posterior, no ejecutada en esta fase

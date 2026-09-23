@@ -5,7 +5,7 @@ asignaciones y resúmenes existentes. No ejecuta modelos, similitud, reducción,
 clustering, optimización de splits ni detección. La inspección no acredita una
 nueva validación científica de escenas ni una selección distinta de candidatos.
 
-[VIKUS Viewer](vikus_explorer.md) complementa esta herramienta con el overview
+[VIKUS Viewer](vikus.md) complementa esta herramienta con el overview
 de imágenes por cluster/candidate scene, secuencia, split y proyecciones guardadas.
 Streamlit conserva detalle, playback, timelines, gaps y comparación. El overview
 muestra `clustering_space_id`; junto con `cluster_id` y el ID de split permite
@@ -34,6 +34,8 @@ FFmpeg, codecs de video, pesos ni GPU. La forma de lanzamiento sigue la
 [documentación de Streamlit](https://docs.streamlit.io/develop/concepts/architecture/run-your-app).
 
 ## Fuentes y discovery
+
+Referencias: **C10 — DINOv2 / PaCMAP / DBSCAN**; **C12 — DINOv2 / t-SNE / HDBSCAN**.
 
 - Manifest canónico local: por defecto
   `data/manifests/flir_canonical_candidate_v1.parquet`.
@@ -119,6 +121,8 @@ por Git. No publicar capturas ni previews reales. La UI puede mostrar IDs y ruta
 locales bajo paneles técnicos: está destinada exclusivamente al equipo local.
 
 ## Validación
+
+Referencias: **C10 — DINOv2 / PaCMAP / DBSCAN**; **C12 — DINOv2 / t-SNE / HDBSCAN**.
 
 Los tests de `tests/test_explorer.py` son offline/sintéticos y cubren discovery,
 identidad, mapping contenido/ocurrencias, memberships, secuencias, orden, gaps,

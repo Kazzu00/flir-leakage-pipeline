@@ -50,7 +50,7 @@ def main() -> None:
     nbformat.validate(notebook)
     nbformat.write(notebook, EXECUTED_NOTEBOOK)
     exporter = HTMLExporter(template_name="lab", exclude_input=True, exclude_input_prompt=True, exclude_output_prompt=True)
-    body, _ = exporter.from_notebook_node(notebook, resources={"metadata": {"name": "FLIR Similarity and Spatiotemporal Correlation — Progress Review"}})
+    body, _ = exporter.from_notebook_node(notebook, resources={"metadata": {"name": "FLIR Similarity and Spatiotemporal Correlation — Project Report"}})
     HTML_REPORT.write_text(body, encoding="utf-8")
     metadata = read_json(REPORT_DIR/"report_metadata.json")
     metadata["notebook_source_sha256"] = file_sha256(SOURCE_NOTEBOOK)

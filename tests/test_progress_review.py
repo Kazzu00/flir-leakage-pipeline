@@ -1,4 +1,4 @@
-"""Synthetic checks for the evidence-only academic report boundary."""
+"""Synthetic checks for the evidence-only project report boundary."""
 
 import json
 import runpy
@@ -139,7 +139,7 @@ def test_progress_source_is_clean_spanish_with_all_sections():
     source = root / "notebooks/progress_review.ipynb"
     runpy.run_path(str(root / "scripts/check_notebook_source.py"))["check_notebook_source"](source)
     nb = json.loads(source.read_text(encoding="utf-8"))
-    assert "— Progress Review" in "".join(nb["cells"][0]["source"])
+    assert "— Project Report" in "".join(nb["cells"][0]["source"])
     sections = ["".join(c["source"]) for c in nb["cells"] if c["cell_type"] == "markdown" and "".join(c["source"]).startswith("## ")]
     assert len(sections) == 22
     assert all("**Pregunta / objetivo:** ¿" in section for section in sections)

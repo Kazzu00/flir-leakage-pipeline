@@ -2,7 +2,7 @@
 
 Unidad: content_id único, sin replicar las 1657 ocurrencias. Seis espacios:
 L2 original de DINOv2/CLIP como controles y candidatos t-SNE/PaCMAP semilla 0
-como ruta de la propuesta. No se modifican ZIP, embeddings ni reducciones.
+como ruta principal del pipeline. No se modifican ZIP, embeddings ni reducciones.
 La temporalidad disponible sigue inferida; no se declara validada por esta fase.
 
 ## Ajuste y escala

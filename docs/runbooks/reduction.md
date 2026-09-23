@@ -1,7 +1,7 @@
 # Ejecución reproducible de t-SNE y PaCMAP
 
-El [protocolo](reduction_protocol.md) define las decisiones antes del grid. Los
-[resultados agregados](reduction_analysis.md) documentan la ejecución completa.
+El [protocolo](../protocols/reduction.md) define las decisiones antes del grid. Los
+[resultados agregados](../analysis/reduction.md) documentan la ejecución completa.
 Los YAML son genéricos: el encoder y sus identidades vienen de los artefactos
 explícitamente seleccionados, nunca de una ruta privada escrita en el código.
 

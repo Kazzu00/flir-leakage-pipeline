@@ -734,7 +734,7 @@ def generate_feature_engineering_report(
         },
     }
     lines = [
-        "# FLIR Feature Engineering — Progress Review",
+        "# FLIR Feature Engineering — Project Report",
         "",
         "## Composición y línea base histórica",
         "",
@@ -779,11 +779,11 @@ def generate_feature_engineering_report(
         "- Un embedding por content_id; mapping completo de ocurrencias verificado contra el manifest.",
         "- Raw/L2, finitud, normas e índices son controles numéricos; no prueban calidad semántica.",
         "- Dimensiones y relación de aspecto se conservan en tabla secundaria; Laplaciano usa log10(1 + varianza).",
-        "", "## Estado de semanas 6–8 y frontera metodológica", "",
+        "", "## Estado de preparación y representaciones", "",
         f"- Ingeniería de características completada: {metadata['feature_engineering_completed']}.",
-        f"- Semana 6, controles de preparación del reporte: {'COMPLETED' if metadata['preparation_report_checks_valid'] else 'IN PROGRESS'}; matriz integral de evidencias en docs/current_status.md.",
-        f"- Semanas 7–8, representaciones completas: {'COMPLETED' if metadata['feature_engineering_completed'] else 'IN PROGRESS'}; verificación de ambos espacios contra el manifest.",
-        "- Siguiente fase: similitud entre fotogramas. Bhattacharyya condicional, reducción, clustering, nuevos splits y entrenamiento/evaluación permanecen pendientes.",
+        f"- Controles de preparación del reporte: {'COMPLETED' if metadata['preparation_report_checks_valid'] else 'IN PROGRESS'}; matriz integral de evidencias en docs/status.md.",
+        f"- Representaciones completas: {'COMPLETED' if metadata['feature_engineering_completed'] else 'IN PROGRESS'}; verificación de ambos espacios contra el manifest.",
+        "- Este reporte cubre preparación y representaciones. El estado de similitud, reducción, clustering, splits y detector está en docs/status.md; Bhattacharyya sigue condicionado.",
         "- Notebook ejecutado y HTML del reporte técnico en review/; código oculto en el HTML.",
     ])
     report_md = output_dir / "feature_engineering_report.md"

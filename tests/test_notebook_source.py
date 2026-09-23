@@ -32,7 +32,7 @@ def test_review_source_and_builder_paths_are_generic() -> None:
     check = runpy.run_path(str(root / "scripts/check_notebook_source.py"))["check_notebook_source"]
     check(source)
     notebook = json.loads(source.read_text(encoding="utf-8"))
-    assert "".join(notebook["cells"][0]["source"]).splitlines()[0] == "# FLIR Feature Engineering — Progress Review"
+    assert "".join(notebook["cells"][0]["source"]).splitlines()[0] == "# FLIR Feature Engineering — Project Report"
 
     tree = ast.parse((root / "scripts/build_feature_engineering_review.py").read_text(encoding="utf-8"))
     assignments = {
@@ -73,7 +73,7 @@ def test_similarity_review_source_has_complete_narrative_without_execution_state
     check = runpy.run_path(str(root/"scripts/check_notebook_source.py"))["check_notebook_source"]
     check(source)
     notebook = json.loads(source.read_text(encoding="utf-8"))
-    assert "".join(notebook["cells"][0]["source"]).splitlines()[0] == "# FLIR Similarity and Spatiotemporal Correlation — Progress Review"
+    assert "".join(notebook["cells"][0]["source"]).splitlines()[0] == "# FLIR Similarity and Spatiotemporal Correlation — Project Report"
     sections = ["".join(cell["source"]).splitlines()[0] for cell in notebook["cells"] if cell["cell_type"] == "markdown" and "".join(cell["source"]).startswith("## ")]
     assert len(sections) == 14
     assert all(heading.startswith(f"## {i}. ") for i, heading in enumerate(sections, 1))
@@ -89,7 +89,7 @@ def test_reduction_review_preserves_source_and_fourteen_sections():
     check(source)
     notebook = json.loads(source.read_text(encoding="utf-8"))
     narrative = "\n".join("".join(c["source"]) for c in notebook["cells"] if c["cell_type"] == "markdown")
-    assert narrative.startswith("# FLIR Dimensionality Reduction — Progress Review")
+    assert narrative.startswith("# FLIR Dimensionality Reduction — Project Report")
     assert re.findall(r"^## (\d+)\.", narrative, re.MULTILINE) == [str(i) for i in range(1, 15)]
     ignored = ["reports/reduction/review/reduction_review.executed.ipynb", "reports/reduction/review/reduction_review.html",
                "reports/reduction/figures/01_reduction_quality_dinov2.png", "artifacts/reduction/synthetic/coordinates.npy"]
@@ -104,7 +104,7 @@ def test_splitting_review_has_eighteen_clean_sections():
     check(source)
     notebook = json.loads(source.read_text(encoding="utf-8"))
     narrative = "\n".join("".join(c["source"]) for c in notebook["cells"] if c["cell_type"] == "markdown")
-    assert narrative.startswith("# FLIR Cluster-Aware Splitting — Progress Review")
+    assert narrative.startswith("# FLIR Cluster-Aware Splitting — Project Report")
     assert re.findall(r"^## (\d+)\.", narrative, re.MULTILINE) == [str(i) for i in range(1, 19)]
     ignored = ["reports/splitting/review/splitting_review.executed.ipynb", "reports/splitting/review/splitting_review.html",
                "reports/splitting/figures/01_split_sizes_comparison.png", "artifacts/splitting/runs/synthetic/split_assignments.parquet"]

@@ -2,7 +2,7 @@
 
 The original dataset YAML calls ID 4 ``SDZI``. Its canonical name follows the
 publication's class order confirmed by the project owner, not an expansion of
-that internal term. See docs/dataset_classes.md for evidence and limitations.
+that internal term. See docs/analysis/dataset_classes.md for evidence and limitations.
 """
 
 from __future__ import annotations

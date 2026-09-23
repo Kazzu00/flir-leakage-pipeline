@@ -1,4 +1,4 @@
-"""Build the local feature-engineering progress review."""
+"""Build the local feature-engineering project report."""
 
 from __future__ import annotations
 
@@ -54,7 +54,7 @@ def _build_notebook() -> None:
     client.execute()
     nbformat.write(notebook, EXECUTED_NOTEBOOK)
     exporter = HTMLExporter(template_name="lab", exclude_input=True, exclude_input_prompt=True, exclude_output_prompt=True)
-    body, _ = exporter.from_notebook_node(notebook, resources={"metadata": {"name": "FLIR Feature Engineering — Progress Review"}})
+    body, _ = exporter.from_notebook_node(notebook, resources={"metadata": {"name": "FLIR Feature Engineering — Project Report"}})
     HTML_REPORT.write_text(body, encoding="utf-8")
 
 

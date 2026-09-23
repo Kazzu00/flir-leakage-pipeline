@@ -6,8 +6,8 @@ todas las salidas son float32 1459 × 2. Se revalidaron fuentes, coordenadas,
 alineación, finitud y métricas contra los embeddings originales. No se generaron
 etiquetas de clustering, nuevas particiones ni resultados de detector.
 
-El [protocolo predefinido](reduction_protocol.md) y los YAML se conservaron con
-huellas locales antes del primer ajuste. Los [comandos](reduction_runbook.md)
+El [protocolo predefinido](../protocols/reduction.md) y los YAML se conservaron con
+huellas locales antes del primer ajuste. Los [comandos](../runbooks/reduction.md)
 permiten reproducir una ejecución individual, los grids y el reporte. No se
 reextrajeron features, se renormalizaron archivos L2 ni se leyeron/modificaron ZIP.
 
@@ -48,6 +48,9 @@ semillas a k=20. Son candidatos exploratorios para la siguiente evaluación.
 Ajustes seriales en CPU local, con un hilo nativo/Numba/FAISS. La primera carga
 de biblioteca puede aumentar backend_total; la verificación y agregación añaden
 tiempo. Estas cifras no constituyen un benchmark de hardware.
+
+El resumen registrado conserva **269.038 s** de ajuste: t-SNE **251.284 s** y
+PaCMAP **17.753 s**, sin incluir toda la verificación, agregación y reporte.
 
 
 | encoder | method | runs | fit_total_seconds | fit_min_seconds | fit_median_seconds | fit_max_seconds | backend_total_seconds | evaluation_total_seconds |
@@ -221,13 +224,15 @@ huellas de fuente; no se reescribe metadata para atribuir los ajustes al commit 
 cierre. Se conserva una copia local del código numérico/configuraciones/protocolo
 anterior al primer fit y un recibo de verificación del código final.
 
-## Protocolo de la siguiente fase — PLANNED / NEXT
+## Consumo por clustering
 
-Evaluar DBSCAN/OPTICS/HDBSCAN en los embeddings L2 originales y en las referencias
+El [protocolo de clustering](../protocols/clustering.md) desarrolla la evaluación
+de DBSCAN/OPTICS/HDBSCAN en los embeddings L2 originales y en las referencias
 candidatas, con grillas acotadas y distancias/escalas propias de cada espacio.
 La densidad 2D no equivale a densidad original. Contrastar estabilidad entre
 semillas/perturbaciones, coherencia visual y temporal, ruido y cobertura. AMI/ARI
 requieren asignaciones reales y una política explícita para ruido y comparación.
-Conservar la unidad content_id y las 1657 ocurrencias. La futura partición deberá
+Conservar la unidad content_id y las 1657 ocurrencias. La partición debe
 mantener grupos íntegros y medir correlación residual antes de comparar detectores.
-Nada de esa fase se implementó ni ejecutó aquí; Bhattacharyya sigue condicionado.
+Los resultados de esa fase están en [clustering](clustering.md); no forman parte
+del experimento de reducción descrito aquí. Bhattacharyya sigue condicionado.

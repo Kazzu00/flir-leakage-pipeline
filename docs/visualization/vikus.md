@@ -9,12 +9,14 @@ humana. La implementación y su smoke no constituyen un nuevo experimento.
 | Herramienta | Responsabilidad |
 |---|---|
 | VIKUS | Overview de colección, clústeres, secuencias, splits y layouts guardados |
-| [Streamlit Explorer](cluster_split_explorer.md) | Inspección detallada, playback, timelines, gaps y comparación de particiones |
+| [Streamlit Explorer](streamlit.md) | Inspección detallada, playback, timelines, gaps y comparación de particiones |
 
 Ambas muestran los mismos IDs de clustering, split y cluster. Streamlit conserva
 sus vistas y controles; no se incorporan capturas reales al reporte versionado.
 
 ## Instalación, build y serve
+
+Referencia: **C10 — DINOv2 / PaCMAP / DBSCAN**.
 
 Desde la raíz del repositorio, Python 3.11 y `FLIR_DATA_ROOT` en el entorno o
 `.env` local. Pillow pertenece al core; VIKUS no necesita Streamlit, Node, GPU,
@@ -186,6 +188,8 @@ nombre nuevo o deja que se genere automáticamente. Estos recibos son evidencia
 de exportación e integridad, nunca métricas científicas nuevas.
 
 ## Validación
+
+Referencia: **C10 — DINOv2 / PaCMAP / DBSCAN**.
 
 `tests/test_vikus.py` usa imágenes y artifacts sintéticos, offline: metadata,
 ocurrencias, schema/config, grupos y ruido, anotaciones conflictivas, CSV de

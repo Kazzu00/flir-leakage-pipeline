@@ -65,6 +65,8 @@ conserva: no se afirma eliminación de todo leakage.
 
 ## Plan, vistas y hardware observados
 
+Referencias: **C10 — DINOv2 / PaCMAP / DBSCAN**; **C12 — DINOv2 / t-SNE / HDBSCAN**.
+
 Plan `ace1ffd6bb4775d0`; freeze del runtime CPU `9897062efdb32450`.
 Dieciséis vistas corresponden a historical y cinco semillas de random_content,
 C10 y C12. La matriz objetivo tiene 48 celdas con detector seeds 42/43/44.
@@ -84,6 +86,8 @@ antes del primer entrenamiento real; mismo YOLO11n pretrained en las cuatro
 estrategias. Los ZIP originales permanecieron read-only.
 
 ## Pilotos pequeños ejecutados y coste
+
+Referencias: **C10 — DINOv2 / PaCMAP / DBSCAN**; **C12 — DINOv2 / t-SNE / HDBSCAN**.
 
 Cada estrategia usó 24/12/20 imágenes, dos epochs, detector seed 42 y split seed 0.
 Se seleccionaron subconjuntos deterministas con cobertura de clases presentes

@@ -25,7 +25,7 @@ El comando imprime el directorio `artifacts/clustering/screening/<screening_id>`
 Incluye los dos controles L2 y las cuatro reducciones semilla 0. Conservar los
 resultados completos, incluso con cero o un grupo. Los cuantiles y curvas
 k-distance registran las escalas; aliases idénticos o epsilon no positivo se
-registran por separado. El [protocolo](clustering_protocol.md) fija la shortlist
+registran por separado. El [protocolo](../protocols/clustering.md) fija la shortlist
 de hasta tres configuraciones por encoder × representación × algoritmo.
 
 ```powershell

@@ -1,4 +1,4 @@
-# Semana 9 — similitud visual y relaciones temporales
+# Similitud visual y relaciones temporales
 
 Ejecutado y revisado 2026-09-13. **Cosine similarity DONE**: ambos espacios
 completos, artefactos verificados, análisis posterior, comparación y HTML.
@@ -166,43 +166,10 @@ tabla local de inspección, excluidos del texto del reporte y del repositorio.
 Hay **cero pares** con |cos−1|≤1e−6. Esa tolerancia numérica no es un cutoff
 semántico de near-duplicate; los máximos se revisan aunque no la alcancen.
 
-## Reproducir y verificar
+## Reproduction
 
-Con Python 3.11, `uv sync --locked --extra dev --extra reporting`, datos originales
-externos y ambos directorios completos disponibles. No se necesita `vision` ni
-descargar modelos para esta fase. Sustituir los marcadores por directorios locales
-explícitos; no seleccionar un smoke por orden alfabético de carpetas.
-
-```powershell
-uv run flir-pipeline similarity --help
-uv run flir-pipeline similarity compute --feature-directory <dinov2_features> --manifest data/manifests/flir_canonical_candidate_v1.parquet --config configs/similarity/dinov2_research.yaml
-uv run flir-pipeline similarity compute --feature-directory <clip_features> --manifest data/manifests/flir_canonical_candidate_v1.parquet --config configs/similarity/clip_research.yaml
-uv run flir-pipeline similarity summary <dinov2_similarity>
-uv run flir-pipeline similarity summary <clip_similarity>
-uv run flir-pipeline similarity verify <dinov2_similarity> --feature-directory <dinov2_features> --manifest data/manifests/flir_canonical_candidate_v1.parquet
-uv run flir-pipeline similarity verify <clip_similarity> --feature-directory <clip_features> --manifest data/manifests/flir_canonical_candidate_v1.parquet
-uv run flir-pipeline similarity compare --left <dinov2_similarity> --right <clip_similarity>
-uv run --extra reporting python scripts/build_similarity_review.py --dinov2 <dinov2_similarity> --clip <clip_similarity> --comparison <comparison_directory> --seed 0 --examples 3
-uv run ruff check .
-uv run pytest
-uv run python scripts/check_notebook_source.py
-```
-
-Compute exige verificación de cobertura completa y revisión de modelo resuelta;
-reutiliza cachés completas solo si firmas y QA coinciden. Preserva y rechaza
-directorios parciales. Verify autónomo recalcula invariantes e integridad; con
-los dos argumentos opcionales comprueba además los arrays originales y el manifest.
-Su código de salida es distinto de cero ante fallo. El builder comprueba fuentes,
-firmas y valores de Jaccard, y lee imágenes desde `FLIR_DATA_ROOT/Imagenes.zip`
-o `--images-archive`, en memoria y sin modificar el ZIP.
-
-En el equipo de ejecución se usó uv con `UV_PROJECT_ENVIRONMENT=.venv-academic`,
-Python 3.11.14 y dependencias del lockfile ya almacenadas, sin reinstalación de
-visión. Windows bloquea el launcher generado; el mismo CLI se invocó mediante
-`uv run --no-sync python -c "from flir_pipeline.cli import app; app()" similarity ...`.
-Los metadatos registran el commit activo anterior al commit de cierre, worktree
-dirty y hashes de fuente al calcular. Se preservan; el recibo final enlaza la
-verificación con el código comprometido, sin reescribir la procedencia original.
+Commands, inputs, cache behavior and verification are in the
+[similarity runbook](../runbooks/similarity.md).
 
 ## Artefactos y validación
 
@@ -240,8 +207,8 @@ de figuras y comprobación programática del HTML. Los tests cubren incluso que
 cambiar metadata posterior no modifica similitudes/ranking, aunque invalide
 la caché, y que una imagen alterada se rechaza al generar la galería.
 
-El siguiente paso es definir el protocolo de **t-SNE / PaCMAP**, incluyendo si
-son solo visualización o entrada de clustering. DBSCAN/OPTICS/HDBSCAN,
-evaluación/selección, partición por grupos y comparación del detector siguen
-pendientes. **Bhattacharyya PLANNED / CONDITIONAL** exige una representación
+El alcance de este análisis termina en similitud. Los resultados posteriores
+de [reducción](reduction.md), [clustering](clustering.md) y [particiones](splitting.md)
+se documentan por separado. La comparación completa del detector sigue pendiente
+según [status](../status.md). **Bhattacharyya PLANNED / CONDITIONAL** exige una representación
 distribucional explícitamente justificada.

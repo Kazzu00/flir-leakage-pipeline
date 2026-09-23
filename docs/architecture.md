@@ -9,15 +9,15 @@ Existing package boundaries are preserved.
 | Data | ZIP inventory, streaming hashes, lineage/duplicate analysis, occurrence manifest and non-mutating YOLO QA | ACTIVE |
 | Features | DINOv2 CLS / CLIP projected-image adapters, RGB preprocessing, revision tracking, raw/L2 stores, diagnostics, descriptive reports | ACTIVE; both full extractions validated |
 | Similarity | Cosine over existing L2 contents, top-k, posterior temporal/split relations, agreement and review | ACTIVE; full cosine validated, inferred temporal analysis partial; Bhattacharyya conditional/planned |
-| Reduction | t-SNE and PaCMAP; exact preservation, seed stability, bounded selection and posterior interpretation | ACTIVE; experiment status in current_status.md |
+| Reduction | t-SNE and PaCMAP; exact preservation, seed stability, bounded selection and posterior interpretation | ACTIVE; experiment status in [status](status.md) |
 | Clustering | DBSCAN, OPTICS, HDBSCAN, original-space metrics, perturbation stability and Pareto candidates | ACTIVE; 414 full runs verified, candidate selection executed |
 | Splitting | Reproducible baselines, indivisible groups, class balance and residual partition quality | ACTIVE; 66 verified runs, both encoders, robust Pareto and review |
 | Detection | Frozen split/model matrix, immutable dataset views, optional YOLO11 runtime, image statistics/bootstrap and review | INFRASTRUCTURE + SMALL CPU PILOTS VALIDATED; final comparison pending |
-| Evaluation | Reserved cross-component boundary; operational metrics live beside their experiments | GROUP INTEGRATION / FUTURE |
+| Explorer | Read-only discovery, identity joins, timelines/playback and local VIKUS bundles | AVAILABLE |
 
 ```text
 src/flir_pipeline/
-  cli.py                   implemented data/features/similarity/reduction/clustering/splitting commands
+  cli.py                   data/features/similarity/reduction/clustering/splitting/detection/explorer
   config.py                reserved validated path configuration
   data/
     inventory.py           archive structure, matching and exploratory lineage
@@ -78,7 +78,6 @@ src/flir_pipeline/
     vikus.py / cli.py         content-level local bundle from saved assignments/coordinates
     vikus_upstream.py         pinned MIT runtime and explicit presentation adaptations
     vikus_server.py           verified static bundle, read-only loopback serving
-  evaluation/              planned; documentation only
   utils/hashing.py          streaming exact-byte hashes
 ```
 
@@ -87,14 +86,14 @@ src/flir_pipeline/
 `apps/cluster_split_explorer.py` is an optional local Streamlit UI over the
 read-only `explorer` package. It never imports fitting or split optimization
 implementations. GIF cache is memory-only and is not a scientific artifact.
-`similarity/temporal_display.py` presents recorded quartiles for progress_review;
+`similarity/temporal_display.py` presents recorded quartiles for the consolidated project report;
 it does not read embeddings or recompute similarities.
 
 VIKUS complements Streamlit with a collection overview. Each sprite is one
 content_id; its metadata preserves every historical occurrence. Saved reductions
 are joined by ID without fitting or changing coordinates. Generated previews,
 runtime and receipts stay ignored under `reports/explorer/vikus/`; original
-ZIPs are read-only. See [version, schema and adaptations](vikus_explorer.md).
+ZIPs are read-only. See [version, schema and adaptations](visualization/vikus.md).
 
 ```text
 frame_id (occurrence, all historical records)
@@ -150,8 +149,8 @@ incomplete publications are preserved. No optimizer checkpoint is fabricated.
 
 Posterior reporting joins by content_id and preserves multiple historical split
 memberships. Temporal examples use an explicit nominal-index rule, independently
-of coordinates. Neither layer creates clustering assignments. See the [protocol](reduction_protocol.md)
-and [runbook](reduction_runbook.md); 2D density is not original-space density.
+of coordinates. Neither layer creates clustering assignments. See the [protocol](protocols/reduction.md)
+and [runbook](runbooks/reduction.md); 2D density is not original-space density.
 
 ## Clustering boundary
 
@@ -180,8 +179,8 @@ reduction family cannot be mixed into a previous screening.
 
 The report reads images from the original ZIP into memory to compose ignored
 galleries. It distinguishes fitting space from an existing 2D view, and reports
-coverage beside noise-excluding metrics. The [runbook](clustering_runbook.md)
-documents commands; [analysis](clustering_analysis.md) records observed results.
+coverage beside noise-excluding metrics. The [runbook](runbooks/clustering.md)
+documents commands; [analysis](analysis/clustering.md) records observed results.
 
 ## Splitting boundary
 
@@ -204,25 +203,27 @@ rows explicitly preserve membership sets, with nullable new_split for overlaps.
 Five seeds characterize assignment variability without renaming train/val/test.
 Robust constraint/Pareto selection keeps full eligibility diagnostics and at most
 three predeclared anchors; seed 0 always represents a selected configuration.
-The two observed anchors and their limits are in [analysis](splitting_analysis.md).
+The two observed anchors and their limits are in [analysis](analysis/splitting.md).
 The report uses aggregate data only, without fetching images. Later `export-lists`
 requires a verified split and already materialized occurrence paths; it never
-copies images or silently merges conflicting labels. Real export remains pending.
+copies images or silently merges conflicting labels. It was not used for real
+export in the splitting experiment; the detector subsequently created its own
+occurrence views through `detection/materialization.py`.
 
-## Individual research and group handoff
+## External integration boundary
 
-The individual contribution owns characterization, representation, similarity,
-reduction, clustering/selection, partitioning and partition-quality evaluation.
-Noise cleaning, panoptic segmentation and final assembly belong to the broader
-group pipeline. No implementations of these team components are included.
+This package implements characterization, representation, similarity, reduction,
+clustering/selection, partitioning and partition-quality evaluation, plus detector
+infrastructure. Noise cleaning and panoptic segmentation are external integration
+components; neither is implemented here.
 
 The proposed handoff contract is documentation only: source occurrence/content
 identity, relative provenance, representation metadata, and the now-available
-cluster/split assignments plus evaluation summaries. Any group transform that changes
+cluster/split assignments plus evaluation summaries. Any external transform that changes
 image bytes must produce new content identity and an explicit parent mapping;
-it must preserve historical provenance and record its parameters/version. Group
+it must preserve historical provenance and record its parameters/version. Integration
 interfaces must not overwrite original images or claim old embeddings describe
-transformed pixels. Concrete schemas await agreement with the other contributors.
+transformed pixels. Concrete schemas await agreement with external components.
 
 ## Package and dependency boundaries
 
@@ -244,4 +245,4 @@ and tracking extras remain absent. Synthetic CI includes the reduction extra.
 
 The data manifest currently uses some private inventory helpers within the data
 layer. This coupling is documented technical debt; no broad package refactor was
-needed to align the research methodology.
+needed for the current pipeline.

@@ -1,8 +1,8 @@
 # Protocolo preespecificado de comparación del detector
 
 Fecha de definición: 2026-09-16, antes de cualquier entrenamiento del detector
-en esta fase. La propuesta íntegra no está disponible en el repositorio y no
-existe una arquitectura previamente configurada. Se adopta **YOLO11n**, una sola
+en esta fase. Al definir el protocolo no existía una arquitectura previamente
+configurada. Se adopta **YOLO11n**, una sola
 arquitectura, por la preferencia explícita del proyecto y el presupuesto del
 portátil. No se comparan arquitecturas ni se modifica el preprocessing original.
 
@@ -15,6 +15,8 @@ y correlación residual; **no identifican un efecto causal del leakage**.
 No se presupone una dirección de cambio ni se selecciona una métrica posterior.
 
 ## Selección previa al detector
+
+Referencias: **C10 — DINOv2 / PaCMAP / DBSCAN**; **C12 — DINOv2 / t-SNE / HDBSCAN**; **C01 — CLIP / original L2 / OPTICS**.
 
 Se revisan C01/C05/C07/C09/C10/C12 del frente de splitting existente, sin
 reoptimizar asignaciones. C10 se conserva como candidato visual principal.
@@ -48,6 +50,8 @@ Se verifica identidad/checksums/invariantes de los 66 splits de origen. No
 cambia ninguna asignación después de observar métricas del detector.
 
 ## Matriz y métricas
+
+Referencias: **C10 — DINOv2 / PaCMAP / DBSCAN**; **C12 — DINOv2 / t-SNE / HDBSCAN**.
 
 Diseño objetivo: historical × detector seeds 42/43/44; random_content, C10 y C12
 × split seeds 0/1/2/3/4 × detector seeds 42/43/44: **48 celdas independientes**.

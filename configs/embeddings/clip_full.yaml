@@ -1,4 +1,4 @@
-# Week-6 representation: full content-level CLIP ViT-B/32, independently of DINOv2.
+# Full representation: full content-level CLIP ViT-B/32, independently of DINOv2.
 # Pin the complete cached snapshot, not the separate model-conversion PR snapshot.
 extractor: clip
 model_id: openai/clip-vit-base-patch32

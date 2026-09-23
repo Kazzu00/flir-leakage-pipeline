@@ -335,7 +335,7 @@ def build_bundle(workspace: Path, manifest_path: Path, data_root: Path, cluster:
             "Streamlit conserva la inspección detallada, playback, timelines, gaps y comparación de particiones. "
             "Usa los mismos IDs de experimento y cluster en ambas herramientas.\n\n"
             f"## Attribution\n[VIKUS Viewer](https://github.com/cpietsch/vikus-viewer), Christopher Pietsch y colaboradores. "
-            f"MIT; commit {COMMIT}. Licencia íntegra en LICENSE.md. Adaptaciones locales documentadas en docs/vikus_explorer.md.\n")
+            f"MIT; commit {COMMIT}. Licencia íntegra en LICENSE.md. Adaptaciones locales documentadas en docs/visualization/vikus.md.\n")
     (destination / "data/info.md").write_text(info, encoding="utf-8")
     assets = create_images(destination, table, manifest, data_root)
     if any(sha256(p) != checksum for p, checksum in {**before, **archive_hashes}.items()):

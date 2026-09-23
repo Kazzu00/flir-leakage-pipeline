@@ -45,7 +45,7 @@ def main() -> None:
     executed = review/"clustering_review.executed.ipynb"
     nbformat.write(notebook, executed)
     exporter = HTMLExporter(template_name="lab", exclude_input=True, exclude_input_prompt=True, exclude_output_prompt=True)
-    body, _ = exporter.from_notebook_node(notebook, resources={"metadata": {"name": "FLIR Density-Based Clustering — Progress Review"}})
+    body, _ = exporter.from_notebook_node(notebook, resources={"metadata": {"name": "FLIR Density-Based Clustering — Project Report"}})
     html = review/"clustering_review.html"
     html.write_text(body, encoding="utf-8")
     metadata = read_json(REPORT_DIR/"report_metadata.json")

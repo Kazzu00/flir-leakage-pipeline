@@ -1,7 +1,7 @@
 # Design decisions
 
-These decisions describe the current implementation and the supplied thesis
-methodology. Later sections record the executed similarity/reduction extensions.
+These decisions describe the current implementation and experimental protocols.
+Later sections record the executed similarity/reduction extensions.
 Clustering and splitting have executed experiments. Detector infrastructure and
 four small CPU pilots are validated; the final controlled detector experiment
 remains pending. Earlier dated decisions retain their original scope.
@@ -63,15 +63,15 @@ compatibility claim. It never substitutes for SHA256 exact-content identity.
 
 Each extractor has separate model, preprocessing, pooling and feature-space
 metadata. Do not concatenate their embeddings automatically. The selected full
-closure models are DINOv2-small (384D) and CLIP ViT-B/32 (512D), validated on all
+extraction models are DINOv2-small (384D) and CLIP ViT-B/32 (512D), validated on all
 1459 contents. Existing research configs nominate larger candidates and remain
 unexecuted; they do not supersede this bounded model choice.
 
 ## 8. Conditional Bhattacharyya and committed reductions
 
 Bhattacharyya distance requires an explicitly defined distributional representation.
-No such representation has been selected; implementation is deferred. The proposal
-commits to t-SNE and PaCMAP. UMAP is outside that experiment and its unused
+No such representation has been selected; implementation is deferred. The primary protocol
+uses t-SNE and PaCMAP. UMAP is outside that experiment and its unused
 dependency has been removed without replacing it with new techniques.
 
 ## 9. Model revisions and Hugging Face provenance
@@ -102,7 +102,7 @@ New metadata fields have distinct meanings:
 `require_resolved_revision: true` in research configs rejects unresolved loads.
 Smoke configs allow unresolved metadata with a warning. The optional Transformers
 attribute is isolated in a helper and tested with offline stand-ins for both
-adapters. The later week 6 closure also validated real N=16 loads and complete extractions
+adapters. Full extraction validation also covered real N=16 loads and complete extractions
 with pinned revisions, resolving both SHAs from the loaded config in offline mode.
 
 Previously validated smoke artifacts record `unknown`. They remain unchanged and
@@ -162,7 +162,7 @@ This auditable candidate rule is not an embedding-similarity experiment or proof
 of leakage for distinct contents. The retained historical mapping is a data
 baseline, not an executed detector baseline.
 
-A full closure additionally compares record/content mappings to the canonical
+Full coverage verification additionally compares record/content mappings to the canonical
 manifest and requires resolved revision metadata. Equal numerical embeddings for
 different contents are permitted. Full numerical validity does not establish
 semantic quality, clustering structure or detector improvement.
@@ -173,7 +173,7 @@ The original YAML explicitly maps IDs 0–4 to vehicle/building/road/river/SDZI.
 Canonical display names follow the publication order confirmed by the project
 owner on 2026-09-13; `SDZI` remains the original label for Heavy Machinery (4).
 This is order correspondence, not a demonstrated expansion of the source term.
-The exact bibliography remains pending; see [evidence and limits](dataset_classes.md).
+The exact bibliography remains pending; see [evidence and limits](analysis/dataset_classes.md).
 One immutable catalog supplies report, plot and manifest-summary names.
 The generic YOLO parser does not impose the five-class ontology.
 
@@ -187,7 +187,7 @@ explicitly count geometry exclusions for invalid labels. No label is repaired.
 
 ## 14. Content-level cosine and posterior provenance
 
-Week 9 uses existing float32 L2 vectors without silent normalization, clipping or
+Cosine analysis uses existing float32 L2 vectors without silent normalization, clipping or
 diagonal replacement. A full matrix is small enough at the current 1459-content
 scale. All-pair statistics use i<j, while top-k tables contain directed edges.
 Identical vectors from different contents remain eligible neighbors. Self exclusion
@@ -261,7 +261,7 @@ claims. Seed comparisons use neighbor-set Jaccard, not raw coordinate difference
 
 ## 17. Predeclared exploratory references and interpretation
 
-The [protocol](reduction_protocol.md) fixes three configurations per method and
+The [protocol](protocols/reduction.md) fixes three configurations per method and
 three seeds, then a Pareto/mean-rank rule over T, C, Jaccard, stability and Spearman.
 The last criterion has one fifth of the rank weight, with no primacy. Criteria
 are correlated; this rule is explicit and exploratory, not a validated objective
@@ -278,9 +278,9 @@ coherence, noise and original-space relationships in the next phase.
 
 ## 18. Density clustering controls, geometry and identity
 
-Week 10 executes the [density protocol](clustering_protocol.md) on unique
+Clustering executes the [density protocol](protocols/clustering.md) on unique
 contents: original DINOv2/CLIP L2 controls and the four selected 2D reductions.
-Original controls are ablations, preserving t-SNE/PaCMAP in the proposal path.
+Original controls are ablations, preserving t-SNE/PaCMAP in the primary reduction path.
 Euclidean on unit embeddings preserves cosine neighbor order through
 d²=2(1−cos), subject to numerical ties. No renormalization or coordinate z-score
 is introduced. Nonlinear density remains representation-dependent.
@@ -334,7 +334,7 @@ residual-correlation measurements and review of groups of different sizes.
 
 ## 20. Atomic record-weighted partition construction
 
-The subsequent [splitting protocol](splitting_protocol.md) preserves every exact
+The subsequent [splitting protocol](protocols/splitting.md) preserves every exact
 content and each selected nonnegative cluster as an indivisible unit. Noise keeps
 cluster_id=-1 with distinct singleton group IDs. Historical membership supplies
 aggregate target ratios only; all new memberships are independently constructed.
@@ -351,6 +351,8 @@ The five-seed content-permutation baseline balances sizes but not classes, an
 explicit confound for attributing downstream differences solely to grouping.
 
 ## 21. Residual evaluation and robust candidate selection
+
+Referencias: **C10 — DINOv2 / PaCMAP / DBSCAN**; **C01 — CLIP / original L2 / OPTICS**.
 
 Original matrices and neighbor tables of both encoders evaluate every partition,
 irrespective of its clustering encoder. Unique-content NN excludes self, even for
@@ -375,6 +377,8 @@ held-out dataset. Detector generalization and real temporal validation remain
 separate hypotheses and pending experimental stages.
 
 ## 31. Detector controls and a measured laptop budget
+
+Referencias: **C10 — DINOv2 / PaCMAP / DBSCAN**; **C12 — DINOv2 / t-SNE / HDBSCAN**; **C01 — CLIP / original L2 / OPTICS**.
 
 The detector candidate review keeps C10 primary and selects C12 through explicit
 cross-seed constraints, before YOLO. C01 remains a descriptive balance ablation.
@@ -403,7 +407,7 @@ Filename consensus controls playback ordering. Distinct sequences and unknown
 provenance cannot be silently concatenated. Gap cuts and bounded GIF pages are
 display segments only; requested playback FPS is not a dataset property.
 
-Progress review now renders saved median/Q1/Q3 per pre-existing inferred-index
+The consolidated project report renders saved median/Q1/Q3 per pre-existing inferred-index
 bin. All seven positive-gap bins have support (1438–398800 pairs per bin in the
 current artifacts); no bin merging or trend-driven boundaries were needed.
 The empty zero-gap bin has count zero and is omitted; future populated zero gaps

@@ -1,4 +1,4 @@
-# Week-6 representation: full content-level DINOv2-small, independently of CLIP.
+# Full representation: full content-level DINOv2-small, independently of CLIP.
 # Same config for a validation run with --limit-content 16 and a separate root.
 extractor: dinov2
 model_id: facebook/dinov2-small
