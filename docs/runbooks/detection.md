@@ -127,3 +127,31 @@ El notebook fuente está limpio. El HTML y notebook ejecutado viven en
 Mientras no exista una matriz final completa y controlada, ocho paneles de
 métricas muestran **pendiente**, sin ceros ficticios ni métricas del piloto.
 La figura de correlación residual usa resultados reales anteriores al detector.
+
+## Detector y similitud residual
+
+```powershell
+uv run --extra explorer streamlit run apps/detector_similarity_explorer.py
+uv run --extra reporting python scripts/build_detector_review.py
+```
+
+La [aplicación separada](../visualization/detector_similarity.md) lee evidencia
+local cada 30 segundos. Si el puerto del explorador de clusters está ocupado,
+añadir `--server.port 8502`. Sin plan válido muestra evidencia no disponible;
+con la matriz incompleta muestra PENDING/PARTIAL y nunca métricas de pilotos.
+
+El builder conserva el nombre de figura 09 y los reportes previos. Genera:
+
+- `tables/experiment_matrix.csv`: las 48 celdas y su estado/identidad.
+- `tables/split_context.csv`: los 16 contextos, con fracciones opcionales verificadas.
+- `tables/prespecified_associations.csv`: siete especificaciones, estado y número
+  de runs con ambos valores definidos; cero no significa performance igual a cero.
+- Solo en COMPLETE: `tables/detector_residual_associations.csv`, una fila por
+  run × clase/overall, y `tables/strategy_summary.csv`, además de los agregados previos.
+
+Si una reconstrucción queda incompleta, se retiran únicamente los CSV científicos
+generados por el reporte anterior para impedir su lectura como resultados actuales.
+Los artefactos originales de runs/splits nunca se modifican. Revisar INVALID antes
+de continuar: splits/contextos discordantes, duplicados, checksums y diferencias
+de protocolo bloquean la tabla científica. RUNNING refleja un estado guardado,
+no una conexión ni una comprobación de actividad de la máquina de entrenamiento.

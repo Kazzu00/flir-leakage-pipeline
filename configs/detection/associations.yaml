@@ -1,0 +1,48 @@
+# Declared before the controlled detector matrix has any completed runs.
+# This registry describes views; it does not change the frozen detector protocol.
+protocol: detector_residual_associations_v1
+declared_at: '2026-09-23'
+policy: descriptive_association_not_causality
+associations:
+  - association_id: primary_dinov2
+    category: PRIMARY
+    detector_metric: map50_95
+    residual_metric: dinov2_nn_mean
+    population: overall
+    class_id: -1
+  - association_id: primary_clip
+    category: PRIMARY
+    detector_metric: map50_95
+    residual_metric: clip_nn_mean
+    population: overall
+    class_id: -1
+  - association_id: extreme_dinov2
+    category: EXTREME_VISUAL
+    detector_metric: map50_95
+    residual_metric: dinov2_top001_pairs
+    population: overall
+    class_id: -1
+  - association_id: extreme_clip
+    category: EXTREME_VISUAL
+    detector_metric: map50_95
+    residual_metric: clip_top001_pairs
+    population: overall
+    class_id: -1
+  - association_id: temporal_at5
+    category: TEMPORAL
+    detector_metric: map50_95
+    residual_metric: temporal_at5
+    population: overall
+    class_id: -1
+  - association_id: domain_dinov2
+    category: DOMAIN
+    detector_metric: recall
+    residual_metric: dinov2_nn_mean
+    population: class
+    class_id: 4
+  - association_id: domain_clip
+    category: DOMAIN
+    detector_metric: recall
+    residual_metric: clip_nn_mean
+    population: class
+    class_id: 4

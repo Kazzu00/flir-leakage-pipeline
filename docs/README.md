@@ -27,6 +27,8 @@ pending work. Commands assume the repository root; real artifacts remain local.
 [Streamlit](visualization/streamlit.md) and [VIKUS](visualization/vikus.md) document
 installation, launch, privacy, source joins and display limitations.
 The [explorer runbook](runbooks/explorers.md) helps choose an interface;
+the [detector/residual explorer](visualization/detector_similarity.md) inspects
+controlled runs and the experiment matrix separately from image-level tools;
 the [consolidated project report](runbooks/project_report.md) maps its evidence.
 
 The [configuration catalog](../configs/README.md) separates executed settings,

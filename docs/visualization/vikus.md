@@ -1,5 +1,10 @@
 # VIKUS: inspección local de Scene / Cluster
 
+VIKUS conserva la inspección a nivel de imagen/escena/cluster/split. Las métricas
+del detector se exploran a nivel de run en el
+[Streamlit Detector & Residual Similarity Explorer](detector_similarity.md);
+no se incorporan a los bundles VIKUS.
+
 VIKUS complementa la inspección del proyecto con un canvas WebGL de imágenes,
 zoom y filtros por dimensiones. Permite comparar la apariencia de los grupos
 y recorrer una proyección existente como colección visual. Cada elemento es

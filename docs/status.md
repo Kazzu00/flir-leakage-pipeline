@@ -20,6 +20,7 @@ incertidumbre interpretativa; **Pending compute**, una ejecución completa pendi
 | Splitting y baselines | Validated with limitations | 66 runs; 65 nuevos sin overlap exacto; 60 cluster-aware sin fracturas; seis Pareto |
 | Streamlit / VIKUS | Available | Inspección local; no valida escenas automáticamente |
 | Detector YOLO11n | Available; small pilots validated | 16 vistas y cuatro pilotos CPU; no comparación científica final |
+| Detector ↔ residual similarity | Available; PENDING | Registro de siete asociaciones, figura 09 y explorador local; 0/48 runs controlados, pilotos excluidos |
 | Comparación completa del detector | Pending compute | Stage A/B y 48 runs objetivo aún no ejecutados |
 | Bhattacharyya | Planned / conditional | Requiere una representación distribucional explícita |
 

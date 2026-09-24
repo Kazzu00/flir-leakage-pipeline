@@ -64,6 +64,8 @@ src/flir_pipeline/
     visualization.py       nine aggregate figures and local review tables
     cli.py                 lazy construction/evaluation/verification commands
   detection/
+    association.py         evidence-gated run/split joins, matrix and descriptive summaries
+    association_plot.py    predeclared scatter panels or explicit pending state
     protocol.py            pre-YOLO constraints, immutable plan and matrix identities
     materialization.py     occurrence-preserving byte-checked generated views
     runtime.py             optional YOLO, hardware/batch probe, pilot, gate/resume
@@ -226,6 +228,12 @@ interfaces must not overwrite original images or claim old embeddings describe
 transformed pixels. Concrete schemas await agreement with external components.
 
 ## Package and dependency boundaries
+
+`apps/detector_similarity_explorer.py` is a separate optional Streamlit application
+over the detector association layer. It reads frozen context and verified local
+runs; it never invokes training or changes split assignments. Scientific tables
+and scatters require the full controlled matrix. Small pilots stay excluded.
+The association registry is versioned separately from the immutable training plan.
 
 CLI imports heavy components inside implemented commands. Importing the package
 or requesting help does not download models. Core includes NumPy, pandas, Pillow,

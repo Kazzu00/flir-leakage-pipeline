@@ -10,13 +10,19 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from flir_pipeline.detection.metrics import aggregate_runs
-from flir_pipeline.detection.protocol import METRICS, experiment_matrix, verify_plan
-from flir_pipeline.detection.runtime import fair_comparison, verify_run
+from flir_pipeline.detection.association import (
+    COLORS,
+    DEFAULT_CONFIG,
+    STRATEGIES,
+    load_evidence,
+    load_registry,
+    prespecified_table,
+    strategy_summaries,
+)
+from flir_pipeline.detection.association_plot import association_figure
+from flir_pipeline.detection.protocol import METRICS, verify_plan
 from flir_pipeline.similarity.storage import file_sha256, read_json, write_json
 
-STRATEGIES = ["historical", "random_content", "C10", "C12"]
-COLORS = ["#7d8597", "#e0a526", "#137c8b", "#6943a5"]
 FIGURES = ["01_split_correlation_context", "02_map50_95_by_strategy", "03_map50_by_strategy",
            "04_precision_recall_by_strategy", "05_heavy_machinery_metrics", "06_per_class_map",
            "07_training_seed_variability", "08_split_seed_variability", "09_metrics_vs_residual_similarity"]
@@ -26,60 +32,46 @@ TITLES = ["Correlación residual antes de entrenar", "mAP@50–95 por estrategia
 
 
 def collect_results(plan_directory: Path, artifacts: Path) -> tuple[pd.DataFrame, dict]:
-    plan = verify_plan(plan_directory)
-    matrix = experiment_matrix(plan["identity"]["splits"], plan["identity"]["config"]["training_seeds"])
-    lookup = {s["split_space_id"]: s for s in plan["identity"]["splits"]}
-    freeze_path = plan_directory/"runtime_freeze.json"
-    if not freeze_path.exists():
-        return pd.DataFrame(), {"controlled": False, "completed_runs": 0, "expected_runs": len(matrix), "errors": ["runtime_not_frozen"]}
-    freeze = read_json(freeze_path)
-    metas, rows = [], []
-    for meta_path in sorted((artifacts/"runs").glob("*/metadata.json")):
-        meta = read_json(meta_path)
-        if meta["plan_id"] != plan["plan_id"]:
-            continue
-        split = lookup[meta["identity"]["split_space_id"]]
-        meta = verify_run(meta_path.parent, split, freeze)
-        metas.append(meta)
-        common = {"detector_run_id": meta["detector_run_id"], "strategy": meta["strategy"], "split_seed": meta["split_seed"],
-                  "detector_seed": meta["detector_seed"], **meta["context"]}
-        intervals = read_json(meta_path.parent/"bootstrap.json")["intervals"]
-        ci_columns = {}
-        for interval in intervals:
-            target = ci_columns.setdefault(interval["class_id"], {})
-            target.update({f"{interval['metric']}_ci_{key}": interval[key] for key in ("lower", "upper", "valid_resamples")})
-        overall = read_json(meta_path.parent/"metrics.json")["overall"]
-        rows.append({**common, "class_id": -1, "class_name": "Overall", "support": overall["instance_count"], **{m: overall[m] for m in METRICS}, **ci_columns[-1]})
-        classes = pd.read_parquet(meta_path.parent/"metrics_per_class.parquet")
-        rows.extend({**common, **r, **ci_columns[r["class_id"]]} for r in classes.to_dict("records"))
-    return pd.DataFrame(rows), fair_comparison(metas, matrix)
+    """Compatibility wrapper; partial/pilot rows are never scientific results."""
+    evidence = load_evidence(plan_directory, artifacts)
+    return evidence.associations, evidence.fairness
 
 
-def generate_report(plan_directory: Path, artifacts: Path, output: Path) -> dict:
+def generate_report(plan_directory: Path, artifacts: Path, output: Path,
+                    association_config: Path = DEFAULT_CONFIG) -> dict:
     plan = verify_plan(plan_directory)
     output.mkdir(parents=True, exist_ok=True)
     figures = output/"figures"
     tables = output/"tables"
     figures.mkdir(exist_ok=True)
     tables.mkdir(exist_ok=True)
-    context = pd.DataFrame([{"strategy": s["strategy"], "split_seed": s["split_seed"], "split_space_id": s["split_space_id"], **s["context"]}
-                            for s in plan["identity"]["splits"]])
+    evidence = load_evidence(plan_directory, artifacts, split_root=artifacts.parent/"splitting/runs")
+    registry = load_registry(association_config)
+    context = evidence.context
     context.to_csv(tables/"split_context.csv", index=False)
+    evidence.matrix.to_csv(tables/"experiment_matrix.csv", index=False)
+    prespecified_table(evidence, registry).to_csv(tables/"prespecified_associations.csv", index=False)
     audit = pd.read_csv(plan_directory/"candidate_audit.csv")
     audit.to_csv(tables/"candidate_audit.csv", index=False)
-    results, fairness = collect_results(plan_directory, artifacts)
+    results, fairness = evidence.associations, evidence.fairness
     pilot_rows = []
     for p in sorted((artifacts/"small_pilot").glob("*/pilot.json")):
         receipt = read_json(p)
         pilot_rows.append({k: receipt[k] for k in ("strategy", "state", "training_seconds", "evaluation_bootstrap_seconds", "batch", "image_size", "epochs_completed", "estimated_full_training_hours", "scientific_result")})
     pd.DataFrame(pilot_rows).to_csv(tables/"pilot_validation.csv", index=False)
-    aggregate = {}
-    if len(results):
+    aggregate = strategy_summaries(evidence)
+    scientific_files = ("run_metrics", "detector_residual_associations", "strategy_summary", "training_seed_summary",
+                        "split_seed_summary", "effect_sizes", "hierarchical_metrics")
+    if evidence.complete:
         results.to_csv(tables/"run_metrics.csv", index=False)
-        if fairness["controlled"]:
-            aggregate = aggregate_runs(results)
-            for name, table in aggregate.items():
-                table.to_csv(tables/f"{name}.csv", index=False)
+        results.to_csv(tables/"detector_residual_associations.csv", index=False)
+        for name, table in aggregate.items():
+            table.to_csv(tables/f"{name}.csv", index=False)
+    else:
+        # Only redundant generated tables are removed, so an older complete report
+        # cannot leak stale performance into a now-incomplete notebook build.
+        for name in scientific_files:
+            (tables/f"{name}.csv").unlink(missing_ok=True)
     plt.rcParams.update({"font.size": 10, "axes.spines.top": False, "axes.spines.right": False, "figure.facecolor": "white"})
     fig, axs = plt.subplots(2, 3, figsize=(13, 7))
     cols = ["exact_duplicate_cross_split_count", "dinov2_top001_pairs", "clip_top001_pairs", "dinov2_nn_mean", "temporal_at5", "class_deviation_pp"]
@@ -93,7 +85,7 @@ def generate_report(plan_directory: Path, artifacts: Path, output: Path) -> dict
     fig.tight_layout()
     fig.savefig(figures/f"{FIGURES[0]}.png", dpi=150)
     plt.close(fig)
-    for i in range(1, 9):
+    for i in range(1, 8):
         fig, ax = plt.subplots(figsize=(11, 5))
         if not fairness["controlled"]:
             ax.axis("off")
@@ -133,18 +125,20 @@ def generate_report(plan_directory: Path, artifacts: Path, output: Path) -> dict
                     ax.plot(part.split_seed, part["mean"], "o-", color=color, label=s)
                 ax.set(xlabel="Split seed", ylabel="Media mAP@50–95 entre detector seeds")
                 ax.legend()
-            else:
-                for s, color in zip(STRATEGIES, COLORS, strict=True):
-                    part = overall.loc[overall.strategy == s]
-                    ax.scatter(part.dinov2_nn_mean, part.map50_95, color=color, label=s)
-                ax.set(xlabel="NN DINOv2 residual medio", ylabel="mAP@50–95")
-                ax.legend()
             ax.set_title(TITLES[i])
         fig.tight_layout()
         fig.savefig(figures/f"{FIGURES[i]}.png", dpi=150)
         plt.close(fig)
+    fig = association_figure(evidence, registry)
+    fig.savefig(figures/f"{FIGURES[8]}.png", dpi=150)
+    plt.close(fig)
     metadata = {"plan_id": plan["plan_id"], "fair_comparison": fairness, "small_pilot_count": len(pilot_rows),
                 "scientific_state": "COMPLETE_CONTROLLED_COMPARISON" if fairness["controlled"] else "PENDING_FINAL_EXPERIMENT",
+                "association_state": evidence.state,
+                "association_config_sha256": file_sha256(association_config),
+                "association_rows": len(evidence.associations),
+                "excluded_small_pilots": evidence.excluded_pilots,
+                "association_issues": evidence.issues,
                 "figure_policy": "Pending panels contain no invented metric values; small pilot metrics excluded from scientific comparison.",
                 "plan_sha256": file_sha256(plan_directory/"plan.json"),
                 "output_sha256": {p.relative_to(output).as_posix(): file_sha256(p) for p in [*figures.glob("*.png"), *tables.glob("*.csv")]}}

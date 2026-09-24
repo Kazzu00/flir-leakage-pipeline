@@ -42,6 +42,11 @@ No UMAP experiments are configured. `detection/yolo11n.yaml` predefines a single
 controlled detector configuration and target matrix; batch is chosen by a
 hardware probe and frozen before real training. CPU Stage B is never automatic.
 
+`detection/associations.yaml` predeclares seven descriptive detector/residual
+views before controlled results exist. It does not change `yolo11n.yaml` or the
+frozen training plan. Other interactive metric/class combinations are exploratory;
+scientific tables and plots require the complete controlled matrix.
+
 `splits/random_baseline.yaml` defines the content-level random baseline with
 seeds 0–4. `splits/cluster_aware_research.yaml` defines singleton noise, five
 assignment seeds and deterministic SciPy MILP limits. Both derive target record

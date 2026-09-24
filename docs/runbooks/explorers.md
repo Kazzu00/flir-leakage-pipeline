@@ -8,6 +8,7 @@ fits models, recomputes metrics or creates new partitions.
 |---|---|
 | Detailed galleries, comparisons, timelines, gaps and reconstructed playback | [Streamlit](../visualization/streamlit.md) |
 | Global collection, cluster/sequence/split filters and saved PaCMAP layouts | [VIKUS](../visualization/vikus.md) |
+| Controlled detector run matrix, frozen residual context and gated associations | [Detector & Residual Similarity](../visualization/detector_similarity.md) |
 
 Run from the repository root:
 

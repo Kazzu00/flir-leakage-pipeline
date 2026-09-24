@@ -163,6 +163,46 @@ Todos estos artifacts son locales e ignorados. El chequeo de comparación exige
 la matriz completa y los mismos controles; outputs parciales nunca certifican
 una comparación controlada completa.
 
+## Asociaciones preespecificadas con contexto residual
+
+Registro versionado: [`configs/detection/associations.yaml`](../../configs/detection/associations.yaml),
+declarado el 2026-09-23 con **0/48 runs controlados completos**. No altera plan,
+splits, seeds, endpoint primario, hiperparámetros ni bootstrap. Sus siete vistas
+quedan fijadas antes de disponer de resultados finales:
+
+| Grupo | Población / métrica detector | Contexto residual |
+|---|---|---|
+| PRIMARY | Macro de cinco clases mAP@50–95 | NN medio DINOv2; NN medio CLIP |
+| EXTREME_VISUAL | Macro de cinco clases mAP@50–95 | Conteo de pares top-0.1% DINOv2; conteo CLIP |
+| TEMPORAL | Macro de cinco clases mAP@50–95 | Fracción temporal inferida Δ≤5 |
+| DOMAIN | Heavy Machinery (class_id=4), Recall | NN medio DINOv2; NN medio CLIP |
+
+Cada punto corresponde a un detector_run_id real y conserva split_space_id,
+strategy, split_seed, detector_seed y class_id/name. La unión exige identidad,
+configuración, dataset y contexto coincidentes con el plan/freeze y verificación
+del run contra sus fuentes. Pilotos pequeños, runs duplicados o incompatibles no
+son observaciones científicas. Los estados PENDING/PARTIAL solo publican progreso,
+matriz y contexto previo; COMPLETE_CONTROLLED_COMPARISON requiere toda la matriz.
+
+Los residuales se copian del contexto congelado. Fracciones top-0.1% opcionales
+se leen de cohortes guardadas ligadas por hashes al split; nunca se reconstruyen
+thresholds ni se calcula similarity desde detections. Valores ausentes permanecen
+missing. Una clase sin soporte conserva métricas undefined; la convención previa
+de cero para clase presente sin predicciones no cambia.
+
+El análisis es descriptivo: scatter sin regresión, p-values, significance stars,
+Pearson/Spearman como conclusión principal ni estimación causal. **Asociación ≠
+causalidad**: las estrategias cambian los ejemplos de test, composición y dificultad;
+la similitud residual no es una variable experimental aislada. Distintas detector
+seeds del mismo split comparten contexto; no son réplicas independientes de split.
+
+La interfaz etiqueta otras combinaciones como EXPLORATORY VIEW; no se amplía el
+registro automáticamente después de observar resultados. Los resúmenes distinguen
+variación entre detector seeds y entre split seeds, sin elegir un ganador ni
+promediar silenciosamente puntos. La figura 09 reserva A–E para las cinco vistas
+macro y F para Heavy Machinery, con dos subpaneles por encoder. El reporte registra
+el SHA256 del registro utilizado; los CSV científicos solo existen al abrirse el gate.
+
 ## Fuentes de la integración
 
 - [YOLO11, documentación oficial](https://docs.ultralytics.com/models/yolo11/).

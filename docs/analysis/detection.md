@@ -1,5 +1,26 @@
 # Detector: auditoría de candidatos y piloto observado
 
+## Detector y contexto residual: infraestructura disponible
+
+La capa `detection/association.py` y el
+[explorador local](../visualization/detector_similarity.md) unen runs controlados
+con el contexto residual congelado. El estado observado al implementar esta capa
+es **PENDING: 0/48 controlled runs**, con 16 contextos y cuatro small pilots
+excluidos. Esto acredita infraestructura; no añade resultados científicos.
+
+La figura `09_metrics_vs_residual_similarity` conserva su nombre y muestra
+PENDING COMPUTE junto al registro de siete asociaciones. Solo una matriz completa
+y controlada permite publicar puntos o tablas de asociación. Las combinaciones
+preespecificadas están en el [protocolo](../protocols/detection.md#asociaciones-preespecificadas-con-contexto-residual).
+
+Asociación ≠ causalidad: los ejemplos de test, composición y dificultad cambian;
+la similitud residual no se manipula de forma aislada. No se añade regresión,
+significancia estadística, ranking de estrategias ni interpretación de los
+pilotos como performance científica. Las tablas del análisis siguiente conservan
+sus resultados anteriores.
+
+## Alcance de los pilotos registrados
+
 Esta fase acredita infraestructura y **cuatro pilotos pequeños en CPU**.
 No acredita Stage A completo, Stage B, un detector final ni diferencias de
 generalización entre estrategias. La decisión de detener el protocolo largo

@@ -116,6 +116,14 @@ Playback FPS controls display only; there are no verified timestamps.
 The first VIKUS build downloads a checksum-pinned runtime; cached builds support
 `--offline`. Image bundles remain private and local.
 
+The separate [Detector & Residual Similarity Explorer](docs/visualization/detector_similarity.md)
+shows the 48-cell experiment matrix and frozen residual context now. Run-level
+scatters activate only after the complete controlled comparison; pilots are excluded.
+
+```powershell
+uv run --extra explorer streamlit run apps/detector_similarity_explorer.py
+```
+
 ## Data and artifacts
 
 Original ZIPs live outside Git under `FLIR_DATA_ROOT` and remain read-only.

@@ -1,5 +1,9 @@
 # FLIR Cluster & Split Explorer
 
+For run-level detector/residual associations, use the separate
+[Detector & Residual Similarity Explorer](detector_similarity.md). This interface
+retains image-level cluster/split inspection and playback.
+
 Herramienta local de **inspección humana en modo lectura**. Abre clustering runs,
 asignaciones y resúmenes existentes. No ejecuta modelos, similitud, reducción,
 clustering, optimización de splits ni detección. La inspección no acredita una

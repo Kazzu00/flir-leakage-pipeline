@@ -24,6 +24,7 @@ and ignored. Execution state is recorded separately in [status](status.md).
 | Fixed partition selection and detector config | `detection/protocol.py`, `materialization.py` | Plan/matrix identity, occurrence-preserving byte-checked views | Frozen detector runtime |
 | Views, fixed weights/config and hardware probe | `detection/runtime.py` | Runtime freeze, pilot/checkpoint metadata; complete runs remain pending | Detector metrics and reporting |
 | Detector image statistics | `detection/metrics.py`, `reporting.py` | Fixed-threshold P/R, AP, image bootstrap and gated aggregate report | Controlled comparison; final matrix pending compute |
+| Verified controlled runs and frozen split context | `detection/association.py`, `association_plot.py` | Run × class/overall table, prespecified registry status, 48-cell matrix and gated figure 09 | Separate detector/residual Streamlit app and detector report |
 | Existing tables, figures and validation receipts | `scripts/build_*_review.py`, seven source notebooks | Local HTML/executed notebooks and build receipts | Component reviews and consolidated project report |
 
 ## Identity and source binding
