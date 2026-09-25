@@ -21,6 +21,7 @@ src/flir_pipeline/
   config.py                reserved validated path configuration
   data/
     inventory.py           archive structure, matching and exploratory lineage
+    video_frames.py        external FFmpeg/ffprobe sampling, relative grid and safe generated outputs
     manifest.py            canonical occurrences and label/duplicate reports
     identity.py            shared portable dataset_id
     yolo_labels.py         syntax, normalized coordinates, geometry, canonical boxes

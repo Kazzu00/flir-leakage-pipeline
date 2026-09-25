@@ -414,3 +414,26 @@ The empty zero-gap bin has count zero and is omitted; future populated zero gaps
 remain visible. Y axes are independent, and IQR describes pair dispersion,
 not a confidence interval. Original hexbins and scientific artifacts are retained.
 This iteration does not change candidates, metrics or experimental completion.
+
+## 33. Source-video sampling precedes sequence identification
+
+`data extract-video-frames` samples the first video stream with external
+FFmpeg/ffprobe, rebasing its first PTS to zero before a fixed FPS grid. Nominal
+sample time and a rounded FPS-based source-index estimate are explicit derived
+coordinates, not capture times or decoder indices. Missing reported properties
+stay null. Source-path IDs identify videos; a separate SHA256 binds their bytes.
+
+This is preparation infrastructure with synthetic tests only. The planned three
+source videos are not assumed to be three indivisible sequences. Subsequent
+visual/temporal analysis must identify the sequence units that future splits
+will preserve. Sampling creates neither those groups nor train/val/test and
+does not modify the historical experiment. Integration with content-level
+features requires a future occurrence/content manifest; repeated samples must
+not artificially increase density during clustering.
+
+Staging protects prior outputs against decoder failures. A completed summary
+and checksum-bound frame table authorize only named generated replacements;
+unmanaged files are preserved. A publication marker blocks reuse after an
+interruption during the non-atomic final promotion. See the
+[data runbook](runbooks/data.md#muestreo-reproducible-de-videos-fuente) for the
+single-writer boundary, temporal definitions and pending real validation.

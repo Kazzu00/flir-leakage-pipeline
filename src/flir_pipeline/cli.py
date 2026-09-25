@@ -70,6 +70,34 @@ def inventory(
     )
 
 
+@data_app.command("extract-video-frames")
+def extract_video_frames_command(
+    videos_root: Path = typer.Option(..., help="Read-only source video directory (recursive)."),
+    output_root: Path = typer.Option(..., help="Separate local frame/metadata directory."),
+    sample_fps: float = typer.Option(1.0, help="Positive sampling rate; grid starts at zero."),
+    ffmpeg_bin: Path = typer.Option(Path("ffmpeg"), help="FFmpeg executable or PATH name."),
+    ffprobe_bin: Path = typer.Option(Path("ffprobe"), help="ffprobe executable or PATH name."),
+    jpeg_quality: int = typer.Option(2, min=1, max=31, help="JPEG quantizer; lower means higher quality."),
+    overwrite: bool = typer.Option(False, "--overwrite/--no-overwrite", help="Replace only previously managed artifacts."),
+) -> None:
+    """Sample videos reproducibly; creates neither sequences nor train/val/test."""
+    from flir_pipeline.data.video_frames import VideoFramesError, extract_video_frames
+
+    try:
+        summary = extract_video_frames(
+            videos_root, output_root, sample_fps=sample_fps,
+            ffmpeg_bin=ffmpeg_bin, ffprobe_bin=ffprobe_bin,
+            jpeg_quality=jpeg_quality, overwrite=overwrite,
+        )
+    except (ValueError, OSError, VideoFramesError) as error:
+        typer.echo(f"Video frame extraction failed: {error}", err=True)
+        raise typer.Exit(1) from error
+    typer.echo(
+        f"Frames written to {output_root}: {summary['processed_videos']} videos, "
+        f"{summary['total_frames']} frames. Source videos remain read-only."
+    )
+
+
 @data_app.command("archive-tree")
 def archive_tree(archive_path: Path) -> None:
     """Print a normalized member tree for one ZIP without extracting it."""

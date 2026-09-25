@@ -37,6 +37,8 @@ See [inputs, outputs and execution order](docs/pipeline.md).
 ## Key capabilities
 
 - ZIP-safe audit, annotation QA and canonical occurrence/content identities.
+- Reproducible source-video sampling through external FFmpeg/ffprobe; synthetic
+  tests only, real extraction pending. See the [data runbook](docs/runbooks/data.md#muestreo-reproducible-de-videos-fuente).
 - Independent DINOv2 CLS and CLIP projected-image embeddings, raw/L2 stores,
   pinned model revisions and resumable extraction.
 - Content-level cosine similarity, neighborhoods and posterior temporal analysis.
@@ -84,7 +86,7 @@ Use `uv run flir-pipeline <namespace> --help` for options.
 
 | Namespace | Implemented commands |
 |---|---|
-| `data` | `inventory`, `archive-tree`, `compare-archives`, `build-manifest`, `validate-labels`, `manifest-summary` |
+| `data` | `inventory`, `extract-video-frames`, `archive-tree`, `compare-archives`, `build-manifest`, `validate-labels`, `manifest-summary` |
 | `features` | `extract`, `diagnostics`, `summary`, `verify`, `visualize-data`, `visualize-embeddings` |
 | `similarity` | `compute`, `summary`, `verify`, `compare` |
 | `reduction` | `run`, `benchmark`, `verify`, `summary` |

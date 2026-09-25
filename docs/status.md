@@ -10,6 +10,7 @@ incertidumbre interpretativa; **Pending compute**, una ejecución completa pendi
 | Componente | Estado | Evidencia y límites |
 |---|---|---|
 | Auditoría y manifest | Validated | 1657 frame_id, 1459 content_id, 198 grupos duplicados; ocho conflictos de anotación preservados |
+| Muestreo de videos fuente | Available; synthetic tests only | `data extract-video-frames`: JPEGs, grilla relativa y metadatos portables; extracción real y smoke con FFmpeg pendientes; no identifica secuencias ni define splits |
 | Caracterización y diagnostics | Validated | 4168 instancias canónicas, 292 labels vacíos, geometría por clase y 1459 diagnostics; huérfanos separados |
 | DINOv2 | Validated | Full 1459 × 384 CLS; raw/L2, revisión resuelta y 1657 mappings |
 | CLIP | Validated | Full 1459 × 512 projected-image; raw/L2, revisión resuelta y 1657 mappings |

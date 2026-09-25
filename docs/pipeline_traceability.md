@@ -6,6 +6,7 @@ and ignored. Execution state is recorded separately in [status](status.md).
 
 | Input | Process / implementation | Artifact and identity | Downstream consumer |
 |---|---|---|---|
+| External read-only source videos | `data/video_frames.py`, external FFmpeg/ffprobe | Sampled JPEGs, `frames.parquet`, `summary.json`; relative grid, path-based video ID and source checksum | Future occurrence/content manifest integration and sequence analysis; synthetic tests only, real extraction pending |
 | External image/label ZIPs | `data/inventory.py`, `yolo_labels.py`, `annotations.py`, `classes.py` | Inventories, label QA, class/instance tables, source hashes | Canonical manifest and data reports |
 | Matched historical occurrences | `data/manifest.py`, `identity.py`, `utils/hashing.py` | Manifest: `dataset_id`, `frame_id`, `content_id`, relative source provenance, `original_split` | Every stage |
 | Original names and occurrence lineage | `data/temporal.py` | Inferred sequence/index, confidence, temporal candidates; no verified timestamps | Posterior temporal analysis and display |
