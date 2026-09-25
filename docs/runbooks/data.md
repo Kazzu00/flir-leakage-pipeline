@@ -35,9 +35,11 @@ and [safety](../data_safety.md) for identity and privacy invariants.
 ## Muestreo reproducible de videos fuente
 
 `data extract-video-frames` implementa una etapa de **preparación** para los
-videos completos que se procesarán posteriormente en Hypatia. Su implementación
-y pruebas son sintéticas; **todavía no se ha ejecutado la extracción real ni un
-smoke test con FFmpeg**. No cambia `data inventory` ni requiere una nueva
+videos fuente. Además de las pruebas sintéticas, se confirmaron en **Hypatia**
+un smoke real con FFmpeg y la extracción completa del job **737719**:
+**3 videos → 9648 JPEGs a 1 FPS**, con validación operacional de sus metadatos.
+La [evidencia real](#evidencia-real-confirmada-en-hypatia) se registra abajo.
+No cambia `data inventory` ni requiere una nueva
 dependencia Python para video. FFmpeg y ffprobe son ejecutables externos; se
 requiere una versión de FFmpeg que soporte `-fps_mode` (5.1 o posterior).
 
@@ -173,18 +175,118 @@ para inspección y ejecutar en otra raíz. No se implementa checkpoint/resume;
 los temporales de un proceso terminado abruptamente no se reutilizan ni se
 borran en ejecuciones posteriores automáticamente.
 
+### Evidencia real confirmada en Hypatia
+
+Evidencia confirmada por el responsable del proyecto para la ejecución real de
+`data extract-video-frames` en **Hypatia, Universidad de los Andes**. Esta
+actualización registra el resultado recibido; no reejecuta la extracción.
+
+| Entorno / ejecución | Valor confirmado |
+|---|---|
+| Python | 3.11.10 |
+| FFmpeg / ffprobe | 9.0.2 / 9.0.2 |
+| SLURM batch job | 737719 |
+| State / ExitCode | COMPLETED / 0:0 |
+| Elapsed | 00:15:28 |
+| MaxRSS del batch | 175016K |
+| stderr | Vacío |
+
+Configuración: `sample_fps=1.0`, `jpeg_quality=2`, `autorotate=false`, `threads=1`.
+Filtro de muestreo registrado:
+
+```text
+setpts=PTS-STARTPTS,fps=fps=1.0:start_time=0:round=near:eof_action=pass
+```
+
+Los tres streams fuente reportaron códec **h264**:
+
+| Video fuente | Resolución | source_fps | source_duration_seconds | source_nb_frames | extracted_frames |
+|---|---|---|---|---|---|
+| `VideoCodefest_008-46min.avi` | 1280×720 | 30000/1001 ≈ 29.97003 | 2769.800367 | 83011 | 2770 |
+| `video30min-11to22.mp4` | 1920×1080 | 30 | 660.0 | 19800 | 660 |
+| `video_2hour.mp4` | 1280×720 | 30 | 6217.333333 | 186520 | 6218 |
+
+Resultado y comprobaciones confirmadas:
+
+- `processed_videos=3`, `total_frames=9648`.
+- `frames.parquet`: 9648 filas y 9648 `image_path` únicos.
+- Índices de muestra contiguos desde 0 en cada uno de los tres videos.
+- `timestamp_seconds` coherente con `sample_index / 1 FPS`.
+- Fuentes preservadas read-only.
+
+Previamente se ejecutó un **smoke real de 5 segundos** sobre una fuente de
+30 FPS y 150 frames fuente. La extracción a 1 FPS produjo 5 JPEGs, tiempos
+`0,1,2,3,4` y `source_frame_index_estimate=0,30,60,90,120`; se validaron
+`summary.json` y `frames.parquet`. Estos índices siguen siendo estimaciones
+nominales, no índices exactos del decoder ni tiempos reales de captura.
+
+La documentación versionada conserva esta evidencia agregada y portable.
+`summary.json` mantiene la procedencia exacta local, incluidos los SHA256;
+no se incorporan aquí hashes concretos ni rutas absolutas de Hypatia.
+Las 9648 rutas únicas **no demuestran 9648 contenidos visuales únicos**:
+el manifest occurrence/content y su deduplicación todavía no se han ejecutado
+en Hypatia. El puente `build-video-manifest` conserva validación sintética.
+
 ### Límite metodológico
 
 Muestrear frames **no equivale a identificar secuencias** y esta etapa **no crea
-train/val/test**. Los tres videos completos previstos son fuentes, no tres
+train/val/test**. Los tres videos procesados son fuentes, no tres
 secuencias ya validadas. La unidad que eventualmente deberá mantenerse íntegra
 entre particiones será la **secuencia visualmente relacionada**, que debe
 identificarse y evaluarse posteriormente; no se impone que sea el video completo
 ni el frame individual.
 
-La salida prepara una representación temporal muestreada para futuros embeddings
-CLIP/DINOv2, similitud y clustering. Todavía no adapta los JPEGs al manifest
-canónico histórico ni al lector de features basado en ZIP. Antes de integrarla
-deben definirse las ocurrencias del nuevo dataset, calcular `content_id` y
-deduplicar para extraer features/agrupar por contenido único. La alta correlación
-o repetición de frames muestreados no demuestra leakage sin evaluar particiones.
+La salida prepara una representación temporal muestreada. El puente siguiente
+define sus ocurrencias y contenidos exactos para reutilizar la extracción
+CLIP/DINOv2. La alta correlación o repetición de frames muestreados no demuestra
+leakage sin evaluar particiones.
+
+La ejecución real valida operacionalmente la extracción reproducible. No valida
+todavía identificación de secuencias, límites de escenas, embeddings de estas
+9648 muestras, clustering de estos videos, particiones, eliminación de leakage
+ni rendimiento del detector.
+
+## Manifest de ocurrencias muestreadas
+
+`data build-video-manifest` consume exactamente el `output-root` del muestreo.
+No requiere FFmpeg, videos originales ni modelos. Ejemplo posterior para Hypatia,
+**documentado, no ejecutado en esta tarea**:
+
+```bash
+uv run --no-sync flir-pipeline data build-video-manifest \
+  --frames-root /ruta/a/derivados/flir-frames-1fps \
+  --output data/manifests/flir_video_samples_v1.parquet \
+  --report-output reports/video_manifest_1fps
+```
+
+Los tres parámetros son obligatorios. Manifest y reportes deben quedar **fuera**
+de `frames-root`; los JPEGs y los metadatos de muestreo permanecen read-only.
+Antes de usar este comando, confirmar que el escritor del muestreo ha terminado;
+el job de muestreo 737719 ya está confirmado como COMPLETED. Esa confirmación no
+constituye una ejecución de `build-video-manifest`: este comando todavía solo
+tiene pruebas sintéticas y no se ha ejecutado en Hypatia.
+
+El comando rechaza productor/esquema desconocido, checksum incorrecto del Parquet,
+`.video-frames-publishing`, rutas no portables/traversal, escapes por symlink,
+archivos ausentes, muestras temporales repetidas y discrepancias de videos,
+conteos, grilla o propiedades respecto al summary. Admite N videos y conserva
+propiedades opcionales desconocidas como nulas; no busca imágenes adicionales.
+
+Lee cada JPEG, calcula SHA256 y valida decodificación con PIL. Cada muestra
+conserva su `frame_id`; bytes iguales comparten `content_id`. Imágenes corruptas
+permanecen en el manifest con `image_decode_valid=false` y `image_error`; **no se
+excluyen silenciosamente**. `features extract` rechaza esos manifests para que
+se inspeccione la causa antes de producir embeddings.
+
+`reports/video_manifest_1fps/summary.json` registra dataset/version, conteos de
+ocurrencias y contenidos, grupos duplicados, registros por video, fallos de
+decodificación y sus rutas relativas, `read_only_source=true`, Git/implementación
+y SHA256 de `frames.parquet`, summary de muestreo y manifest final. Antes de
+consumir una pareja manifest/reporte tras una interrupción, comprobar
+`manifest_parquet_sha256`: la publicación de ambos archivos no es atómica.
+
+La identidad y los aliases de compatibilidad se especifican en
+[data model](../data_model.md#sampled-video-occurrences-flir_video_samples_v1).
+No se fabrican etiquetas, escenas ni train/val/test. El siguiente paso operativo
+es [extraer features locales](features.md#features-de-frames-muestreados-locales);
+la identificación de secuencias visuales sigue pendiente para estos videos.

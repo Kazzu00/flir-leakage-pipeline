@@ -176,6 +176,27 @@ def build_manifest_command(
     )
 
 
+@data_app.command("build-video-manifest")
+def build_video_manifest_command(
+    frames_root: Path = typer.Option(..., help="Completed extract-video-frames output-root (read-only)."),
+    output: Path = typer.Option(..., help="Manifest Parquet outside frames-root."),
+    report_output: Path = typer.Option(..., help="Report directory outside frames-root."),
+) -> None:
+    """Build unlabeled video occurrences and exact-byte contents; no sequences or splits."""
+    from flir_pipeline.data.video_manifest import build_video_manifest
+
+    try:
+        summary = build_video_manifest(frames_root, output, report_output)
+    except (ValueError, OSError) as error:
+        typer.echo(f"Video manifest failed: {error}", err=True)
+        raise typer.Exit(1) from error
+    typer.echo(
+        f"Manifest written to {output}: {summary['total_records']} records, "
+        f"{summary['unique_content_ids']} unique contents, "
+        f"{summary['decode_failures']} decode failures (see report)."
+    )
+
+
 @data_app.command("validate-labels")
 def validate_labels_command(
     labels_archive: Path | None = typer.Option(None, help="Etiquetas.zip path."),
@@ -262,6 +283,7 @@ def features_extract(
     extractor: str = typer.Option("dinov2", help="fake, dinov2, or clip."),
     config: Path | None = typer.Option(None, help="YAML extractor configuration."),
     images_archive: Path | None = typer.Option(None, help="Imagenes.zip path."),
+    images_root: Path | None = typer.Option(None, help="Read-only local images root; mutually exclusive with --images-archive."),
     output_root: Path = typer.Option(Path("artifacts/features"), help="Artifact root."),
     device: str | None = typer.Option(None, help="cpu, cuda, or auto."),
     batch_size: int | None = typer.Option(None, min=1, help="Override batch size."),
@@ -270,10 +292,17 @@ def features_extract(
     local_files_only: bool = typer.Option(False, help="Do not access model downloads."),
 ) -> None:
     """Extract raw and L2 embeddings once per unique content_id."""
-    root = _default_root()
+    if images_archive is not None and images_root is not None:
+        raise typer.BadParameter("Use exactly one of --images-archive / --images-root.")
+    root = _default_root() if images_root is None and images_archive is None else None
     resolved_archive = images_archive or (root / "Imagenes.zip" if root else None)
-    if resolved_archive is None or not resolved_archive.is_file():
-        raise typer.BadParameter("Provide --images-archive or set FLIR_DATA_ROOT.")
+    if images_root is not None:
+        if not images_root.is_dir():
+            raise typer.BadParameter("--images-root must be an existing directory.")
+    elif resolved_archive is None or not resolved_archive.is_file():
+        raise typer.BadParameter("Provide --images-archive, --images-root or set FLIR_DATA_ROOT.")
+    if not manifest.is_file():
+        raise typer.BadParameter("--manifest must be an existing Parquet file.")
     settings = _load_yaml_config(config)
     selected_name = settings.pop("extractor", extractor)
     if batch_size is not None:
@@ -285,15 +314,20 @@ def features_extract(
         batch_size = int(settings.get("batch_size", 8))
     from flir_pipeline.features.storage import extract_to_store
 
-    feature_dir = extract_to_store(
-        manifest,
-        resolved_archive,
-        selected_extractor,
-        output_root=output_root,
-        batch_size=batch_size,
-        limit_content=limit_content,
-        seed=seed,
-    )
+    try:
+        feature_dir = extract_to_store(
+            manifest,
+            resolved_archive,
+            selected_extractor,
+            output_root=output_root,
+            batch_size=batch_size,
+            limit_content=limit_content,
+            seed=seed,
+            images_root=images_root,
+        )
+    except (ValueError, OSError, RuntimeError) as error:
+        typer.echo(f"Feature extraction failed: {error}", err=True)
+        raise typer.Exit(1) from error
     typer.echo(f"Features written to {feature_dir}")
 
 

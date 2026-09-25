@@ -9,7 +9,6 @@ import platform
 import re
 import shutil
 import subprocess
-import zipfile
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -20,7 +19,7 @@ from tqdm import tqdm
 
 from flir_pipeline.data.identity import dataset_id_from_manifest
 from flir_pipeline.features.base import FeatureExtractor, l2_normalize
-from flir_pipeline.features.preprocessing import decode_zip_image
+from flir_pipeline.features.image_source import ImageSource
 
 
 def feature_space_id(config: dict[str, Any]) -> str:
@@ -120,15 +119,17 @@ def _quality(raw: np.ndarray, normalized: np.ndarray, content_index: pd.DataFram
 
 def extract_to_store(
     manifest_path: Path,
-    images_archive: Path,
-    extractor: FeatureExtractor,
+    images_archive: Path | None = None,
+    extractor: FeatureExtractor | None = None,
     output_root: Path = Path("artifacts/features"),
     dataset_id: str | None = None,
     batch_size: int = 8,
     limit_content: int | None = None,
     seed: int = 0,
+    *,
+    images_root: Path | None = None,
 ) -> Path:
-    """Store one raw/L2 float32 row per selected content_id from a read-only ZIP.
+    """Store one raw/L2 row per selected content from a read-only ZIP or directory.
 
     The Parquet manifest supplies occurrences and source-member paths. Exact
     copies share a vector so future density clustering does not count them twice;
@@ -140,12 +141,29 @@ def extract_to_store(
     """
     if batch_size < 1:
         raise ValueError("batch_size must be positive")
+    if extractor is None:
+        raise ValueError("An extractor is required")
     manifest = pd.read_parquet(manifest_path)
     if manifest.empty:
         raise ValueError("Cannot extract features from an empty manifest")
+    selected = _selected_content(manifest, limit_content, seed)
+    with ImageSource(images_archive, images_root) as source:
+        if source.root is not None and output_root.resolve().is_relative_to(source.root):
+            raise ValueError("Feature output-root must be outside read-only images-root")
+        source.validate(manifest if source.kind == "directory" else selected)
+        return _extract_to_store(
+            manifest, selected, source, extractor, output_root, dataset_id, batch_size, seed,
+        )
+
+
+def _extract_to_store(
+    manifest: pd.DataFrame, selected: pd.DataFrame, source: ImageSource,
+    extractor: FeatureExtractor, output_root: Path, dataset_id: str | None,
+    batch_size: int, seed: int,
+) -> Path:
+    """One storage/checkpoint implementation for both image transports."""
     computed_dataset_id = dataset_id_from_manifest(manifest)
     dataset_id = dataset_id or computed_dataset_id
-    selected = _selected_content(manifest, limit_content, seed)
     config = extractor.feature_space_config()
     space_id = feature_space_id(config)
     feature_dir = output_root / extractor.name / dataset_id / space_id
@@ -203,25 +221,25 @@ def extract_to_store(
     )
     if raw.shape != (total, extractor.embedding_dimension) or normalized.shape != raw.shape:
         raise RuntimeError("Partial feature arrays do not match the checkpoint shape")
-    with zipfile.ZipFile(images_archive) as archive:
-        for start in tqdm(range(completed, total, batch_size), desc=f"Extracting {extractor.name}", unit="batch"):
-            stop = min(start + batch_size, total)
-            batch_images = [
-                extractor.preprocess(decode_zip_image(archive, member_path))
-                for member_path in selected.loc[start:stop - 1, "source_member_path"]
-            ]
-            batch_raw = np.asarray(extractor.encode_batch(batch_images), dtype=np.float32)
-            if batch_raw.shape != (stop - start, extractor.embedding_dimension):
-                raise ValueError(f"Extractor returned unexpected shape: {batch_raw.shape}")
-            batch_l2, _ = l2_normalize(batch_raw)
-            raw[start:stop] = batch_raw
-            normalized[start:stop] = batch_l2
-            raw.flush()
-            normalized.flush()
-            _atomic_json(
-                checkpoint_path,
-                {"signature": signature, "completed": stop, "embedding_dimension": extractor.embedding_dimension},
-            )
+    path_column = source.path_column(selected)
+    for start in tqdm(range(completed, total, batch_size), desc=f"Extracting {extractor.name}", unit="batch"):
+        stop = min(start + batch_size, total)
+        batch_images = [
+            extractor.preprocess(source.decode(relative, expected))
+            for relative, expected in selected.loc[start:stop - 1, [path_column, "image_sha256"]].itertuples(index=False, name=None)
+        ]
+        batch_raw = np.asarray(extractor.encode_batch(batch_images), dtype=np.float32)
+        if batch_raw.shape != (stop - start, extractor.embedding_dimension):
+            raise ValueError(f"Extractor returned unexpected shape: {batch_raw.shape}")
+        batch_l2, _ = l2_normalize(batch_raw)
+        raw[start:stop] = batch_raw
+        normalized[start:stop] = batch_l2
+        raw.flush()
+        normalized.flush()
+        _atomic_json(
+            checkpoint_path,
+            {"signature": signature, "completed": stop, "embedding_dimension": extractor.embedding_dimension},
+        )
     raw.flush()
     normalized.flush()
     del raw, normalized
@@ -233,10 +251,13 @@ def extract_to_store(
             "content_id": selected["content_id"].tolist(),
             "representative_frame_id": selected["frame_id"].tolist(),
             "image_sha256": selected["image_sha256"].tolist(),
-            "source_archive": selected["source_archive"].tolist(),
-            "source_member_path": selected["source_member_path"].tolist(),
+            "source_archive": selected["source_archive"].tolist() if source.kind == "zip" else [""] * total,
+            "source_member_path": selected[path_column].tolist(),
         }
     )
+    if source.kind == "directory":
+        content_index["source_type"] = "directory"
+        content_index["image_path"] = selected[path_column].tolist()
     row_by_content = dict(
         zip(
             content_index["content_id"],
@@ -260,6 +281,8 @@ def extract_to_store(
         "feature_space_id": space_id,
         "feature_space_algorithm": "SHA256(sorted JSON feature-space config excluding device/batch_size)",
         "cache_signature": signature,
+        "image_source_type": source.kind,
+        "read_only_source": True,
         "total_records": len(manifest),
         "unique_content_ids": int(manifest["content_id"].nunique()),
         "selected_content_ids": total,

@@ -15,6 +15,11 @@ def decode_zip_image(archive: zipfile.ZipFile, member_path: str) -> Image.Image:
     """Decode one ZIP image without extracting it to disk."""
     with archive.open(member_path, "r") as stream:
         content = stream.read()
+    return decode_image_bytes(content)
+
+
+def decode_image_bytes(content: bytes) -> Image.Image:
+    """Fully decode in memory with identical guarantees for ZIP and local files."""
     with Image.open(io.BytesIO(content)) as image:
         image.load()
         return image.copy()

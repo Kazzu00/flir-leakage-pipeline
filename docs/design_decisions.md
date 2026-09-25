@@ -423,17 +423,60 @@ sample time and a rounded FPS-based source-index estimate are explicit derived
 coordinates, not capture times or decoder indices. Missing reported properties
 stay null. Source-path IDs identify videos; a separate SHA256 binds their bytes.
 
-This is preparation infrastructure with synthetic tests only. The planned three
-source videos are not assumed to be three indivisible sequences. Subsequent
+This preparation stage has synthetic tests and confirmed real operational
+validation on Hypatia: a 5-second smoke and completed job 737719, producing
+9648 JPEGs from three source videos at 1 FPS. These three sources are not
+assumed to be three indivisible sequences. Subsequent
 visual/temporal analysis must identify the sequence units that future splits
 will preserve. Sampling creates neither those groups nor train/val/test and
 does not modify the historical experiment. Integration with content-level
-features requires a future occurrence/content manifest; repeated samples must
-not artificially increase density during clustering.
+features now uses the separate occurrence/content manifest described below;
+repeated samples must not artificially increase density during clustering.
 
 Staging protects prior outputs against decoder failures. A completed summary
 and checksum-bound frame table authorize only named generated replacements;
 unmanaged files are preserved. A publication marker blocks reuse after an
 interruption during the non-atomic final promotion. See the
-[data runbook](runbooks/data.md#muestreo-reproducible-de-videos-fuente) for the
-single-writer boundary, temporal definitions and pending real validation.
+[data runbook](runbooks/data.md#evidencia-real-confirmada-en-hypatia) for confirmed
+execution evidence, and its surrounding sections for the single-writer boundary
+and temporal definitions. Operational extraction validation does not validate
+scene boundaries, embeddings, clustering, splits, leakage removal or detector
+performance for these video samples.
+
+## 34. Video samples reuse the feature pipeline without changing historical identity
+
+`flir_video_samples_v1` namespaces the unlabeled dataset. The portable occurrence
+hash includes version, video ID, source-video SHA256, exact float sampling rate,
+sample index and JPEG SHA256 (the precise serialization is in [data model](data_model.md)).
+Adding rate and source hash prevents an occurrence from silently acquiring different
+grid/source provenance when a path-based video ID is reused. Exact JPEG bytes
+remain the content unit; the unchanged dataset-ID algorithm accepts the existing
+empty-string convention for absent labels. No synthetic label, split or sequence
+is assigned. Source-video hashes are inherited from the validated sampling receipt,
+not independently recomputed from original videos by this command.
+
+The manifest preserves corrupt image occurrences and reports decode failures;
+features refuses them rather than dropping rows or inventing vectors. Missing
+images, unsafe paths, duplicate temporal identities, unrecognized receipts and
+inconsistent counts/grids are hard errors before publication. Outputs must be
+outside the read-only image root. JSON report checksums bind both sampling
+metadata inputs and the resulting manifest. Manifest/report promotion is not a
+multi-file transaction; validate their checksum correspondence after interruption.
+
+A small image-source adapter replaces the ZIP-specific read inside storage.
+Every local declared occurrence is hash-checked before extraction, reuse or resume,
+including redundant copies and unselected smoke contents. This costs a full JPEG
+read pass but prevents stale content identities from hiding changed duplicate
+files. ZIPs keep representative-only access and share the selected-byte checks.
+The existing cache-signature fields stay compatible: expected hashes are now
+checked against source bytes. Paths and transport do not alter `feature_space_id`.
+Old ZIP caches are not migrated; additional source metadata describes new stores.
+
+Use immutable sources and one writer per output. Filesystem containment is checked
+at read time, but this is not a lock against concurrent mutation; neither sampling
+nor JPEG replacement should run while building/extracting. Existing resume and
+metadata-last completion semantics remain. This occurrence/content-to-features
+bridge still has synthetic/offline validation only and has not run on Hypatia's
+9648 samples; the completed sampling job does not validate it. Directory-based
+diagnostics/reports and video sequence analysis remain
+outside this bridge.

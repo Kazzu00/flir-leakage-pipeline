@@ -6,7 +6,8 @@ and ignored. Execution state is recorded separately in [status](status.md).
 
 | Input | Process / implementation | Artifact and identity | Downstream consumer |
 |---|---|---|---|
-| External read-only source videos | `data/video_frames.py`, external FFmpeg/ffprobe | Sampled JPEGs, `frames.parquet`, `summary.json`; relative grid, path-based video ID and source checksum | Future occurrence/content manifest integration and sequence analysis; synthetic tests only, real extraction pending |
+| External read-only source videos | `data/video_frames.py`, external FFmpeg/ffprobe | Sampled JPEGs, `frames.parquet`, `summary.json`; relative grid, path-based video ID and source checksum | Sampling operationally validated on Hypatia: real 5-second smoke and job 737719 COMPLETED (0:0), 3 source videos / 9648 JPEGs at 1 FPS; next: video manifest bridge |
+| Completed sampled JPEGs and checksum-bound receipt | `data/video_manifest.py`, `local_images.py`, `identity.py` | `flir_video_samples_v1`: all occurrences, exact-byte contents, video/grid provenance, decode QA; report binds both inputs and manifest checksum | Existing unique-content extraction via `features/image_source.py`; bridge tested synthetically only, not yet run on Hypatia; sequence identification remains future work |
 | External image/label ZIPs | `data/inventory.py`, `yolo_labels.py`, `annotations.py`, `classes.py` | Inventories, label QA, class/instance tables, source hashes | Canonical manifest and data reports |
 | Matched historical occurrences | `data/manifest.py`, `identity.py`, `utils/hashing.py` | Manifest: `dataset_id`, `frame_id`, `content_id`, relative source provenance, `original_split` | Every stage |
 | Original names and occurrence lineage | `data/temporal.py` | Inferred sequence/index, confidence, temporal candidates; no verified timestamps | Posterior temporal analysis and display |
@@ -40,6 +41,13 @@ Completed outputs are verified before reuse. A source-bound check can recompute
 metrics; a report availability check reuses prior verification receipts. Neither
 should be described as a new experiment. Failed/incomplete artifacts stay
 preserved. See [reproducibility](reproducibility.md).
+
+For local video samples, `frame_id → content_id → embedding_row` is implemented;
+later arrows remain pending for that dataset. `record_index` keeps all occurrences,
+including smoke exclusions (-1); video provenance is joined from the supplied
+manifest. Directory transport changes no mathematical feature ID. Each declared
+local occurrence is hash-checked before cache reuse/resume; exact duplicate bytes
+must still match, even when that occurrence is not the selected representative.
 
 ## Interpretation boundaries
 

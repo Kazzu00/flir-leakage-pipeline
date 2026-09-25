@@ -37,8 +37,13 @@ See [inputs, outputs and execution order](docs/pipeline.md).
 ## Key capabilities
 
 - ZIP-safe audit, annotation QA and canonical occurrence/content identities.
-- Reproducible source-video sampling through external FFmpeg/ffprobe; synthetic
-  tests only, real extraction pending. See the [data runbook](docs/runbooks/data.md#muestreo-reproducible-de-videos-fuente).
+- Reproducible source-video sampling through external FFmpeg/ffprobe, operationally
+  validated on Hypatia: a real 5-second smoke and job 737719 (COMPLETED, exit 0:0),
+  producing 9648 JPEGs from three source videos at 1 FPS. This does not identify
+  sequences. See the [execution evidence](docs/runbooks/data.md#evidencia-real-confirmada-en-hypatia).
+- Sampled JPEGs → versioned occurrence/content manifest → shared DINOv2/CLIP
+  extraction from a read-only directory, with exact-byte deduplication. This
+  bridge has synthetic validation only; video sequence identification is pending.
 - Independent DINOv2 CLS and CLIP projected-image embeddings, raw/L2 stores,
   pinned model revisions and resumable extraction.
 - Content-level cosine similarity, neighborhoods and posterior temporal analysis.
@@ -86,7 +91,7 @@ Use `uv run flir-pipeline <namespace> --help` for options.
 
 | Namespace | Implemented commands |
 |---|---|
-| `data` | `inventory`, `extract-video-frames`, `archive-tree`, `compare-archives`, `build-manifest`, `validate-labels`, `manifest-summary` |
+| `data` | `inventory`, `extract-video-frames`, `build-video-manifest`, `archive-tree`, `compare-archives`, `build-manifest`, `validate-labels`, `manifest-summary` |
 | `features` | `extract`, `diagnostics`, `summary`, `verify`, `visualize-data`, `visualize-embeddings` |
 | `similarity` | `compute`, `summary`, `verify`, `compare` |
 | `reduction` | `run`, `benchmark`, `verify`, `summary` |

@@ -10,7 +10,8 @@ incertidumbre interpretativa; **Pending compute**, una ejecución completa pendi
 | Componente | Estado | Evidencia y límites |
 |---|---|---|
 | Auditoría y manifest | Validated | 1657 frame_id, 1459 content_id, 198 grupos duplicados; ocho conflictos de anotación preservados |
-| Muestreo de videos fuente | Available; synthetic tests only | `data extract-video-frames`: JPEGs, grilla relativa y metadatos portables; extracción real y smoke con FFmpeg pendientes; no identifica secuencias ni define splits |
+| Muestreo de videos fuente | Operationally validated on real data | Smoke real de 5 s y job Hypatia 737719 COMPLETED, ExitCode 0:0; 3 videos fuente → 9648 JPEGs a 1 FPS, Parquet/grilla validados y fuentes read-only; no identifica secuencias ni define splits |
+| Puente de frames muestreados a features | Available; synthetic tests only | `data build-video-manifest` y `features extract --images-root`: ocurrencias completas, identidad/deduplicación por bytes, raw/L2 y resume compartidos; aún sin ejecutar en Hypatia sobre las 9648 muestras, sin secuencias ni splits para estos videos |
 | Caracterización y diagnostics | Validated | 4168 instancias canónicas, 292 labels vacíos, geometría por clase y 1459 diagnostics; huérfanos separados |
 | DINOv2 | Validated | Full 1459 × 384 CLS; raw/L2, revisión resuelta y 1657 mappings |
 | CLIP | Validated | Full 1459 × 512 projected-image; raw/L2, revisión resuelta y 1657 mappings |
@@ -39,6 +40,28 @@ El inventario registrado conserva cinco ZIP disponibles de seis históricos;
 falta `video_13min_778.zip`, sin pérdida de cobertura del candidato canónico.
 Véanse [auditoría](analysis/data_quality.md), [clases](analysis/dataset_classes.md)
 y [representaciones](analysis/features.md).
+
+## Source-video sampling: real execution confirmed
+
+La evidencia confirmada por el responsable del proyecto registra el job SLURM
+**737719** en **Hypatia, Universidad de los Andes**: `COMPLETED`, `ExitCode=0:0`,
+`Elapsed=00:15:28`, `MaxRSS` del batch `175016K` y stderr vacío. Se usaron Python
+3.11.10, FFmpeg/ffprobe 9.0.2, `sample_fps=1.0` y `jpeg_quality=2`.
+
+Los tres videos produjeron **2770 + 660 + 6218 = 9648 JPEGs**. Se validaron 9648
+filas y 9648 `image_path` únicos en `frames.parquet`, índices contiguos desde 0
+por video, tiempos coherentes con `sample_index / 1 FPS` y fuentes read-only.
+También se validó previamente un smoke real: 5 segundos a 30 FPS, 150 frames
+fuente → 5 JPEGs a 1 FPS. El [runbook](runbooks/data.md#evidencia-real-confirmada-en-hypatia)
+conserva configuración y resultados agregados; los recibos exactos permanecen locales.
+
+Esta evidencia valida operacionalmente la extracción reproducible de frames.
+Los tres videos son **fuentes, no tres secuencias**. No valida límites de escenas,
+embeddings de estas muestras, clustering, train/val/test, eliminación de leakage
+ni rendimiento del detector. `build-video-manifest` conserva únicamente pruebas
+sintéticas y todavía no se ha ejecutado en Hypatia; tampoco se ha establecido
+cuántos contenidos exactos únicos hay entre las 9648 muestras. Los resultados
+históricos de las demás etapas no cambian.
 
 ## Candidate partitions
 

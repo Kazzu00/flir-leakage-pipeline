@@ -35,3 +35,43 @@ Exact-byte duplicates, inferred temporal neighbors and high visual similarity ar
 different relations. None implies a verified semantic scene boundary. Storage
 schemas and source fingerprints are described in [architecture](architecture.md)
 and [traceability](pipeline_traceability.md).
+
+## Sampled video occurrences (`flir_video_samples_v1`)
+
+This separate manifest version preserves every row of a completed
+`extract-video-frames` output, including exact duplicates and explicitly flagged
+decode failures. It does not change the historical manifest or its identity.
+
+`frame_id = SHA256(US.join([manifest_version, video_id, source_video_sha256,
+float(sample_fps).hex(), str(sample_index), image_sha256]))`, where US is `\x1f`
+and the string is encoded as UTF-8. This binds an occurrence to source-video
+bytes, the sampling grid and the exact JPEG. Different temporal samples retain
+different frame IDs even when bytes match. Absolute roots and row ordering do
+not enter identity. `content_id = image_sha256` still means exact JPEG bytes;
+visually identical re-encodings can have different IDs.
+
+The unchanged dataset identity algorithm hashes this manifest version and the
+sorted `(frame_id, image_sha256, label_sha256)` tuples. `label_sha256=""` and
+`label_exists=false` mean **no label**, not an empty annotation file.
+`original_split=""` means **unassigned**, never train/val/test. No label/object
+statistics or `possible_sequence` / `possible_frame_index` are fabricated.
+
+All sampling columns are retained, plus `source_video_sha256`, decoded width,
+height, channels, mode, format, `image_decode_valid` and `image_error`.
+`image_path` is a safe POSIX path relative to `frames-root` / `images-root`.
+`relative_image_path` and `source_member_path` are explicit compatibility aliases
+of that local path; `source_type="directory"`, `source_archive=""` indicate that
+there is no ZIP. The directory feature content index retains these semantics.
+
+`exact_duplicate` is true for all occurrences of a repeated content;
+`duplicate_occurrence_count` includes every occurrence, and `duplicate_group_id`
+is `duplicate-<content_id>` only for repeated contents. Report `duplicate_records`
+counts all members of repeated groups; `redundant_records` counts records beyond
+one per content. Deduplication affects embedding rows, never occurrence retention.
+
+`video_id` identifies a source file, not a scene/sequence. `sample_index` indexes
+the sampling grid, `timestamp_seconds = sample_index / sample_fps` is relative
+grid time, and `source_frame_index_estimate` is a nominal FPS-based estimate,
+not an exact decoder index or capture timestamp. Unknown source facts stay null.
+Sequence identification and partition assignment for these videos remain future
+work, irrespective of historical downstream infrastructure.

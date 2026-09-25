@@ -76,3 +76,68 @@ An N=16 smoke validates infrastructure; full coverage requires manifest-bound ve
 The report does not load models. Class presence counts records; geometry counts
 individual boxes using normalized source coordinates, sample standard deviation
 and linear quartiles. Annotation conflicts remain visible.
+
+## Features de frames muestreados locales
+
+Usar primero `data build-video-manifest` y revisar su reporte, especialmente
+`decode_failures`. El nuevo flujo conserva el pipeline histórico basado en ZIP:
+`--images-archive` y `--images-root` son mutuamente excluyentes. Si no se indica
+ninguno, se mantiene el fallback histórico `FLIR_DATA_ROOT/Imagenes.zip`.
+Un `--images-root` explícito ignora ese fallback y lee solo las rutas declaradas.
+
+Ejemplos Linux/Hypatia para ejecutar **después** de validar el muestreo y crear
+el manifest; no se ejecutaron en esta tarea. Los modelos de estos YAML siguen
+siendo DINOv2-small CLS 384D y CLIP ViT-B/32 projected image 512D:
+
+```bash
+uv run --no-sync flir-pipeline features extract \
+  --manifest data/manifests/flir_video_samples_v1.parquet \
+  --images-root /ruta/a/derivados/flir-frames-1fps \
+  --config configs/embeddings/dinov2_full.yaml \
+  --limit-content 16 --seed 0 --local-files-only \
+  --output-root artifacts/video_features_smoke
+
+uv run --no-sync flir-pipeline features extract \
+  --manifest data/manifests/flir_video_samples_v1.parquet \
+  --images-root /ruta/a/derivados/flir-frames-1fps \
+  --config configs/embeddings/dinov2_full.yaml \
+  --seed 0 --local-files-only --output-root artifacts/video_features
+
+uv run --no-sync flir-pipeline features extract \
+  --manifest data/manifests/flir_video_samples_v1.parquet \
+  --images-root /ruta/a/derivados/flir-frames-1fps \
+  --config configs/embeddings/clip_full.yaml \
+  --seed 0 --local-files-only --output-root artifacts/video_features
+```
+
+El entorno debe tener instalado el extra `vision` y los snapshots fijados en caché
+para `--local-files-only`; `--no-sync` no instala dependencias ni pesos. Repetir
+el smoke con el YAML de CLIP permite revisar ambos encoders antes del completo.
+Estos son comandos propuestos, sin confirmar GPUs, modelos disponibles ni estado
+del trabajo real. Mantener fuentes inmutables y un solo escritor por store.
+
+El lector local valida contención y SHA256 de **todas** las ocurrencias antes de
+crear/reanudar/reutilizar la salida, incluidos duplicados y contenidos fuera del
+smoke; después decodifica solo los representantes seleccionados. Esto añade una
+lectura completa de JPEGs, evita que una copia modificada quede escondida por la
+deduplicación y no aumenta las filas de embeddings. Raw/L2, `record_index` completo,
+filas -1 del smoke, checkpoint y metadata como marcador final se conservan.
+ZIP/directorio no cambia `feature_space_id`; el dataset tiene identidad separada.
+Los outputs deben estar fuera de `images-root`.
+
+Tomar el directorio exacto que imprime cada extracción y verificar:
+
+```bash
+uv run --no-sync flir-pipeline features verify /ruta/al/feature-store
+uv run --no-sync flir-pipeline features summary /ruta/al/feature-store
+uv run --no-sync flir-pipeline features verify /ruta/al/feature-store-completo \
+  --manifest data/manifests/flir_video_samples_v1.parquet
+```
+
+La última variante requiere cobertura completa y revisión HF resuelta; no usarla
+para afirmar completitud de un smoke o del extractor fake. `verify` inspecciona
+el store; la comprobación de JPEGs ocurre al extraer/reanudar/reutilizar.
+`diagnostics`, notebooks de revisión histórica y exploradores siguen leyendo ZIPs;
+no se extienden automáticamente a este dataset sin etiquetas. La procedencia
+temporal se recupera uniendo `record_index.frame_id` con el manifest, sin convertir
+`video_id` en secuencia ni asumir tiempos de captura.

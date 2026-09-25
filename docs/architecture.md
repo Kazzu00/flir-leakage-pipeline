@@ -22,6 +22,8 @@ src/flir_pipeline/
   data/
     inventory.py           archive structure, matching and exploratory lineage
     video_frames.py        external FFmpeg/ffprobe sampling, relative grid and safe generated outputs
+    video_manifest.py      completed sampling receipt validation and video occurrence/content manifest
+    local_images.py        safe declared relative paths and read-only local file resolution
     manifest.py            canonical occurrences and label/duplicate reports
     identity.py            shared portable dataset_id
     yolo_labels.py         syntax, normalized coordinates, geometry, canonical boxes
@@ -29,7 +31,8 @@ src/flir_pipeline/
     annotations.py         occurrence-level instances and per-class normalized geometry
   features/
     base.py                extractor contract and synthetic test adapter
-    preprocessing.py       read-only ZIP decoding and in-memory RGB conversion
+    preprocessing.py       shared in-memory decoding and RGB conversion
+    image_source.py        read-only ZIP/directory access and source-byte validation
     dinov2.py / clip.py     independent model adapters
     model_revision.py      requested vs resolved HF provenance
     storage.py             content/record indexes and resumable raw/L2 arrays
@@ -212,6 +215,30 @@ requires a verified split and already materialized occurrence paths; it never
 copies images or silently merges conflicting labels. It was not used for real
 export in the splitting experiment; the detector subsequently created its own
 occurrence views through `detection/materialization.py`.
+
+## Sampled-video feature bridge
+
+`data build-video-manifest` verifies the sampling producer/schema, Parquet
+checksum, publication marker, video/count/grid consistency and every declared
+JPEG path before publishing an occurrence manifest outside the sampling root.
+The report binds the exact input Parquet and summary bytes and the output
+manifest checksum. No FFmpeg or source-video reading is needed for this step.
+Corrupt JPEGs remain explicit QA records; extraction rejects invalid decodes.
+
+`features extract` accepts an explicit ZIP or `--images-root`. Its small
+`ImageSource` adapter supplies the same byte decoder and the existing extraction,
+raw/L2, checkpoint and verification code. Directory validation reads only
+declared files, checks every occurrence hash (also duplicates and smoke exclusions),
+and rejects traversal and symlink/junction escapes. Selected bytes are checked
+again when decoded. ZIPs retain representative-only reads, now hash-bound to the
+manifest before cache reuse. Operational source type is metadata, not part of
+the feature-space configuration or the existing cache-signature schema.
+
+The manifest preserves video provenance; `record_index` preserves the complete
+frame/content/embedding map. Join on `frame_id` to recover temporal fields.
+Neither this bridge nor the numerical feature adapters infer video sequences,
+create labels or define partitions. Existing ZIP-based diagnostics, image reports
+and explorers have not been extended to local video images.
 
 ## External integration boundary
 
