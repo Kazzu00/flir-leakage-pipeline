@@ -13,6 +13,7 @@ import yaml
 
 from flir_pipeline.clustering.algorithms import effective_parameters, k_distances
 from flir_pipeline.clustering.base import ClusteringConfig
+from flir_pipeline.clustering.distances import retain_distances
 from flir_pipeline.clustering.metrics import assignment_agreement, summarize_agreements
 from flir_pipeline.clustering.selection import (
     SELECTION_POLICY,
@@ -40,6 +41,15 @@ def read_table(path: Path) -> pd.DataFrame:
     if "shortlist_reason" in frame:
         frame["shortlist_reason"] = frame.shortlist_reason.fillna("")
     return frame
+
+
+def _csv_comparable(frame: pd.DataFrame) -> pd.DataFrame:
+    """Compare unavailable JSON metrics with CSV missing values, never with zero.
+
+    All-null video columns reconstruct as object/None but CSV reads them as NaN.
+    Normalize only the verification view; stored metrics and selection stay intact.
+    """
+    return frame.mask(frame.isna(), np.nan)
 
 
 def load_families(specification: Path) -> dict[str, ClusteringFamily]:
@@ -87,34 +97,35 @@ def screening_to_store(families: dict[str, ClusteringFamily], configs: list[Clus
     for encoder, family in sorted(families.items()):
         for representation in ("original_l2", "tsne", "pacmap"):
             space = family.spaces[(representation, None if representation == "original_l2" else 0)]
-            seen = {}
-            for ms in sorted({c.hyperparameters["min_samples"] for c in configs if c.algorithm == "dbscan"}):
-                values = k_distances(space.distances, ms)
-                curves.append(pd.DataFrame({"encoder": encoder, "representation": representation, "min_samples": ms,
-                                            "sorted_row": np.arange(len(values)), "k_distance": np.sort(values)}))
-                for q in (0., .25, .5, .8, .85, .9, .95, .97, .99, 1.):
-                    quantiles.append({"encoder": encoder, "representation": representation, "min_samples": ms,
-                                      "quantile": q, "k_distance": float(np.quantile(values, q))})
-            for config in configs:
-                number += 1
-                try:
-                    effective = effective_parameters(config, space.distances)
-                except ValueError as error:
-                    if config.algorithm != "dbscan" or "Nonpositive k-distance" not in str(error):
-                        raise
-                    aliases.append({"encoder": encoder, "representation": representation, "configuration_id": config.configuration_id,
-                                    "status": "non_executable_nonpositive_epsilon", "equivalent_to": None})
-                    continue
-                key = stable_id({"algorithm": config.algorithm, "parameters": effective})
-                if key in seen:
-                    aliases.append({"encoder": encoder, "representation": representation, "configuration_id": config.configuration_id,
-                                    "status": "identical_effective_parameters", "equivalent_to": seen[key]})
-                    continue
-                seen[key] = config.configuration_id
-                directory = run_to_store(family, space, config, output_root)
-                directories.append(directory)
-                row = run_row(directory)
-                print(f"SCREEN {number}/{total} {encoder} {representation} {config.algorithm} clusters={row['n_clusters_excluding_noise']} noise={row['noise_fraction']:.3f} fit={row['fit_seconds']:.2f}s", flush=True)
+            with retain_distances(space.distances, family.context.original_distances):
+                seen = {}
+                for ms in sorted({c.hyperparameters["min_samples"] for c in configs if c.algorithm == "dbscan"}):
+                    values = k_distances(space.distances, ms)
+                    curves.append(pd.DataFrame({"encoder": encoder, "representation": representation, "min_samples": ms,
+                                                "sorted_row": np.arange(len(values)), "k_distance": np.sort(values)}))
+                    for q in (0., .25, .5, .8, .85, .9, .95, .97, .99, 1.):
+                        quantiles.append({"encoder": encoder, "representation": representation, "min_samples": ms,
+                                          "quantile": q, "k_distance": float(np.quantile(values, q))})
+                for config in configs:
+                    number += 1
+                    try:
+                        effective = effective_parameters(config, space.distances)
+                    except ValueError as error:
+                        if config.algorithm != "dbscan" or "Nonpositive k-distance" not in str(error):
+                            raise
+                        aliases.append({"encoder": encoder, "representation": representation, "configuration_id": config.configuration_id,
+                                        "status": "non_executable_nonpositive_epsilon", "equivalent_to": None})
+                        continue
+                    key = stable_id({"algorithm": config.algorithm, "parameters": effective})
+                    if key in seen:
+                        aliases.append({"encoder": encoder, "representation": representation, "configuration_id": config.configuration_id,
+                                        "status": "identical_effective_parameters", "equivalent_to": seen[key]})
+                        continue
+                    seen[key] = config.configuration_id
+                    directory = run_to_store(family, space, config, output_root)
+                    directories.append(directory)
+                    row = run_row(directory)
+                    print(f"SCREEN {number}/{total} {encoder} {representation} {config.algorithm} clusters={row['n_clusters_excluding_noise']} noise={row['noise_fraction']:.3f} fit={row['fit_seconds']:.2f}s", flush=True)
     run_refs = [_run_reference(p, output_root) for p in directories]
     sweep_id = stable_id({"runs": sorted(r["clustering_space_id"] for r in run_refs), "policy": SELECTION_POLICY})
     output = output_root/"screening"/sweep_id
@@ -248,8 +259,8 @@ def verify_collection(directory: Path, families: dict[str, ClusteringFamily] | N
             expected_id = stable_id({"runs": sorted(r["clustering_space_id"] for r in meta["runs"]), "policy": SELECTION_POLICY})
             recorded = read_table(directory/"screening.csv")
             rebuilt, shortlist, _ = shortlist_screening(pd.DataFrame([run_row(root/r["path"]) for r in meta["runs"]]))
-            pd.testing.assert_frame_equal(rebuilt, recorded, check_dtype=False, check_exact=False, atol=1e-12, rtol=1e-12)
-            pd.testing.assert_frame_equal(shortlist.reset_index(drop=True), read_table(directory/"shortlist.csv"), check_dtype=False, check_exact=False, atol=1e-12, rtol=1e-12)
+            pd.testing.assert_frame_equal(_csv_comparable(rebuilt), recorded, check_dtype=False, check_exact=False, atol=1e-12, rtol=1e-12)
+            pd.testing.assert_frame_equal(_csv_comparable(shortlist).reset_index(drop=True), read_table(directory/"shortlist.csv"), check_dtype=False, check_exact=False, atol=1e-12, rtol=1e-12)
         elif meta["artifact_kind"] == "clustering_comparison":
             screening = root/meta["screening_path"]
             checks["screening_binding_valid"] = file_sha256(screening/"metadata.json") == meta["screening_metadata_sha256"]
@@ -260,7 +271,7 @@ def verify_collection(directory: Path, families: dict[str, ClusteringFamily] | N
             pd.testing.assert_frame_equal(candidates.reset_index(drop=True), read_table(directory/"candidates.csv"), check_dtype=False, check_exact=False, atol=1e-12, rtol=1e-12)
             locations = {r["clustering_space_id"]: root/r["path"] for r in meta["runs"]}
             all_rows = pd.DataFrame([run_row(p) for p in locations.values()])
-            pd.testing.assert_frame_equal(all_rows, read_table(directory/"all_runs.csv"), check_dtype=False, check_exact=False, atol=1e-12, rtol=1e-12)
+            pd.testing.assert_frame_equal(_csv_comparable(all_rows), read_table(directory/"all_runs.csv"), check_dtype=False, check_exact=False, atol=1e-12, rtol=1e-12)
             screen_table = read_table(screening/"screening.csv")
             screen_shortlist = screen_table.loc[screen_table.shortlist_stage_a].reset_index(drop=True)
             pd.testing.assert_frame_equal(recorded[screen_table.columns], screen_shortlist, check_dtype=False, check_exact=False, atol=1e-12, rtol=1e-12)

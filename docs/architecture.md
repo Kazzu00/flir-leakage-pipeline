@@ -55,6 +55,8 @@ src/flir_pipeline/
     visualization.py       posterior temporal/split interpretation and local reports
   clustering/
     base.py / algorithms.py configs, deterministic identity and vector-only adapters
+    distances.py           exact lazy Euclidean matrices with scoped retention
+    video_review.py        separate local sampled-video occurrence review
     metrics.py             original-distance/cosine, medoids, posterior lineage, ARI/AMI
     storage.py             verified source families, immutable run artifacts
     selection.py           bounded Pareto shortlist and explicit noise eligibility
@@ -168,6 +170,14 @@ vectors and content identity only; sequence, class and historical membership
 never enter fitting. EvaluationContext joins posterior provenance and retains
 the existing original cosine neighbors. Original Euclidean distances define
 primary silhouette and medoids independently of the fitted representation.
+
+Families retain vectors and read-only coordinates, with no eager Euclidean
+matrices. Explicit scopes reuse at most original evaluation plus one requested
+representation, releasing them between screening representations, comparison
+runs and source-bound verification runs. K-distance uses exact row blocks. Source
+verification still checks all reduction artifacts sequentially. See the
+[memory audit](analysis/clustering_memory.md) for remaining quadratic structures,
+the N=8093 estimate and compatibility evidence.
 
 Run paths are `artifacts/clustering/<encoder>/<dataset_id>/<representation_id>/<algorithm>/<clustering_space_id>/`.
 Representation identity is feature_space_id for original controls or

@@ -8,7 +8,6 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from scipy.spatial.distance import pdist, squareform
 
 from flir_pipeline.clustering.algorithms import (
     effective_parameters,
@@ -16,6 +15,11 @@ from flir_pipeline.clustering.algorithms import (
     implementation_versions,
 )
 from flir_pipeline.clustering.base import ClusteringConfig, clustering_space_id
+from flir_pipeline.clustering.distances import (
+    Distances,
+    EuclideanDistances,
+    retain_distances,
+)
 from flir_pipeline.clustering.metrics import (
     EvaluationContext,
     evaluate_clustering,
@@ -48,7 +52,7 @@ class ClusterSpace:
     seed: int | None
     reduction_space_id: str | None
     values: np.ndarray
-    distances: np.ndarray
+    distances: Distances
     signatures: dict
 
 
@@ -62,14 +66,18 @@ class ClusteringFamily:
 
 def load_family(feature_directory: Path, similarity_directory: Path,
                 manifest_path: Path, reduction_benchmark: Path) -> ClusteringFamily:
-    """Verify full features/similarity and the selected reduction family across seeds."""
+    """Verify sources across seeds, retaining vectors but no Euclidean matrices.
+
+    Upstream artifact verification still performs its exact, sequential checks;
+    its temporary matrices are not part of the returned clustering family.
+    """
     source = load_inputs(feature_directory, similarity_directory, manifest_path)
     if not verify_benchmark(reduction_benchmark)["quality_valid"]:
         raise ValueError("Reduction benchmark failed verification")
     meta = read_json(reduction_benchmark/"metadata.json")
     if meta["input_signatures"] != source.signatures or any(meta[k] != source.feature[k] for k in ("dataset_id", "feature_space_id", "extractor")):
         raise ValueError("Reduction benchmark does not match the full source space")
-    original_distances = squareform(pdist(source.embeddings.astype(np.float64), metric="euclidean"))
+    original_distances = EuclideanDistances(source.embeddings)
     context = EvaluationContext.create(source.content_index.content_id.tolist(), original_distances,
                                        source.cosine, source.original_neighbors,
                                        pd.read_parquet(similarity_directory/"content_provenance.parquet"))
@@ -91,7 +99,7 @@ def load_family(feature_directory: Path, similarity_directory: Path,
                 raise ValueError("The current clustering protocol requires full 2D reduction coordinates")
             signatures = {**source.signatures, "reduction": {p: file_sha256(directory/p) for p in ("coordinates.npy", "metadata.json", "content_index.parquet")}}
             spaces[(row.method, int(row.seed))] = ClusterSpace(row.method, int(row.seed), row.reduction_space_id,
-                                                              values, squareform(pdist(values.astype(np.float64))), signatures)
+                                                              values, EuclideanDistances(values), signatures)
     return ClusteringFamily(source, context, spaces, reduction_benchmark)
 
 
@@ -109,6 +117,17 @@ def quality_checks(labels: np.ndarray, n: int, probabilities: np.ndarray | None 
 
 def run_to_store(family: ClusteringFamily, space: ClusterSpace, config: ClusteringConfig,
                  output_root: Path = Path("artifacts/clustering")) -> Path:
+    """Reuse only the requested fit/evaluation spaces within this run.
+
+    Screening can retain these same two sources across configurations of one
+    representation. Standalone runs and comparison seeds release on return.
+    """
+    with retain_distances(space.distances, family.context.original_distances):
+        return _run_to_store(family, space, config, output_root)
+
+
+def _run_to_store(family: ClusteringFamily, space: ClusterSpace, config: ClusteringConfig,
+                  output_root: Path) -> Path:
     parameters = effective_parameters(config, space.distances)
     versions = implementation_versions()
     feature = family.source.feature
@@ -202,8 +221,9 @@ def verify_run(directory: Path, family: ClusteringFamily | None = None) -> dict:
         if family is not None:
             space = family.spaces[(meta["representation"], meta["reduction_seed"])]
             checks["source_matches"] = index.equals(family.source.content_index) and meta["input_signatures"] == space.signatures and meta["reduction_space_id"] == space.reduction_space_id
-            checks["effective_parameters_recomputed"] = effective_parameters(config, space.distances) == meta["effective_parameters"]
-            expected_metrics, expected_summary = evaluate_clustering(labels, family.context, space.distances)
+            with retain_distances(space.distances, family.context.original_distances):
+                checks["effective_parameters_recomputed"] = effective_parameters(config, space.distances) == meta["effective_parameters"]
+                expected_metrics, expected_summary = evaluate_clustering(labels, family.context, space.distances)
             checks["metrics_recomputed"] = expected_metrics == metrics
             pd.testing.assert_frame_equal(expected_summary, summary, check_dtype=False)
             checks["summary_and_medoids_recomputed"] = True

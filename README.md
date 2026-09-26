@@ -53,6 +53,8 @@ See [inputs, outputs and execution order](docs/pipeline.md).
   this contract; local validation is synthetic, real video execution remains pending.
 - t-SNE / PaCMAP with preservation metrics and seed stability.
 - DBSCAN / OPTICS / HDBSCAN with original-space metrics, ARI/AMI and explicit noise.
+  Exact distances are computed on demand with scoped reuse; see the
+  [memory audit and limits](docs/analysis/clustering_memory.md).
 - Atomic cluster-aware splitting, seeded baselines and residual cross-split analysis.
 - Local Streamlit inspection and VIKUS collection overview.
 - Controlled YOLO11n evaluation infrastructure, bootstrap and small CPU pilots.

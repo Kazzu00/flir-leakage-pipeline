@@ -549,3 +549,20 @@ Historical v1 metadata is not required to carry these video-only declarations.
 Local validation uses synthetic inputs only. The target N=8093 workload and its
 peak memory/time must be measured later on Hypatia; similarity, scene discovery,
 reduction and clustering results on those real contents are not claimed here.
+
+## 36. Scoped exact clustering distances preserve scientific identity
+
+Clustering families retain verified vectors, coordinates and source signatures;
+Euclidean matrices materialize only when requested. Scopes reuse at most the
+original evaluation matrix and one active representation, releasing both between
+screening representations, comparison runs and source-bound verification runs.
+The original float64 SciPy kernel is unchanged. Exact row-block k-distance avoids
+full partition copies without changing epsilon or tie handling. This is an
+operational change, so no protocol/config/identity version is advanced.
+
+A pre-change synthetic oracle from `737e588` binds labels, metrics, medoids, IDs
+and selection. Historical cosine v1 and video v2 unavailable-sequence semantics
+remain separate; reduction artifacts require no migration. Recomputing after a
+scope ends trades runtime for bounded retention. Remaining quadratic algorithm,
+metric and source-verification structures, N=8093 estimates and validation limits
+are recorded in the [memory audit](analysis/clustering_memory.md).

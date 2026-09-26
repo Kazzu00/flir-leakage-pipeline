@@ -74,6 +74,20 @@ se realizó aquí. Las secuencias siguen desconocidas, no se generan labels ni
 splits, y memoria/tiempo completos deben medirse posteriormente en Hypatia. Los
 resultados históricos de las demás etapas no cambian.
 
+## Clustering memory and sampled-video review infrastructure
+
+La ruta independiente `clustering video-review` está disponible para runs y
+comparisons de `flir_video_samples_v1`, con validación sintética local. Conserva
+todas las ocurrencias, verifica JPEGs locales y produce galerías, pertenencias y
+líneas de tiempo por video fuente con secuencias desconocidas. No modifica el
+reporte histórico ni crea escenas/splits. La revisión de los videos reales sigue
+pendiente. Véase el [runbook](runbooks/clustering.md#revisión-independiente-de-videos-muestreados).
+
+La refactorización conserva los resultados sintéticos de referencia de `737e588`:
+distancias exactas bajo demanda, hasta dos matrices retenidas y k-distance por
+bloques. Es validación de infraestructura; el pico RSS y el clustering completo
+de N=8093 continúan pendientes. Véase la [auditoría de memoria](analysis/clustering_memory.md).
+
 ## Candidate partitions
 
 **C10 — DINOv2 / PaCMAP / DBSCAN** es la referencia visual principal:

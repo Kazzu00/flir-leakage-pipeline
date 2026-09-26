@@ -8,13 +8,19 @@ from dataclasses import dataclass
 import numpy as np
 import pandas as pd
 
+from flir_pipeline.clustering.distances import (
+    Distances,
+    distance_matrix,
+    retain_distances,
+)
+
 
 def validate_labels(labels: np.ndarray, n: int) -> None:
     if labels.shape != (n,) or not np.issubdtype(labels.dtype, np.integer) or np.any(labels < -1):
         raise ValueError("Cluster labels must be aligned integers >= -1; noise stays -1")
 
 
-def silhouette_without_noise(distances: np.ndarray, labels: np.ndarray) -> float | None:
+def silhouette_without_noise(distances: Distances, labels: np.ndarray) -> float | None:
     from sklearn.metrics import silhouette_score
 
     validate_labels(labels, len(distances))
@@ -22,13 +28,14 @@ def silhouette_without_noise(distances: np.ndarray, labels: np.ndarray) -> float
     groups = np.unique(labels[mask])
     if not 2 <= len(groups) < mask.sum():
         return None
-    return float(silhouette_score(distances[np.ix_(mask, mask)], labels[mask], metric="precomputed"))
+    with distance_matrix(distances) as matrix:
+        return float(silhouette_score(matrix[np.ix_(mask, mask)], labels[mask], metric="precomputed"))
 
 
 @dataclass
 class EvaluationContext:
     content_ids: list[str]
-    original_distances: np.ndarray
+    original_distances: Distances
     cosine: np.ndarray
     neighbors: pd.DataFrame
     provenance: pd.DataFrame
@@ -57,13 +64,20 @@ class EvaluationContext:
 
 def cluster_summary(labels: np.ndarray, context: EvaluationContext) -> pd.DataFrame:
     """Medoids minimize original Euclidean distance; cosine summaries use i<j pairs."""
+    with retain_distances(context.original_distances):
+        return _cluster_summary(labels, context)
+
+
+def _cluster_summary(labels: np.ndarray, context: EvaluationContext) -> pd.DataFrame:
     validate_labels(labels, len(context.content_ids))
     ids = np.asarray(context.content_ids)
     rows = []
     for cluster_id in sorted(set(labels)-{-1}):
         members = np.flatnonzero(labels == cluster_id)
-        original = context.original_distances[np.ix_(members, members)]
+        with distance_matrix(context.original_distances) as distances:
+            original = distances[np.ix_(members, members)]
         costs = original.sum(axis=1)
+        del original
         tied = members[costs == costs.min()]
         medoid = min(tied, key=lambda i: ids[i])
         a, b = np.triu_indices(len(members), 1)
@@ -85,6 +99,8 @@ def cluster_summary(labels: np.ndarray, context: EvaluationContext) -> pd.DataFr
                      "sequence_entropy_bits": float(-np.sum(fractions*np.log2(fractions))) if len(counts) else None,
                      "historical_split_memberships": None if video else json.dumps(split_names), "historical_split_count": None if video else len(split_names),
                      "historical_split_provenance_complete": False if video else bool(provenance.split_membership_complete.all())})
+        # Do not overlap the previous cluster's pair arrays with the next one.
+        del a, b, pairs
     columns = ["cluster_id", "n_members", "medoid_content_id", "intra_pair_count", "mean_intra_cosine", "median_intra_cosine",
                "Q1_intra_cosine", "Q3_intra_cosine", "known_sequence_members", "sequence_coverage", "sequence_count",
                "dominant_sequence_fraction", "sequence_entropy_bits", "historical_split_memberships", "historical_split_count",
@@ -93,7 +109,13 @@ def cluster_summary(labels: np.ndarray, context: EvaluationContext) -> pd.DataFr
 
 
 def evaluate_clustering(labels: np.ndarray, context: EvaluationContext,
-                        clustering_distances: np.ndarray) -> tuple[dict, pd.DataFrame]:
+                        clustering_distances: Distances) -> tuple[dict, pd.DataFrame]:
+    with retain_distances(context.original_distances, clustering_distances):
+        return _evaluate_clustering(labels, context, clustering_distances)
+
+
+def _evaluate_clustering(labels: np.ndarray, context: EvaluationContext,
+                         clustering_distances: Distances) -> tuple[dict, pd.DataFrame]:
     n = len(context.content_ids)
     validate_labels(labels, n)
     table = cluster_summary(labels, context)

@@ -13,6 +13,10 @@ import pandas as pd
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 
+from flir_pipeline.clustering.distances import (  # noqa: E402
+    distance_matrix,
+    retain_distances,
+)
 from flir_pipeline.clustering.experiments import (  # noqa: E402
     read_table,
     verify_collection,
@@ -62,7 +66,8 @@ def exemplar_members(labels: np.ndarray, cluster_id: int, medoid: int,
     members = np.flatnonzero(labels == cluster_id)
     if medoid not in members:
         raise ValueError("Medoid is not a member of the displayed cluster")
-    others = sorted((i for i in members if i != medoid), key=lambda i: (context.original_distances[medoid, i], context.content_ids[i]))
+    with distance_matrix(context.original_distances) as distances:
+        others = sorted((i for i in members if i != medoid), key=lambda i: (distances[medoid, i], context.content_ids[i]))
     ordered = [medoid, *others]
     targets = [0, 1, (len(ordered)-1)//2, len(ordered)-1]
     selected = list(dict.fromkeys(ordered[i] for i in targets if i < len(ordered)))
@@ -78,10 +83,11 @@ def _gallery(family: ClusteringFamily, directory: Path, row: pd.Series, archive:
     index = family.source.content_index
     id_to_row = {identity: i for i, identity in enumerate(contexts.content_ids)}
     selected_roles = []
-    for role, cluster in exemplar_clusters(clusters):
-        summary = clusters.loc[clusters.cluster_id == cluster].iloc[0]
-        medoid = id_to_row[summary.medoid_content_id]
-        selected_roles.append((role, cluster, exemplar_members(labels, cluster, medoid, contexts), summary))
+    with retain_distances(contexts.original_distances):
+        for role, cluster in exemplar_clusters(clusters):
+            summary = clusters.loc[clusters.cluster_id == cluster].iloc[0]
+            medoid = id_to_row[summary.medoid_content_id]
+            selected_roles.append((role, cluster, exemplar_members(labels, cluster, medoid, contexts), summary))
     noise = sorted(np.flatnonzero(labels == -1), key=lambda i: contexts.content_ids[i])
     selection = np.random.default_rng(0).choice(noise, min(4, len(noise)), replace=False).tolist() if noise else []
     selected_roles.append(("Noise · semilla de muestra 0", -1, selection, None))

@@ -10,27 +10,42 @@ from dataclasses import dataclass
 import numpy as np
 
 from flir_pipeline.clustering.base import ClusteringConfig
+from flir_pipeline.clustering.distances import Distances, distance_matrix
+
+K_DISTANCE_BLOCK_ROWS = 256
 
 
 def implementation_versions() -> dict:
     return {name: importlib.metadata.version(name) for name in ("numpy", "scipy", "scikit-learn")}
 
 
-def k_distances(distances: np.ndarray, min_samples: int) -> np.ndarray:
+def k_distances(distances: Distances, min_samples: int) -> np.ndarray:
     """Distance to the (min_samples-1)-th OTHER point: sklearn includes self.
 
     Excluding self explicitly also handles zero-distance distinct contents without
     assuming that a nearest-neighbor backend places self first in a tied row.
     """
     n = len(distances)
-    if distances.shape != (n, n) or not 2 <= min_samples <= n or not np.isfinite(distances).all() or (distances < 0).any():
+    if distances.shape != (n, n) or not 2 <= min_samples <= n:
         raise ValueError("Invalid distances or min_samples")
-    values = distances.copy()
-    np.fill_diagonal(values, np.inf)
-    return np.partition(values, min_samples-2, axis=1)[:, min_samples-2]
+    # Partition each complete row with the same kth/tie convention as before.
+    # An in-place block avoids two NxN copies and a returned column view that
+    # used to keep the entire partitioned matrix alive through screening.
+    with distance_matrix(distances) as matrix:
+        result = np.empty(n, dtype=matrix.dtype)
+        for start in range(0, n, K_DISTANCE_BLOCK_ROWS):
+            stop = min(start+K_DISTANCE_BLOCK_ROWS, n)
+            values = matrix[start:stop].copy()
+            if not np.isfinite(values).all() or (values < 0).any():
+                raise ValueError("Invalid distances or min_samples")
+            values[np.arange(stop-start), np.arange(start, stop)] = np.inf
+            values.partition(min_samples-2, axis=1)
+            result[start:stop] = values[:, min_samples-2]
+            del values
+    return result
 
 
-def effective_parameters(config: ClusteringConfig, distances: np.ndarray) -> dict:
+def effective_parameters(config: ClusteringConfig, distances: Distances) -> dict:
     p = dict(config.hyperparameters)
     n = len(distances)
     if p["min_samples"] > n or p.get("min_cluster_size", 2) > n:

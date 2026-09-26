@@ -640,3 +640,20 @@ def clustering_summary(directory: Path) -> None:
         typer.echo(json.dumps(quality, indent=2))
         raise typer.Exit(1)
     typer.echo(json.dumps(read_json(directory/("metrics.json" if is_run else "summary.json")), indent=2))
+
+
+@clustering_app.command("video-review")
+def clustering_video_review(
+    directory: Path,
+    inputs: Path = typer.Option(..., help="Existing clustering inputs YAML."),
+    images_root: Path = typer.Option(..., help="Read-only sampled JPEG root; every occurrence is hash-checked."),
+    output: Path = typer.Option(Path("reports/clustering_video"), help="New empty local report directory."),
+) -> None:
+    """Inspect a verified sampled-video run/comparison without inferring sequences."""
+    from flir_pipeline.clustering.video_review import generate_video_clustering_review
+
+    try:
+        generate_video_clustering_review(directory, inputs, images_root, output)
+    except (OSError, ValueError, KeyError) as error:
+        raise typer.BadParameter(str(error)) from error
+    typer.echo(f"Video clustering review written to {output/'index.html'}")

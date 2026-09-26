@@ -361,6 +361,7 @@ def test_cli_and_explicit_report_and_split_boundaries(tmp_path):
 def test_reduction_and_clustering_accept_video_without_full_pairs(tmp_path):
     pytest.importorskip("sklearn")
     from flir_pipeline.clustering.base import ClusteringConfig
+    from flir_pipeline.clustering.distances import EuclideanDistances
     from flir_pipeline.clustering.metrics import EvaluationContext
     from flir_pipeline.clustering.storage import (
         ClusteringFamily,
@@ -381,12 +382,13 @@ def test_reduction_and_clustering_accept_video_without_full_pairs(tmp_path):
     assert verify_reduction(reduction, inputs)["quality_valid"]
     xy = np.load(reduction/"coordinates.npy")
     provenance = pd.read_parquet(output/"content_provenance.parquet")
-    original_distances = squareform(pdist(inputs.embeddings.astype(float)))
+    original_distances = EuclideanDistances(inputs.embeddings)
     context = EvaluationContext.create(inputs.content_index.content_id.tolist(), original_distances, inputs.cosine, inputs.original_neighbors, provenance)
-    space = ClusterSpace("tsne", 0, read_json(reduction/"metadata.json")["reduction_space_id"], xy, squareform(pdist(xy.astype(float))), inputs.signatures)
+    space = ClusterSpace("tsne", 0, read_json(reduction/"metadata.json")["reduction_space_id"], xy, EuclideanDistances(xy), inputs.signatures)
     family = ClusteringFamily(inputs, context, {("tsne", 0): space}, tmp_path)
     clustering = run_to_store(family, space, ClusteringConfig("dbscan", {"min_samples": 3, "eps_quantile": .5}), tmp_path/"clustering")
     assert verify_run(clustering, family)["quality_valid"]
+    assert not original_distances.is_materialized and not space.distances.is_materialized
     cli = CliRunner().invoke(app, ["clustering", "verify", str(clustering)])
     assert cli.exit_code == 0, cli.output
     metrics = read_json(clustering/"metrics.json")

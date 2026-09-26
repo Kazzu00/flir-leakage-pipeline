@@ -81,3 +81,76 @@ En Windows, si una política del sistema impide ejecutar el launcher instalado,
 la invocación equivalente es `uv run python -c "from flir_pipeline.cli import app; app()"`
 seguida de los mismos argumentos. Usar `UV_PROJECT_ENVIRONMENT` para seleccionar
 el entorno local existente cuando corresponda.
+
+## Revisión independiente de videos muestreados
+
+Para `flir_video_samples_v1`, usar la nueva ruta local; el builder/notebook
+histórico continúa usando ZIP y procedencia histórica, sin cambios.
+
+```powershell
+uv run flir-pipeline clustering video-review artifacts/clustering/<ruta-del-run-o-comparison> --inputs reports/clustering/execution/video_inputs.yaml --images-root <raiz-local-de-JPEG-muestreados> --output reports/clustering_video/inspection_01
+```
+
+`--inputs` tiene el esquema existente de clustering (manifest y directorios de
+features/similitud/benchmark por encoder). `--images-root` es obligatorio: no se
+infiere desde `.env`, un ZIP o un representante de features. Las rutas del YAML
+se resuelven desde el directorio de ejecución, como en los demás comandos.
+El reporte verifica fuentes, métricas/medoides y, para comparisons, screening,
+acuerdos y selección; no vuelve a ajustar algoritmos. Requiere similitud de video
+v2 y manifest completo. Se comprueban rutas y SHA256 de **todas** las ocurrencias,
+incluidos duplicados no elegidos para las galerías, mediante `ImageSource`.
+
+Abrir `index.html` localmente. No requiere servidor, red ni notebook ejecutado.
+La salida predeterminada es `reports/clustering_video`; usar un directorio vacío
+distinto para cada revisión. Salidas dentro del repositorio deben quedar bajo
+`reports/` ignorado; también se permite un directorio externo local. Se rechazan
+solapamientos con fuentes/artefactos. Un reporte existente o parcial se conserva;
+`report_metadata.json`, escrito al final, indica publicación completa y registra
+verificación, semántica, fingerprints y checksums. No versionar estos reportes.
+
+Estructura:
+
+```text
+index.html                         índice de todos los runs suministrados
+runs.csv                           cobertura, ruido y métricas generales
+report_metadata.json               recibo de verificación y publicación
+images/thumb-*.jpg                 miniaturas derivadas, compartidas por contenido
+runs/run-0000/
+  index.html                       tablas, galerías y líneas de tiempo
+  clusters.csv / .parquet           tamaño, ruido y coherencia visual por contenido
+  occurrences.csv / .parquet        TODAS las ocurrencias y asignaciones
+  source_video_membership.*         distribución por fuente, sin inferir secuencias
+  videos.*                         conteos y cambios observados por video
+  transitions.*                    cambios entre muestras observadas, con huecos
+  display_selections.*             selección display-only y vínculo al frame mostrado
+  video-000.csv / .png / .svg       posiciones completas y figura por video fuente
+```
+
+Una comparación incluye **todos** sus runs referenciados. `cluster_id` es local
+al run; un mismo número entre runs no establece correspondencia. Las tablas
+distinguen contenidos únicos de ocurrencias. Un contenido en dos videos aparece
+en ambas líneas de tiempo; los conteos únicos por fuente no son aditivos. La
+fila de ruido (-1) tiene tamaños y pertenencias, sin medoide ni coherencia interna.
+La coherencia visual usa coseno y vecinos originales; no certifica escenas.
+
+Cada clúster muestra su medoide y hasta tres miembros por distancia original.
+Ruido muestra hasta cuatro contenidos en orden de ID. Para una imagen se elige
+la primera ocurrencia por `(video_id, sample_index, frame_id)`, marcada
+**solo para visualización / display-only**. Esto no reemplaza la procedencia
+completa ni asigna tiempo/video representativo al contenido científico.
+
+Las líneas de tiempo se ordenan por `sample_index` y muestran
+`timestamp_seconds` relativo a la grilla. Los huecos permanecen explícitos; no
+se interpolan muestras. Una transición cambia la asignación observada, no define
+un límite de escena. `video_id` nunca se usa como `sequence_id`; las secuencias
+siguen desconocidas, sin escenas, splits ni anotaciones de objetos inventadas.
+Los colores pueden repetirse; las asignaciones exactas están en las tablas.
+
+Validación local: JPEGs y artefactos sintéticos, con repeticiones dentro de un
+video y entre fuentes, ruido, todo ruido, un único clúster, seguridad de rutas,
+alineación y lectura sin modificaciones. Aún no se revisaron aquí los 8093
+contenidos reales. Comparaciones grandes pueden requerir bastante tiempo y
+espacio local: se verifica cada run y se genera una página completa por run.
+La memoria de verificación conserva los límites y estructuras cuadráticas de
+la [auditoría de memoria](../analysis/clustering_memory.md). Las fuentes deben
+permanecer inmutables durante la revisión; no hay bloqueo de escritores externos.
