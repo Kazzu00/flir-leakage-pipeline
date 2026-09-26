@@ -642,6 +642,22 @@ def clustering_summary(directory: Path) -> None:
     typer.echo(json.dumps(read_json(directory/("metrics.json" if is_run else "summary.json")), indent=2))
 
 
+@clustering_app.command("inspect")
+def clustering_inspect(
+    directory: Path,
+    limit: int = typer.Option(10, min=1, help="Maximum displayed rows per saved shortlist/reference/candidate table."),
+) -> None:
+    """Lightweight read-only inspection of saved results; NOT full scientific verification."""
+    from flir_pipeline.clustering.inspection import inspect_clustering
+
+    try:
+        result = inspect_clustering(directory, limit=limit)
+    except (OSError, ValueError) as error:
+        typer.echo(f"Lightweight inspection failed: {error}", err=True)
+        raise typer.Exit(1) from error
+    typer.echo(json.dumps(result, indent=2, allow_nan=False))
+
+
 @clustering_app.command("video-review")
 def clustering_video_review(
     directory: Path,

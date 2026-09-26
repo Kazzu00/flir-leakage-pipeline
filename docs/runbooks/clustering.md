@@ -45,6 +45,52 @@ reutilizan; las publicaciones incompletas se preservan y se rechazan.
 selección y acuerdos guardados. Con `--inputs`, comprueba además las fuentes y
 recalcula métricas originales, resúmenes y medoides de cada run. Esta validación
 puede durar más que algunos ajustes. No equivale a reajustar todos los modelos.
+`summary` conserva esa verificación estricta sin `--inputs` antes de mostrar el
+resumen: en una colección recorre los runs y verifica selección/acuerdos.
+
+Para consultar resultados guardados con un costo acotado al directorio
+seleccionado, usar **`inspect` (inspección ligera, NO verificación científica
+completa)**:
+
+```powershell
+uv run flir-pipeline clustering inspect artifacts/clustering/comparison/<comparison_id>
+uv run flir-pipeline clustering inspect artifacts/clustering/comparison/<comparison_id> --limit 20
+uv run flir-pipeline clustering inspect artifacts/clustering/screening/<screening_id>
+uv run flir-pipeline clustering inspect <directorio-del-run>
+```
+
+La salida JSON contiene el alcance de la inspección, metadata compacta y:
+
+- comparison: `summary.json` completo y vistas compactas de `references.csv` y
+  `candidates.csv`;
+- screening: `summary.json` completo y vista de `shortlist.csv`;
+- run individual: `metrics.json` completo.
+
+`--limit` controla las filas mostradas **por tabla** (10 por defecto, mínimo 1).
+Cada vista conserva el orden guardado, informa el total de filas y si se truncó;
+no selecciona ni ordena nuevos candidatos. Las métricas no disponibles de videos
+muestreados siguen siendo `null` (`None` en Python), también al leer celdas vacías
+del CSV. No se convierten en cero ni se infieren secuencias.
+
+`inspect` exige el marcador de publicación `metadata.json`, comprueba su tipo,
+identidad/configuración o política registrada, y los checksums SHA256 de **todos
+los outputs declarados del directorio seleccionado**. Los binarios NPY/Parquet se
+leen únicamente como bloques de bytes para hashing. No carga embeddings, labels,
+índices ni matrices científicas, no materializa distancias euclidianas N×N, no
+recalcula métricas/medoides/ARI/AMI ni ejecuta la selección. No abre los runs
+referenciados ni el screening/fuentes de una comparación: esos directorios pueden
+estar offline. Un archivo local obligatorio ausente, una metadata inválida o un
+checksum distinto producen un error explícito y código de salida 1.
+
+La inspección no escribe artefactos ni recibos. Su resultado declara
+`scientific_verification_performed: false`; el éxito solo demuestra las
+comprobaciones locales indicadas. El costo de I/O sigue siendo proporcional al
+tamaño de los outputs locales declarados. Los checksums se contrastan con la
+metadata suministrada, no certifican su autenticidad ni detectan una alteración
+coherente de outputs y checksums. Las fuentes deben permanecer inmutables durante
+la lectura; no hay bloqueo de escritores externos. Para verificar asignaciones,
+selección, acuerdos o fuentes, continuar usando `summary`/`verify` y
+`verify --inputs` según el alcance anterior. Sus contratos no cambian.
 
 Para una ejecución individual, `--configuration-index` es 0-based dentro del
 grid YAML; `--reduction-seed` aplica a t-SNE/PaCMAP.
