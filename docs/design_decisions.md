@@ -476,7 +476,76 @@ Use immutable sources and one writer per output. Filesystem containment is check
 at read time, but this is not a lock against concurrent mutation; neither sampling
 nor JPEG replacement should run while building/extracting. Existing resume and
 metadata-last completion semantics remain. This occurrence/content-to-features
-bridge still has synthetic/offline validation only and has not run on Hypatia's
-9648 samples; the completed sampling job does not validate it. Directory-based
+bridge originally had synthetic/offline validation only. The project owner now
+reports full Hypatia manifest/features validation; see the separately attributed
+evidence in [status](status.md). This change does not revalidate those files. Directory-based
 diagnostics/reports and video sequence analysis remain
 outside this bridge.
+
+## 35. Explicit video provenance and bounded exact similarity v2
+
+Historical `content_cosine_v1` retains its serialized configuration/ID, artifact
+contract, filename consensus, `same_sequence`, `frame_delta` and historical split
+semantics. New default fields are excluded from its identity serialization. Its
+full pair table is still supported. Deterministic top-k sorting now uses 64-row
+blocks with the same score ordering and content-ID tie break.
+
+Video configs explicitly select `content_cosine_v2` / `sampled_video_grid`.
+`source video != sequence`; `relative sampling-grid timestamp != capture timestamp`.
+The data audit validates declared grid consistency and preserves every occurrence;
+receipt/source verification remains the responsibility of build-video-manifest.
+There is no inferred sequence ID, label, historical split or representative time.
+Content summaries retain video membership and associated occurrence tuples; the
+record table retains exact numeric fields and every frame/content/embedding link.
+
+Only the existing L2 content vectors enter cosine/top-k. Posterior video relations
+compute independent minima over **all** occurrence pairs sharing a source video.
+`same_source_video` means intersecting source sets, including contents present in
+several videos. Disjoint sets have null sample/time gaps. Sample units and seconds
+have separate bins; FPS is never assumed to be 1. Different source rates can make
+the two minima refer to different occurrence pairs. These relations assert neither
+scene identity nor confirmed leakage.
+
+V2 uses 21 bytes per unordered pair in compact NumPy arrays plus temporary exact
+float64 statistics/quantile workspaces. It never constructs an all-pairs DataFrame
+or full triangular row-index arrays. Near-unit pairs and optional full pairs stream
+to typed Parquet by matrix row, including the degenerate all-near-unit case.
+Default `pair_storage: summary_only_v1` omits only `pair_analysis.parquet`;
+`full_streamed_v1` opts in with a different similarity ID. Matrix, complete top-k,
+provenance, global and temporal distributions, six exact linear quantiles and all
+near-unit pairs remain available. Inclusive quantile thresholds retain ties.
+
+Version, temporal rules, gap bounds/units and pair-storage policy enter similarity
+identity. Input fingerprints bind video fields independently of unchanged dataset
+and feature identities. Standalone verification reconstructs provenance, neighbors,
+compact relations, summaries and persisted pair cohorts; optional sources also bind
+original embeddings and manifest. The metadata completion marker, refusal of
+incomplete directories and one-writer-per-output rule remain unchanged.
+
+The v2 verifier enforces pair schemas even for empty cohorts. With supplied
+features it compares the full mathematical snapshot, exact content index and
+occurrence mapping to their sources and validates raw/L2 quality; with a manifest
+it also checks complete coverage and resolved revision. Cache reuse from compute
+performs that source-bound verification too; matching metadata/checksums alone
+cannot accept a cache with a different pooling declaration or content mapping.
+Grid auditing rejects
+negative relative times and labels/splits/group declarations incompatible with
+the unlabeled video-v1 contract. Quantile cohort comparison explicitly uses a
+float64 ufunc loop, independent of NumPy scalar-promotion rules.
+
+Reduction still consumes matrix/top-k/metadata, with complete artifact QA. Clustering
+can fit/evaluate visually, but sequence recall/coherence and historical split metrics
+are explicitly unavailable for video. Its posterior evaluation protocol is v2;
+existing Pareto selection records missing temporal criteria as omitted. No source
+video is promoted to a cluster. Historical ZIP/sequence HTML builders reject video
+early; video summaries and CSVs remain available. Video splitting is explicitly
+out of scope until a separate grouping/annotation protocol exists.
+
+Video clustering metadata enumerates unavailable metric groups and explicitly
+marks the sequence-temporal denominator unavailable. Verification rejects replacing
+these unknown metrics by zero, even if the metric-file checksum is updated.
+Historical v1 metadata is not required to carry these video-only declarations.
+
+Local validation uses synthetic inputs only. The target N=8093 workload and its
+peak memory/time must be measured later on Hypatia; similarity, scene discovery,
+reduction and clustering results on those real contents are not claimed here.

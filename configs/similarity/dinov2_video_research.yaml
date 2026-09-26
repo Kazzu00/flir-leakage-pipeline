@@ -1,0 +1,15 @@
+# Independent DINOv2 content space. Source videos are not sequences.
+algorithm_version: content_cosine_v2
+provenance_mode: sampled_video_grid
+temporal_rule: all_occurrences_min_same_source_video_gaps_v1
+cross_split_rule: unavailable
+pair_storage: summary_only_v1
+metric: cosine
+top_k: 20
+pairwise_dtype: float32
+quantiles: [0.90, 0.95, 0.975, 0.99, 0.995, 0.999]
+# Sampling-grid distances: these units are intentionally separate.
+sample_index_gap_upper_bounds: [0, 1, 5, 10, 25, 50, 100]
+timestamp_gap_seconds_upper_bounds: [0, 1, 5, 10, 25, 50, 100]
+numerical_atol: 0.00001
+near_unit_atol: 0.000001

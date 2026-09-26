@@ -113,6 +113,8 @@ def _gallery(family: ClusteringFamily, directory: Path, row: pd.Series, archive:
 
 def generate_clustering_report(comparison: Path, families: dict[str, ClusteringFamily],
                                images_archive: Path, output: Path = Path("reports/clustering")) -> dict:
+    if any(f.source.similarity.get("provenance_mode") == "sampled_video_grid" for f in families.values()):
+        raise ValueError("This historical ZIP/sequence review is unavailable for sampled video; numerical clustering remains supported")
     if not verify_collection(comparison)["quality_valid"]:
         raise ValueError("Comparison must pass verification before reporting")
     meta = read_json(comparison/"metadata.json")

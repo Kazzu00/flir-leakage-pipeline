@@ -38,6 +38,17 @@ the larger models from the similarly named `embeddings/*_research.yaml` files.
 Numerical tolerance and near-unit diagnostic tolerance are not leakage thresholds.
 See [similarity execution and cache semantics](../docs/analysis/similarity.md).
 
+`similarity/dinov2_video_research.yaml` and `similarity/clip_video_research.yaml`
+explicitly select `content_cosine_v2`, `sampled_video_grid` and
+`pair_storage: summary_only_v1`. They retain float32 cosine, top-20 and exact
+quantiles; sample-index bounds (samples) and timestamp bounds (seconds) are
+independent, with no assumption that FPS=1. `full_streamed_v1` enables the optional
+full pair table and changes similarity identity. Neither mode requires it for
+reduction/clustering. The historical YAMLs remain unchanged and cannot silently
+consume video temporal semantics. Source video is not sequence, relative grid
+time is not capture time, and no video splitting is configured. See the
+[video runbook](../docs/runbooks/similarity.md#video-muestreado-contrato-v2-y-memoria-acotada).
+
 No UMAP experiments are configured. `detection/yolo11n.yaml` predefines a single
 controlled detector configuration and target matrix; batch is chosen by a
 hardware probe and frozen before real training. CPU Stage B is never automatic.

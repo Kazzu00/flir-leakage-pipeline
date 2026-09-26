@@ -224,8 +224,10 @@ La documentación versionada conserva esta evidencia agregada y portable.
 `summary.json` mantiene la procedencia exacta local, incluidos los SHA256;
 no se incorporan aquí hashes concretos ni rutas absolutas de Hypatia.
 Las 9648 rutas únicas **no demuestran 9648 contenidos visuales únicos**:
-el manifest occurrence/content y su deduplicación todavía no se han ejecutado
-en Hypatia. El puente `build-video-manifest` conserva validación sintética.
+el conteo de archivos por sí solo no mide contenidos. Posteriormente, el responsable
+reportó validación en Hypatia del manifest y features: 9648 occurrences / 8093
+contenidos exactos. Véase [estado y procedencia de esa evidencia](../status.md).
+Esos artefactos remotos no se revalidaron durante la adaptación local de similitud.
 
 ### Límite metodológico
 

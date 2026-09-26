@@ -14,6 +14,7 @@ from flir_pipeline.clustering.experiments import verify_collection
 from flir_pipeline.clustering.storage import verify_run as verify_cluster
 from flir_pipeline.data.annotations import audit_annotations
 from flir_pipeline.data.identity import dataset_id_from_manifest
+from flir_pipeline.data.video_temporal import temporal_mode
 from flir_pipeline.reduction.storage import load_inputs as load_visual_inputs
 from flir_pipeline.similarity.storage import (
     execution_provenance,
@@ -82,6 +83,8 @@ def load_inputs(spec_path: Path, comparison: Path, labels_archive: Path) -> Spli
         raise ValueError("Splitting evaluation requires both DINOv2 and CLIP")
     manifest_path = Path(spec["manifest"])
     manifest = pd.read_parquet(manifest_path)
+    if temporal_mode(manifest) == "sampled_video_grid":
+        raise ValueError("Video splitting is out of scope: sequence groups and audited labels are unavailable")
     if not manifest.label_valid.all() or not manifest.label_exists.all():
         raise ValueError("Splitting needs fully audited canonical annotations")
     audit = audit_annotations(manifest, labels_archive)

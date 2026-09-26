@@ -31,18 +31,30 @@ source videos
     → sampled frame occurrences (relative sampling grid)
     → occurrence manifest + exact-byte content identity / dedup
     → DINOv2 / CLIP unique-content features (same storage pipeline)
-    → future similarity / sequence identification
+    → content_cosine_v2 + all-occurrence source-video relations
+    → t-SNE / PaCMAP → density clustering (numerical infrastructure)
+    → future sequence identification / validated grouping protocol
 ```
 
 Source-video sampling has confirmed operational validation on Hypatia: a real
 5-second smoke and completed job 737719, producing 9648 JPEGs at 1 FPS from three
 source videos. See the [execution evidence](runbooks/data.md#evidencia-real-confirmada-en-hypatia).
-The occurrence/content-to-features bridge remains tested synthetically only;
-`build-video-manifest` has not run on Hypatia. Sampling does not establish
+The owner subsequently reports a validated manifest and full features for 9648
+occurrences / 8093 contents; these remote artifacts were not revalidated in this
+local change. Video similarity/reduction/clustering support has synthetic local
+validation only, with real execution pending. Sampling does not establish
 sequences, scene boundaries, embeddings, clustering, splits, leakage removal or
 detector performance for these videos. Historical downstream experiments do not
 validate the new dataset automatically.
 An N=16 feature smoke or a tiny detector pilot validates infrastructure only.
+
+Video similarity explicitly selects sampled-grid configs; historical configs
+cannot silently reinterpret frame deltas as sample gaps. The v2 default omits
+the full pair Parquet while retaining exact summaries, matrix, top-k and every
+occurrence. Numerical reduction/clustering do not require that pair file.
+Sequence-based clustering metrics remain unavailable; source-video membership
+does not substitute for scenes. Video splitting is rejected. Existing historical
+ZIP/sequence review builders are not video reports; use v2 summaries and CSVs.
 
 Use [pipeline traceability](pipeline_traceability.md) to follow stored identities
 and downstream consumers, and [design decisions](design_decisions.md) for scientific

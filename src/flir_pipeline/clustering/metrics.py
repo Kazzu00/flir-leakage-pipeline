@@ -41,6 +41,10 @@ class EvaluationContext:
             raise ValueError("Posterior provenance must align with unique contents")
         if original_distances.shape != (n, n) or cosine.shape != (n, n):
             raise ValueError("Original-space evaluation matrices are misaligned")
+        if "temporal_source" in provenance and provenance.temporal_source.eq("sampled_video_grid").all():
+            # Source membership is not scene membership. The historical temporal
+            # recall has no valid denominator here; keep it unavailable explicitly.
+            return cls(list(content_ids), original_distances, cosine, neighbors, provenance, {})
         a, b = np.triu_indices(n, 1)
         seq = provenance.sequence_key.to_numpy()
         valid = provenance.sequence_provenance_valid.to_numpy(dtype=bool)
@@ -65,21 +69,22 @@ def cluster_summary(labels: np.ndarray, context: EvaluationContext) -> pd.DataFr
         a, b = np.triu_indices(len(members), 1)
         pairs = context.cosine[members[a], members[b]].astype(np.float64)
         provenance = context.provenance.iloc[members]
-        known = provenance.sequence_provenance_valid.astype(bool)
-        counts = provenance.loc[known, "sequence_key"].value_counts()
+        video = "temporal_source" in provenance and provenance.temporal_source.eq("sampled_video_grid").all()
+        known = pd.Series(False, index=provenance.index) if video else provenance.sequence_provenance_valid.astype(bool)
+        counts = pd.Series(dtype=int) if video else provenance.loc[known, "sequence_key"].value_counts()
         fractions = counts.to_numpy()/counts.sum() if len(counts) else np.asarray([])
-        split_mask = int(np.bitwise_or.reduce(provenance.split_mask.to_numpy(dtype=np.int32)))
+        split_mask = 0 if video else int(np.bitwise_or.reduce(provenance.split_mask.to_numpy(dtype=np.int32)))
         split_names = [name for name, bit in (("train", 1), ("val", 2), ("test", 4)) if split_mask & bit]
         rows.append({"cluster_id": int(cluster_id), "n_members": len(members), "medoid_content_id": ids[medoid],
                      "intra_pair_count": len(pairs), "mean_intra_cosine": float(pairs.mean()) if len(pairs) else None,
                      "median_intra_cosine": float(np.median(pairs)) if len(pairs) else None,
                      "Q1_intra_cosine": float(np.quantile(pairs, .25)) if len(pairs) else None,
                      "Q3_intra_cosine": float(np.quantile(pairs, .75)) if len(pairs) else None,
-                     "known_sequence_members": int(known.sum()), "sequence_coverage": float(known.mean()), "sequence_count": len(counts),
+                     "known_sequence_members": int(known.sum()), "sequence_coverage": None if video else float(known.mean()), "sequence_count": None if video else len(counts),
                      "dominant_sequence_fraction": float(fractions.max()) if len(counts) else None,
                      "sequence_entropy_bits": float(-np.sum(fractions*np.log2(fractions))) if len(counts) else None,
-                     "historical_split_memberships": json.dumps(split_names), "historical_split_count": len(split_names),
-                     "historical_split_provenance_complete": bool(provenance.split_membership_complete.all())})
+                     "historical_split_memberships": None if video else json.dumps(split_names), "historical_split_count": None if video else len(split_names),
+                     "historical_split_provenance_complete": False if video else bool(provenance.split_membership_complete.all())})
     columns = ["cluster_id", "n_members", "medoid_content_id", "intra_pair_count", "mean_intra_cosine", "median_intra_cosine",
                "Q1_intra_cosine", "Q3_intra_cosine", "known_sequence_members", "sequence_coverage", "sequence_count",
                "dominant_sequence_fraction", "sequence_entropy_bits", "historical_split_memberships", "historical_split_count",
@@ -134,6 +139,16 @@ def evaluate_clustering(labels: np.ndarray, context: EvaluationContext,
     result["historical_unknown_clusters"] = int((table.historical_split_count == 0).sum())
     for split in ("train", "val", "test"):
         result[f"historical_{split}_only_clusters"] = int(table.historical_split_memberships.eq(json.dumps([split])).sum())
+    if "temporal_source" in context.provenance and context.provenance.temporal_source.eq("sampled_video_grid").all():
+        result.update(temporal_provenance_mode="sampled_video_grid",
+                      temporal_evaluation="sequence identity unknown; historical recall unavailable",
+                      historical_split_evaluation="unavailable", clustered_sequence_coverage=None)
+        for k in (1, 5, 10):
+            result.update({f"temporal_recall@{k}": None, f"temporal_pairs@{k}": None,
+                           f"temporal_retained_pairs@{k}": None})
+        for key in list(result):
+            if key.startswith("historical_") and key != "historical_split_evaluation":
+                result[key] = None
     return result, table
 
 

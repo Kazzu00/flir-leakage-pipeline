@@ -332,3 +332,37 @@ def test_verifier_detects_invalid_artifacts(tmp_path, corruption):
     else:
         (output/"quality.json").unlink()
     assert not verify_similarity_directory(output)["quality_valid"]
+
+
+def test_block_topk_and_batched_quantiles_match_frozen_v1_algorithms():
+    # Cross both row-block boundaries, with ties and reverse content-ID order.
+    x = np.random.default_rng(42).normal(size=(137, 8)).astype(np.float32)
+    x /= np.linalg.norm(x, axis=1, keepdims=True)
+    x[1::3] = x[0]
+    ids = np.array([f"c{i:03d}" for i in range(len(x))][::-1])
+    matrix = compute_cosine_similarity(x)
+    id_order = np.argsort(ids, kind="stable")
+    scores = matrix[:, id_order].copy()
+    scores[np.arange(len(x)), np.argsort(id_order)] = -np.inf
+    old_order = id_order[np.argsort(-scores, axis=1, kind="stable")[:, :20]].ravel()
+    neighbors = compute_topk_neighbors(matrix, ids.tolist(), 20)
+    np.testing.assert_array_equal(neighbors.neighbor_row, old_order)
+    values = matrix[np.triu_indices(len(x), 1)].astype(np.float64)
+    stats = distribution_summary(values)
+    for name, q in {"Q1": .25, "median": .5, "Q3": .75, "p90": .9, "p95": .95,
+                    "p97_5": .975, "p99": .99, "p99_5": .995, "p99_9": .999}.items():
+        assert stats[name] == float(np.quantile(values, q, method="linear"))
+
+
+def test_v1_artifacts_do_not_require_or_interpret_video_extras(tmp_path):
+    feature, manifest = synthetic_feature_space(tmp_path)
+    config = SimilarityConfig(top_k=3)
+    output = compute_to_store(feature, manifest, config, tmp_path/"similarity")
+    before = (output/"metadata.json").read_bytes()
+    meta = json.loads(before)
+    assert not {"provenance_mode", "pair_storage", "sample_index_gap_upper_bounds", "timestamp_gap_seconds_upper_bounds"} & set(meta["config"])
+    (output/"source_video_similarity.csv").write_text("unrelated v2 file\n")
+    (output/"video_config.yaml").write_text("algorithm_version: content_cosine_v2\n")
+    assert verify_similarity_directory(output, feature, manifest)["quality_valid"]
+    assert compute_to_store(feature, manifest, config, tmp_path/"similarity") == output
+    assert (output/"metadata.json").read_bytes() == before

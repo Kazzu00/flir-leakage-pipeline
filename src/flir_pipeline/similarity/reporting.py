@@ -121,6 +121,9 @@ def generate_similarity_report(dinov2: Path, clip: Path, comparison: Path, image
     Private row IDs/hashes remain in ignored audit tables, never display tables.
     """
     spaces = {}
+    for path in (dinov2, clip):
+        if read_json(path/"metadata.json").get("provenance_mode") == "sampled_video_grid":
+            raise ValueError("This ZIP/sequence review supports historical v1 only; use video similarity summary and exact CSV tables")
     for name, path in (("dinov2", dinov2), ("clip", clip)):
         quality = verify_similarity_directory(path)
         if not quality["quality_valid"]:

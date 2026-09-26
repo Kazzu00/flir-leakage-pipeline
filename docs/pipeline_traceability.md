@@ -43,11 +43,21 @@ should be described as a new experiment. Failed/incomplete artifacts stay
 preserved. See [reproducibility](reproducibility.md).
 
 For local video samples, `frame_id → content_id → embedding_row` is implemented;
-later arrows remain pending for that dataset. `record_index` keeps all occurrences,
+v2 similarity and numerical reduction/clustering can now consume those stores,
+with synthetic local validation only. Real downstream execution, sequence discovery
+and partition assignment remain pending for that dataset. `record_index` keeps all occurrences,
 including smoke exclusions (-1); video provenance is joined from the supplied
 manifest. Directory transport changes no mathematical feature ID. Each declared
 local occurrence is hash-checked before cache reuse/resume; exact duplicate bytes
 must still match, even when that occurrence is not the selected representative.
+
+For video similarity, `record_provenance.parquet` preserves the full occurrence
+grid and embedding mapping; content provenance holds membership/occurrence sets.
+Temporal minima use all same-source occurrences after cosine/top-k computation.
+No sequence or historical split is generated. V2 metadata binds this provenance,
+exact quantiles and `pair_storage`; `summary_only_v1` omits the full pair table.
+Reduction/clustering use the same matrix/top-k/metadata source contract and never
+require that table. Historical v1 IDs and artifacts remain readable without migration.
 
 ## Interpretation boundaries
 

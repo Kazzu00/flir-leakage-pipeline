@@ -31,6 +31,8 @@ from flir_pipeline.similarity.storage import (
 )
 
 RUN_FILES = ("cluster_labels.npy", "content_index.parquet", "cluster_summary.parquet", "metrics.json", "quality.json")
+VIDEO_EVALUATION_PROTOCOL = "exact_original_euclidean_cosine_video_unknown_sequences_v2"
+VIDEO_UNAVAILABLE_METRICS = ["sequence_coherence", "sequence_temporal_recall", "historical_splits"]
 
 
 def clustering_provenance() -> dict:
@@ -146,10 +148,16 @@ def run_to_store(family: ClusteringFamily, space: ClusterSpace, config: Clusteri
                 "clustering_space_id": run_id, "configuration_id": config.configuration_id,
                 "algorithm": config.algorithm, "config": asdict(config), "implementation_versions": versions,
                 "input_signatures": space.signatures, "evaluation_seconds": evaluation_seconds,
-                "evaluation_protocol": "exact_original_euclidean_cosine_posterior_v1",
+                "evaluation_protocol": (VIDEO_EVALUATION_PROTOCOL
+                                        if metrics.get("temporal_provenance_mode") == "sampled_video_grid"
+                                        else "exact_original_euclidean_cosine_posterior_v1"),
                 "noise_policy": "minus_one_unchanged; exclude_noise_queries; temporal_denominator_all_eligible_pairs",
                 "record_mapping": "source feature record_index, fingerprint retained; no split assignment",
                 "optional_files": optional_files, "output_sha256": {name: file_sha256(output/name) for name in (*RUN_FILES, *optional_files)}}
+    if metrics.get("temporal_provenance_mode") == "sampled_video_grid":
+        metadata.update(provenance_mode="sampled_video_grid",
+                        unavailable_metric_groups=VIDEO_UNAVAILABLE_METRICS,
+                        noise_policy="minus_one_unchanged; exclude_noise_queries; sequence_temporal_denominator_unavailable")
     write_json(output/"metadata.json", metadata)
     if not verify_run(output)["quality_valid"]:
         raise ValueError("Published clustering failed verification and was preserved")
@@ -172,6 +180,22 @@ def verify_run(directory: Path, family: ClusteringFamily | None = None) -> dict:
         checks["identity_valid"] = meta["clustering_space_id"] == clustering_space_id(meta["dataset_id"], meta["feature_space_id"], meta["representation"], meta["reduction_space_id"], config, meta["effective_parameters"], meta["implementation_versions"])
         checks["metadata_consistent"] = meta["artifact_kind"] == "clustering_run" and meta["algorithm"] == config.algorithm and meta["configuration_id"] == config.configuration_id
         summary, metrics = pd.read_parquet(directory/"cluster_summary.parquet"), read_json(directory/"metrics.json")
+        if meta.get("provenance_mode") == "sampled_video_grid" or metrics.get("temporal_provenance_mode") == "sampled_video_grid" or meta.get("evaluation_protocol") == VIDEO_EVALUATION_PROTOCOL:
+            temporal_keys = [f"{name}@{k}" for name in ("temporal_recall", "temporal_pairs", "temporal_retained_pairs") for k in (1, 5, 10)]
+            unknown_keys = ["weighted_dominant_sequence_fraction", "weighted_sequence_entropy_bits", "clustered_sequence_coverage", *temporal_keys]
+            unknown_keys += ["historical_multisplit_clusters", "historical_unknown_clusters",
+                             *(f"historical_{split}_only_clusters" for split in ("train", "val", "test"))]
+            checks["video_unavailable_metrics_explicit"] = bool(
+                meta.get("provenance_mode") == metrics.get("temporal_provenance_mode") == "sampled_video_grid"
+                and meta.get("evaluation_protocol") == VIDEO_EVALUATION_PROTOCOL
+                and meta.get("unavailable_metric_groups") == VIDEO_UNAVAILABLE_METRICS
+                and meta.get("noise_policy") == "minus_one_unchanged; exclude_noise_queries; sequence_temporal_denominator_unavailable"
+                and metrics.get("historical_split_evaluation") == "unavailable"
+                and metrics.get("temporal_evaluation") == "sequence identity unknown; historical recall unavailable"
+                and all(key in metrics and metrics[key] is None for key in unknown_keys)
+                and summary.known_sequence_members.eq(0).all()
+                and summary[["sequence_coverage", "sequence_count", "dominant_sequence_fraction", "sequence_entropy_bits", "historical_split_memberships", "historical_split_count"]].isna().all().all()
+                and summary.historical_split_provenance_complete.eq(False).all())
         checks["summary_coverage_valid"] = (set(summary.cluster_id) == set(labels)-{-1} and summary.cluster_id.is_unique
                                             and all(r.n_members == int((labels == r.cluster_id).sum()) and r.medoid_content_id in set(index.loc[labels == r.cluster_id, "content_id"]) for r in summary.itertuples()))
         checks["population_metrics_valid"] = metrics["total_points"] == len(labels) and metrics["clustered_points"] == int((labels >= 0).sum()) and metrics["n_clusters_excluding_noise"] == len(summary)

@@ -41,6 +41,8 @@ src/flir_pipeline/
   similarity/
     cosine.py              float32 dot products, deterministic top-k, distributions
     temporal.py            occurrence consensus, multi-split sets, posterior pair tables
+    video_temporal.py      all-occurrence source-video memberships and minimum grid gaps
+    video_storage.py       v2 compact exact pair arrays, bounded Parquet, versioned QA
     storage.py             config identity, input/output fingerprints, full verification
     comparison.py          content-aligned neighbor Jaccard across independent spaces
     reporting.py           aggregate tables, selected ZIP image grids and figures
@@ -239,6 +241,23 @@ frame/content/embedding map. Join on `frame_id` to recover temporal fields.
 Neither this bridge nor the numerical feature adapters infer video sequences,
 create labels or define partitions. Existing ZIP-based diagnostics, image reports
 and explorers have not been extended to local video images.
+
+## Video similarity and downstream boundary
+
+Video similarity uses `data/video_temporal.py` for an explicit grid audit and
+dispatches to `content_cosine_v2`. The v1 historical contract remains unchanged.
+V2 preserves occurrence records and associated content membership sets without
+introducing sequences; numerical inputs remain unique L2 contents. Compact pair
+arrays support exact global/temporal statistics; optional full pairs and mandatory
+near-unit pairs stream to Parquet. Metadata declares `pair_storage` and temporal
+semantics. See [design decision 35](design_decisions.md#35-explicit-video-provenance-and-bounded-exact-similarity-v2).
+
+Reduction's matrix/top-k/metadata contract is unchanged. Clustering's video
+evaluation protocol marks historical sequence/split metrics unavailable and never
+promotes source membership to labels. Historical review builders reject video;
+summary/CSV remain available. Video splitting is explicitly rejected, pending a
+separate scene/grouping and annotation protocol. Local tests do not establish real
+video similarity or clustering results.
 
 ## External integration boundary
 

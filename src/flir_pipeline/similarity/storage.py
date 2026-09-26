@@ -14,6 +14,7 @@ import numpy as np
 import pandas as pd
 
 from flir_pipeline.data.identity import dataset_id_from_manifest
+from flir_pipeline.data.video_temporal import VIDEO_COLUMNS, temporal_mode
 from flir_pipeline.features.storage import verify_features_against_manifest
 from flir_pipeline.similarity.cosine import (
     compute_cosine_similarity,
@@ -45,10 +46,16 @@ class SimilarityConfig:
     tie_break: str = "content_id_ascending"
     temporal_rule: str = "all_occurrences_consensus_archive_sequence_index"
     cross_split_rule: str = "exists_known_unequal_occurrence_splits"
+    provenance_mode: str = "filename_heuristic"
+    pair_storage: str = "full_v1"
+    sample_index_gap_upper_bounds: tuple[int, ...] = (0, 1, 5, 10, 25, 50, 100)
+    timestamp_gap_seconds_upper_bounds: tuple[float, ...] = (0, 1, 5, 10, 25, 50, 100)
 
     def __post_init__(self):
         object.__setattr__(self, "quantiles", tuple(self.quantiles))
         object.__setattr__(self, "frame_delta_upper_bounds", tuple(self.frame_delta_upper_bounds))
+        for name in ("sample_index_gap_upper_bounds", "timestamp_gap_seconds_upper_bounds"):
+            object.__setattr__(self, name, tuple(getattr(self, name)))
         if self.metric != "cosine" or self.pairwise_dtype != "float32":
             raise ValueError("Only cosine over float32 L2 embeddings is implemented")
         if type(self.top_k) is not int or self.top_k < 1:
@@ -60,8 +67,33 @@ class SimilarityConfig:
         if not 0 < self.numerical_atol <= 1e-4 or not 0 < self.near_unit_atol <= self.numerical_atol:
             raise ValueError("Invalid numerical or near-unit diagnostic tolerance")
         fixed = (self.algorithm_version, self.tie_break, self.temporal_rule, self.cross_split_rule)
-        if fixed != ("content_cosine_v1", "content_id_ascending", "all_occurrences_consensus_archive_sequence_index", "exists_known_unequal_occurrence_splits"):
+        historical = ("content_cosine_v1", "content_id_ascending", "all_occurrences_consensus_archive_sequence_index", "exists_known_unequal_occurrence_splits")
+        video = ("content_cosine_v2", "content_id_ascending", "all_occurrences_min_same_source_video_gaps_v1", "unavailable")
+        if fixed == historical and self.provenance_mode == "filename_heuristic" and self.pair_storage == "full_v1":
+            if self.sample_index_gap_upper_bounds != (0, 1, 5, 10, 25, 50, 100) or self.timestamp_gap_seconds_upper_bounds != (0, 1, 5, 10, 25, 50, 100):
+                raise ValueError("Video gap bounds are not applicable to historical v1")
+        elif fixed == video and self.provenance_mode == "sampled_video_grid" and self.pair_storage in {"summary_only_v1", "full_streamed_v1"}:
+            if self.frame_delta_upper_bounds != (0, 1, 5, 10, 25, 50, 100):
+                raise ValueError("frame_delta is not applicable to sampled video")
+            for name in ("sample_index_gap_upper_bounds", "timestamp_gap_seconds_upper_bounds"):
+                bounds = getattr(self, name)
+                if (not bounds or bounds[0] != 0 or tuple(sorted(set(bounds))) != bounds
+                        or not all(type(v) in (int, float) and np.isfinite(v) and v >= 0 for v in bounds)
+                        or (name.startswith("sample_index") and not all(type(v) is int for v in bounds))):
+                    raise ValueError(f"Invalid explicit gap bounds: {name}")
+        else:
             raise ValueError("Unsupported analysis rule/version")
+
+
+def config_payload(config: SimilarityConfig) -> dict:
+    """Freeze the v1 identity byte-for-byte while versioning new semantics."""
+    payload = asdict(config)
+    if config.algorithm_version == "content_cosine_v1":
+        for name in ("provenance_mode", "pair_storage", "sample_index_gap_upper_bounds", "timestamp_gap_seconds_upper_bounds"):
+            payload.pop(name)
+    else:
+        payload.pop("frame_delta_upper_bounds")
+    return payload
 
 
 def stable_id(payload: dict) -> str:
@@ -70,7 +102,7 @@ def stable_id(payload: dict) -> str:
 
 def similarity_space_id(dataset_id: str, feature_space_id: str, config: SimilarityConfig) -> str:
     """Identify a dataset/feature/analysis configuration independent of runtime paths."""
-    return stable_id({"dataset_id": dataset_id, "feature_space_id": feature_space_id, "config": asdict(config)})
+    return stable_id({"dataset_id": dataset_id, "feature_space_id": feature_space_id, "config": config_payload(config)})
 
 
 def file_sha256(path: Path) -> str:
@@ -111,9 +143,20 @@ PROVENANCE_COLUMNS = ("frame_id", "content_id", "source_archive", "source_member
 def source_signature(feature_directory: Path, manifest: pd.DataFrame) -> dict:
     # Temporal/split changes need cache invalidation even though they never enter
     # dot products and the existing dataset identity does not encode that metadata.
-    relevant = manifest.reindex(columns=PROVENANCE_COLUMNS).sort_values("frame_id")
+    video = temporal_mode(manifest) == "sampled_video_grid"
+    columns = VIDEO_COLUMNS if video else PROVENANCE_COLUMNS
+    relevant = manifest.reindex(columns=columns).sort_values("frame_id")
+    if video:
+        # pandas JSON decimal formatting is lossy for float64 times/FPS. Exact
+        # hexadecimal values prevent tiny provenance changes reusing old caches.
+        rows = [{key: None if pd.isna(value) else
+                 {"float64_hex": float(value).hex()} if isinstance(value, float) else value
+                 for key, value in row.items()} for row in relevant.to_dict(orient="records")]
+        serialized = json.dumps(rows, sort_keys=True, separators=(",", ":"), allow_nan=False)
+    else:
+        serialized = relevant.to_json(orient="records")  # Frozen historical signature.
     return {"feature_files": {name: file_sha256(feature_directory/name) for name in FEATURE_FILES},
-            "posthoc_manifest_sha256": hashlib.sha256(relevant.to_json(orient="records").encode()).hexdigest()}
+            "posthoc_manifest_sha256": hashlib.sha256(serialized.encode()).hexdigest()}
 
 
 def compute_to_store(feature_directory: Path, manifest_path: Path, config: SimilarityConfig,
@@ -125,6 +168,12 @@ def compute_to_store(feature_directory: Path, manifest_path: Path, config: Simil
     metadata is the completion marker written after all outputs are saved.
     """
     manifest = pd.read_parquet(manifest_path)
+    if temporal_mode(manifest) != config.provenance_mode:
+        raise ValueError("Manifest/config provenance mismatch; select an explicit video or historical config")
+    if config.algorithm_version == "content_cosine_v2":
+        from flir_pipeline.similarity.video_storage import compute_video_to_store
+
+        return compute_video_to_store(feature_directory, manifest_path, config, output_root)
     if not verify_features_against_manifest(feature_directory, manifest)["reproducible_full_dataset_valid"]:
         raise ValueError("Similarity requires a verified complete feature space and resolved revision")
     source = read_json(feature_directory/"metadata.json")
@@ -193,7 +242,7 @@ def compute_to_store(feature_directory: Path, manifest_path: Path, config: Simil
     write_json(output/"quality.json", quality)
     metadata = {**feature_snapshot, **execution_provenance(), "similarity_space_id": config_id,
                 "metric": config.metric, "top_k": config.top_k, "content_count": n,
-                "config": asdict(config), "input_signature": signature,
+                "config": config_payload(config), "input_signature": signature,
                 "output_sha256": {name: file_sha256(output/name) for name in ARTIFACT_NAMES}}
     write_json(output/"metadata.json", metadata)
     if not verify_similarity_directory(output)["quality_valid"]:
@@ -213,6 +262,10 @@ def verify_similarity_directory(directory: Path, feature_directory: Path | None 
     try:
         meta = read_json(directory/"metadata.json")
         config = SimilarityConfig(**meta["config"])
+        if config.algorithm_version == "content_cosine_v2":
+            from flir_pipeline.similarity.video_storage import verify_video_similarity
+
+            return verify_video_similarity(directory, feature_directory, manifest_path)
         ids = pd.read_parquet(directory/"content_index.parquet")
         contents = pd.read_parquet(directory/"content_provenance.parquet")
         records = pd.read_parquet(directory/"record_provenance.parquet")

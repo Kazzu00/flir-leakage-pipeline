@@ -43,10 +43,14 @@ See [inputs, outputs and execution order](docs/pipeline.md).
   sequences. See the [execution evidence](docs/runbooks/data.md#evidencia-real-confirmada-en-hypatia).
 - Sampled JPEGs → versioned occurrence/content manifest → shared DINOv2/CLIP
   extraction from a read-only directory, with exact-byte deduplication. This
-  bridge has synthetic validation only; video sequence identification is pending.
+  bridge has full Hypatia validation reported by the owner, not reverified locally;
+  video sequence identification is pending. See [evidence boundaries](docs/status.md).
 - Independent DINOv2 CLS and CLIP projected-image embeddings, raw/L2 stores,
   pinned model revisions and resumable extraction.
 - Content-level cosine similarity, neighborhoods and posterior temporal analysis.
+- Explicit sampled-video similarity v2 with complete occurrence provenance, exact
+  summaries and optional streamed full pairs. Numerical reduction/clustering accept
+  this contract; local validation is synthetic, real video execution remains pending.
 - t-SNE / PaCMAP with preservation metrics and seed stability.
 - DBSCAN / OPTICS / HDBSCAN with original-space metrics, ARI/AMI and explicit noise.
 - Atomic cluster-aware splitting, seeded baselines and residual cross-split analysis.

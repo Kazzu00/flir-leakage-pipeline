@@ -106,3 +106,20 @@ Los tests son sintéticos, offline y CPU. Se contrastan fórmulas con scikit-lea
 se comprueba igualdad de runs pequeños con la misma semilla y se prueban corrupción,
 alineación, selección de candidatos y metadata posterior. Datos reales, arrays,
 figuras, tablas ejecutadas y HTML se mantienen ignorados por Git.
+
+## Entrada de video desde similarity v2
+
+El mismo CLI numérico acepta features completas de video, su manifest y similarity
+`content_cosine_v2` verificado. El contrato consumido sigue siendo
+`cosine_similarity.npy`, `nearest_neighbors.parquet` y `metadata.json`, además de
+los índices/features originales. La verificación de fuente conoce los artefactos
+de procedencia v2 y no exige `pair_analysis.parquet` en `summary_only_v1`.
+
+No se añaden tiempos, source-video membership, labels o splits a los vectores de
+t-SNE/PaCMAP. Las coordenadas pueden alimentar clustering; la evaluación histórica
+de secuencias/splits de clustering queda explícitamente no disponible para video.
+La selección Pareto registra los criterios temporales omitidos; no se interpreta
+un video como secuencia ni como cluster. El builder HTML de reducción sigue siendo
+histórico y rechaza video antes de producir figuras con supuestos de secuencia.
+Estos límites no impiden ejecutar/verificar los experimentos numéricos. El contrato
+se prueba sintéticamente; no se afirma haber reducido los 8093 contenidos reales.

@@ -261,6 +261,33 @@ def test_non_jpeg_bytes_are_explicit_decode_failure(samples, tmp_path):
     assert "Expected JPEG" in report["decode_failure_records"][0]["image_error"]
 
 
+def test_real_manifest_schema_fake_features_to_video_similarity(samples, tmp_path):
+    """Exercise the actual JPEG/manifest/feature adapters with synthetic pixels."""
+    from flir_pipeline.similarity.storage import (
+        SimilarityConfig,
+        compute_to_store,
+        verify_similarity_directory,
+    )
+
+    class PinnedSyntheticExtractor(DeterministicFakeExtractor):
+        def metadata(self):
+            return {**super().metadata(), "model_revision": "a"*40,
+                    "resolved_model_revision": "a"*40}
+
+    path, manifest, _ = build(samples, tmp_path)
+    features = extract_to_store(path, extractor=PinnedSyntheticExtractor(),
+                                images_root=samples[0], output_root=tmp_path/"features")
+    config = SimilarityConfig(top_k=1, algorithm_version="content_cosine_v2",
+                              provenance_mode="sampled_video_grid", pair_storage="summary_only_v1",
+                              temporal_rule="all_occurrences_min_same_source_video_gaps_v1",
+                              cross_split_rule="unavailable")
+    output = compute_to_store(features, path, config, tmp_path/"similarity")
+    assert verify_similarity_directory(output, features, path)["quality_valid"]
+    assert np.load(output/"cosine_similarity.npy").shape == (2, 2)
+    assert len(pd.read_parquet(output/"record_provenance.parquet")) == len(manifest) == 4
+    assert not (output/"pair_analysis.parquet").exists()
+
+
 def test_corrupt_jpeg_is_retained_and_features_refuse(samples, tmp_path):
     root, frames, _ = samples
     (root / frames.iloc[0].image_path).write_bytes(b"not a JPEG")

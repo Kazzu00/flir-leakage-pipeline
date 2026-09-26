@@ -135,6 +135,8 @@ def generate_reduction_report(benchmarks: dict[str, Path], similarities: dict[st
     """Build derived figures/tables only after validating all explicit sources."""
     if set(benchmarks) != {"dinov2", "clip"} or set(similarities) != set(benchmarks):
         raise ValueError("The review requires both explicitly selected encoders")
+    if any(read_json(path/"metadata.json").get("provenance_mode") == "sampled_video_grid" for path in similarities.values()):
+        raise ValueError("This historical sequence/split review is unavailable for sampled video; numerical reduction remains supported")
     figures, tables = output/"figures", output/"tables"
     figures.mkdir(parents=True, exist_ok=True)
     tables.mkdir(parents=True, exist_ok=True)

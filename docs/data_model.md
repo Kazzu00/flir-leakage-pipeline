@@ -75,3 +75,24 @@ grid time, and `source_frame_index_estimate` is a nominal FPS-based estimate,
 not an exact decoder index or capture timestamp. Unknown source facts stay null.
 Sequence identification and partition assignment for these videos remain future
 work, irrespective of historical downstream infrastructure.
+
+## Similarity provenance contracts
+
+| Contract | Occurrence provenance | Content/pair interpretation |
+|---|---|---|
+| `content_cosine_v1` / `filename_heuristic` | Archive/member, inferred name index/sequence, historical split | Strict occurrence consensus; existing `same_sequence`, `frame_delta`, split membership semantics unchanged |
+| `content_cosine_v2` / `sampled_video_grid` | `frame_id`, `content_id`, JPEG identity/path, `video_id`, `source_video`, source SHA256, sample index, relative seconds, FPS, estimated source index, `embedding_row` | Full associated occurrence sets; `same_source_video`, `min_sample_index_gap` (samples), `min_timestamp_gap_seconds` (seconds) |
+
+Video `record_provenance.parquet` is authoritative for exact occurrence values:
+nullable int64 indices and float64 seconds/FPS. `content_provenance.parquet` has
+one row per embedding, occurrence counts, `video_id_membership_set`,
+`source_video_membership_set` and associated `sampling_occurrences` JSON for
+inspection. JSON display serialization is not the numerical source for gap
+calculation. Neither table fabricates `sequence_id` or historical split membership.
+
+Pair minima are computed independently over every pair of occurrences with the
+same `video_id`. A content can belong to multiple videos; this is not resolved to
+a representative. Disjoint source sets produce `same_source_video=false` and null
+gaps. `source video != sequence` and
+`relative sampling-grid timestamp != capture timestamp`; metadata records both
+boundaries and the unknown sequence identity.

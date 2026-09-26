@@ -32,6 +32,8 @@ def main() -> None:
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--examples", type=int, default=3)
     args = parser.parse_args()
+    if any(read_json(path/"metadata.json").get("provenance_mode") == "sampled_video_grid" for path in (args.dinov2, args.clip)):
+        raise ValueError("Historical notebook builder does not support sampled_video_grid; use similarity summary and exact CSV tables")
     check_notebook_source(SOURCE_NOTEBOOK)
     data_root = _default_root()
     images = args.images_archive or (data_root/"Imagenes.zip" if data_root else None)

@@ -51,10 +51,16 @@ def compute_topk_neighbors(matrix: np.ndarray, content_ids: list[str], top_k: in
         raise ValueError("top_k must be an integer from 1 to N-1")
     ids = np.asarray(content_ids)
     id_order = np.argsort(ids, kind="stable")
-    scores = matrix[:, id_order].copy()
-    scores[np.arange(n), np.argsort(id_order)] = -np.inf
-    order = np.argsort(-scores, axis=1, kind="stable")[:, :top_k]
-    neighbors = id_order[order].ravel()
+    inverse = np.argsort(id_order)
+    selected = np.empty((n, top_k), dtype=np.int32)
+    # Bound sorting workspace independently of N²; preserve the v1 tie policy.
+    for start in range(0, n, 64):
+        stop = min(start + 64, n)
+        scores = matrix[start:stop, id_order].copy()
+        scores[np.arange(stop-start), inverse[start:stop]] = -np.inf
+        order = np.argsort(-scores, axis=1, kind="stable")[:, :top_k]
+        selected[start:stop] = id_order[order]
+    neighbors = selected.ravel()
     queries = np.repeat(np.arange(n), top_k)
     return pd.DataFrame({
         "query_row": queries.astype(np.int32),
@@ -79,9 +85,10 @@ def distribution_summary(values: np.ndarray) -> dict:
               "p97_5": .975, "p99": .99, "p99_5": .995, "p99_9": .999}
     if not len(x):
         return {"count": 0, **{key: None for key in ["mean", "std", "min", "max", *levels]}}
+    quantiles = np.quantile(x, list(levels.values()), method="linear")
     return {"count": len(x), "mean": float(x.mean()), "std": float(x.std(ddof=0)),
             "min": float(x.min()), "max": float(x.max()),
-            **{key: float(np.quantile(x, q, method="linear")) for key, q in levels.items()}}
+            **{key: float(value) for key, value in zip(levels, quantiles, strict=True)}}
 
 
 def summarize_topk(neighbors: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:

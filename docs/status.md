@@ -11,7 +11,8 @@ incertidumbre interpretativa; **Pending compute**, una ejecución completa pendi
 |---|---|---|
 | Auditoría y manifest | Validated | 1657 frame_id, 1459 content_id, 198 grupos duplicados; ocho conflictos de anotación preservados |
 | Muestreo de videos fuente | Operationally validated on real data | Smoke real de 5 s y job Hypatia 737719 COMPLETED, ExitCode 0:0; 3 videos fuente → 9648 JPEGs a 1 FPS, Parquet/grilla validados y fuentes read-only; no identifica secuencias ni define splits |
-| Puente de frames muestreados a features | Available; synthetic tests only | `data build-video-manifest` y `features extract --images-root`: ocurrencias completas, identidad/deduplicación por bytes, raw/L2 y resume compartidos; aún sin ejecutar en Hypatia sobre las 9648 muestras, sin secuencias ni splits para estos videos |
+| Puente de frames muestreados a features | Full validation reported by owner on Hypatia; not reverified locally | 9648 ocurrencias / 8093 contenidos; DINOv2 8093 × 384 y CLIP 8093 × 512; sin secuencias ni splits para estos videos |
+| Similitud de video v2 y contrato downstream | Available; synthetic local validation | Procedencia por grilla, mínimos sobre todas las occurrences, summaries/cuántiles exactos, pares opcionales por bloques; reducción/clustering numéricos compatibles, ejecución real pendiente |
 | Caracterización y diagnostics | Validated | 4168 instancias canónicas, 292 labels vacíos, geometría por clase y 1459 diagnostics; huérfanos separados |
 | DINOv2 | Validated | Full 1459 × 384 CLS; raw/L2, revisión resuelta y 1657 mappings |
 | CLIP | Validated | Full 1459 × 512 projected-image; raw/L2, revisión resuelta y 1657 mappings |
@@ -58,10 +59,20 @@ conserva configuración y resultados agregados; los recibos exactos permanecen l
 Esta evidencia valida operacionalmente la extracción reproducible de frames.
 Los tres videos son **fuentes, no tres secuencias**. No valida límites de escenas,
 embeddings de estas muestras, clustering, train/val/test, eliminación de leakage
-ni rendimiento del detector. `build-video-manifest` conserva únicamente pruebas
-sintéticas y todavía no se ha ejecutado en Hypatia; tampoco se ha establecido
-cuántos contenidos exactos únicos hay entre las 9648 muestras. Los resultados
-históricos de las demás etapas no cambian.
+ni rendimiento del detector. Posteriormente, el responsable reportó validación
+del manifest y features completos en Hypatia: 9648 occurrences, 8093 content_id,
+1555 contenidos duplicados, 3110 registros participantes, 1555 redundantes y cero
+fallos de decode. Por video, los conteos reportados son 660/2770/6218. DINOv2
+8093 × 384 y CLIP 8093 × 512 conservan los 9648 mappings; el responsable reporta
+cobertura completa, metadata coincidente y revisiones resueltas válidas en ambos.
+Esta es evidencia comunicada por el responsable, no una revalidación local de
+esos artefactos. No se versionan sus manifests, hashes ni outputs privados.
+
+La adaptación de similitud v2 se valida localmente con datos sintéticos: ninguna
+ejecución de similitud, reducción o clustering sobre los 8093 contenidos reales
+se realizó aquí. Las secuencias siguen desconocidas, no se generan labels ni
+splits, y memoria/tiempo completos deben medirse posteriormente en Hypatia. Los
+resultados históricos de las demás etapas no cambian.
 
 ## Candidate partitions
 
