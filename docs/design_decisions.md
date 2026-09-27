@@ -604,3 +604,39 @@ dependencies from sources, and independently checks coverage and graph component
 It rejects value tampering even when file checksums are updated. Summary reads
 metadata only and explicitly makes no quality claim. Real Hypatia execution and
 scientific boundary assessment remain pending; see the [runbook](runbooks/sequences.md).
+
+## 38. Cross-dataset visual linkage preserves candidate and occurrence ambiguity
+
+Different dataset IDs are expected for labeled and sampled-video contents. Pair
+each encoder by its mathematical feature configuration, resolved revision,
+feature-space ID and dimension; verify complete manifest coverage independently.
+Each store's content index defines its own row mapping. Neither historical split
+nor annotation metadata enters the ranking kernel.
+
+Rank the original float32 L2 vectors with a fixed float64 dot accumulation and
+exact ties ordered by video_content_id. No score rounding, renormalization or
+cross-encoder raw-score averaging occurs. For each labeled content, preserve the
+union of CLIP and DINOv2 top-k, with separate scores and nullable ranks. Mean
+reciprocal rank gives zero to a missing rank and divides by two; it is a scale-free
+diagnostic, without an acceptance threshold or match probability. If k exceeds
+the video population, retain all contents and record the effective k.
+
+One bounded query block is scored against all video contents, one encoder at a
+time. The retained union is rescored for the missing encoder's score. Memory for
+cross-scores scales with block size times video population, plus retained top-k
+candidates and the input vectors. No approximate index or reduced space is used.
+
+The normalized occurrence relation preserves every source video occurrence and
+every reviewed sequence_id. A sequence is an existing continuous segment;
+linkage assigns no sequence to labeled content and infers no visual dependency
+group. The entire labeled manifest is snapshotted to retain duplicate frame_ids,
+original_split and conflicting annotation metadata. Review and future split
+constraints remain separate stages.
+
+Immutable publications bind every source file, both datasets, paired spaces,
+sequence set and versioned policy. Verification reconstructs candidates, scores,
+ranks and normalized lineage, detecting ambiguity loss despite rehashed outputs.
+Sequence consumption checks stored review/partition consistency and source
+binding; full external manual-review and F3 verification remains `sequences verify`.
+`summary` reads JSON counts only and makes no verification claim. Local evidence
+is synthetic; real candidates and their visual assessment are pending on Hypatia.

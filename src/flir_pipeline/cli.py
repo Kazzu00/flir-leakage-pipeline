@@ -9,6 +9,7 @@ import typer
 
 from flir_pipeline.detection.cli import app as detection_app
 from flir_pipeline.explorer.cli import app as explorer_app
+from flir_pipeline.linkage.cli import app as linkage_app
 from flir_pipeline.sequences.cli import app as sequences_app
 from flir_pipeline.splitting.cli import app as splitting_app
 
@@ -29,6 +30,7 @@ app.add_typer(splitting_app, name="splitting")
 app.add_typer(detection_app, name="detection")
 app.add_typer(explorer_app, name="explorer")
 app.add_typer(sequences_app, name="sequences")
+app.add_typer(linkage_app, name="linkage")
 
 
 def _default_root() -> Path | None:

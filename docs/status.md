@@ -11,9 +11,10 @@ incertidumbre interpretativa; **Pending compute**, una ejecución completa pendi
 |---|---|---|
 | Auditoría y manifest | Validated | 1657 frame_id, 1459 content_id, 198 grupos duplicados; ocho conflictos de anotación preservados |
 | Muestreo de videos fuente | Operationally validated on real data | Smoke real de 5 s y job Hypatia 737719 COMPLETED, ExitCode 0:0; 3 videos fuente → 9648 JPEGs a 1 FPS, Parquet/grilla validados y fuentes read-only; no identifica secuencias ni define splits |
-| Puente de frames muestreados a features | Full validation reported by owner on Hypatia; not reverified locally | 9648 ocurrencias / 8093 contenidos; DINOv2 8093 × 384 y CLIP 8093 × 512; sin secuencias ni splits para estos videos |
+| Puente de frames muestreados a features | Full validation reported by owner on Hypatia; not reverified locally | 9648 ocurrencias / 8093 contenidos; DINOv2 8093 × 384 y CLIP 8093 × 512; esta etapa no genera secuencias ni splits |
 | Similitud de video v2 y contrato downstream | Available; synthetic local validation | Procedencia por grilla, mínimos sobre todas las occurrences, summaries/cuántiles exactos, pares opcionales por bloques; reducción/clustering numéricos compatibles, ejecución real pendiente |
-| Secuencias de video y dependencias exactas | Available; synthetic local validation | `sequences detect/build/verify/summary`; cortes multiescala sobre originales L2, revisión confirmada obligatoria, cobertura de occurrences y componentes exactos; construcción real de Hypatia pendiente, sin split ni ground truth |
+| Secuencias de video y dependencias exactas | Available; synthetic local validation; real sequences reported by owner | `sequences detect/build/verify/summary`; cortes multiescala sobre originales L2, revisión confirmada obligatoria, cobertura de occurrences y componentes exactos; publicación real no revalidada localmente, sin split ni ground truth |
+| Linkage etiquetado → video | Available; synthetic local validation | `linkage build/verify/summary`; unión top-k CLIP/DINOv2 entre datasets, scores separados, todas las ocurrencias/secuencias y anotaciones preservadas; candidatos reales y validación visual pendientes |
 | Caracterización y diagnostics | Validated | 4168 instancias canónicas, 292 labels vacíos, geometría por clase y 1459 diagnostics; huérfanos separados |
 | DINOv2 | Validated | Full 1459 × 384 CLS; raw/L2, revisión resuelta y 1657 mappings |
 | CLIP | Validated | Full 1459 × 512 projected-image; raw/L2, revisión resuelta y 1657 mappings |
@@ -71,9 +72,24 @@ esos artefactos. No se versionan sus manifests, hashes ni outputs privados.
 
 La adaptación de similitud v2 se valida localmente con datos sintéticos: ninguna
 ejecución de similitud, reducción o clustering sobre los 8093 contenidos reales
-se realizó aquí. Las secuencias siguen desconocidas, no se generan labels ni
+se realizó aquí. Esta ruta no infiere secuencias, no genera labels ni
 splits, y memoria/tiempo completos deben medirse posteriormente en Hypatia. Los
 resultados históricos de las demás etapas no cambian.
+
+## Cross-dataset linkage: implementation and evidence boundary
+
+La etapa `linkage` consume los dos manifests, cuatro stores originales de features
+y un set de secuencias revisadas. El responsable reporta que las ocurrencias de
+video ya cuentan con secuencias en Hypatia; esta actualización no inspecciona ni
+revalida ese artefacto real. La evidencia local de la etapa nueva consiste en
+fixtures sintéticos y verificación de sus invariantes, incluyendo contenido
+repetido en varias secuencias y conflictos de anotación históricos.
+
+Se conservan separados los cosenos de CLIP y DINOv2; solo los ranks alimentan el
+consenso opcional. `ground_truth=false`, sin confirmación automática, asignación
+de secuencia al contenido etiquetado, grupos visuales ni nuevos splits. Los
+candidatos completos, memoria/tiempo y revisión visual en Hypatia siguen
+pendientes. Véase el [runbook](runbooks/linkage.md).
 
 ## Clustering memory and sampled-video review infrastructure
 

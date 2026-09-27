@@ -11,14 +11,15 @@ Existing package boundaries are preserved.
 | Similarity | Cosine over existing L2 contents, top-k, posterior temporal/split relations, agreement and review | ACTIVE; full cosine validated, inferred temporal analysis partial; Bhattacharyya conditional/planned |
 | Reduction | t-SNE and PaCMAP; exact preservation, seed stability, bounded selection and posterior interpretation | ACTIVE; experiment status in [status](status.md) |
 | Clustering | DBSCAN, OPTICS, HDBSCAN, original-space metrics, perturbation stability and Pareto candidates | ACTIVE; 414 full runs verified, candidate selection executed |
-| Sequences | Original-L2 occurrence changes, confirmed manual cuts, complete timeline assignment and exact-copy dependency components | AVAILABLE; synthetic validation, real Hypatia run pending; no split |
+| Sequences | Original-L2 occurrence changes, confirmed manual cuts, complete timeline assignment and exact-copy dependency components | AVAILABLE; synthetic local validation, real sequences reported by owner but not reverified locally; no split |
+| Linkage | Cross-dataset unique-content top-k union, independent encoder scores, all labeled/video occurrences and sequence memberships | AVAILABLE; synthetic validation; candidate-only, no sequence assignment or split |
 | Splitting | Reproducible baselines, indivisible groups, class balance and residual partition quality | ACTIVE; 66 verified runs, both encoders, robust Pareto and review |
 | Detection | Frozen split/model matrix, immutable dataset views, optional YOLO11 runtime, image statistics/bootstrap and review | INFRASTRUCTURE + SMALL CPU PILOTS VALIDATED; final comparison pending |
 | Explorer | Read-only discovery, identity joins, timelines/playback and local VIKUS bundles | AVAILABLE |
 
 ```text
 src/flir_pipeline/
-  cli.py                   data/features/similarity/reduction/clustering/sequences/splitting/detection/explorer
+  cli.py                   data/features/similarity/reduction/clustering/sequences/linkage/splitting/detection/explorer
   config.py                reserved validated path configuration
   data/
     inventory.py           archive structure, matching and exploratory lineage
@@ -68,6 +69,10 @@ src/flir_pipeline/
     validation.py          frozen confirmed manual CSV contract and candidate consistency
     construction.py        all-occurrence intervals, sparse exact-copy edges/components and direct QA
     storage.py / cli.py    immutable candidates/sets, source-bound reconstruction and lightweight summary
+  linkage/
+    base.py / candidates.py candidate-only policy, bounded cross-cosine and deterministic top-k union
+    sources.py              mathematical feature pairing and source-bound reviewed occurrence lineage
+    storage.py / cli.py     immutable normalized tables, full candidate reconstruction, counts-only summary
   splitting/
     base.py                validated configuration and portable split_space_id
     construction.py        atomic groups, seeded random cuts and profile-count MILP
@@ -276,6 +281,15 @@ separate scene/grouping and annotation protocol. Local tests do not establish re
 video similarity or clustering results.
 
 ## External integration boundary
+
+Cross-dataset linkage consumes complete canonical/video manifests, four original
+feature stores and an existing reviewed sequence set. It reuses feature QA and
+sequence partition construction/invariants without changing those APIs. Its
+numeric kernel receives only aligned unique-content vectors and IDs; historical
+splits and annotations remain in a separate labeled-occurrence snapshot. Candidate
+occurrences form a normalized relation by video_content_id, retaining every
+sequence membership. There is no reduction, clustering or splitting dependency.
+See the [linkage runbook](runbooks/linkage.md) for joins and verification scope.
 
 This package implements characterization, representation, similarity, reduction,
 clustering/selection, partitioning and partition-quality evaluation, plus detector

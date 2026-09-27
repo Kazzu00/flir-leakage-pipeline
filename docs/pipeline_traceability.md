@@ -13,7 +13,8 @@ and ignored. Execution state is recorded separately in [status](status.md).
 | Original names and occurrence lineage | `data/temporal.py` | Inferred sequence/index, confidence, temporal candidates; no verified timestamps | Posterior temporal analysis and display |
 | Unique contents and pinned encoder config | `features/dinov2.py`, `clip.py`, `storage.py` | `feature_space_id`; raw/L2 arrays, content/record indices, metadata and quality | Similarity, reduction, original clustering controls |
 | Contiguous 1 FPS occurrence manifest and both original feature stores | `sequences/detection.py`, `storage.py` | Source/config-bound candidate detection; per-video rounded average-tie ranks, multiscale S and disjoint F3 search intervals | Manual review; never automatic acceptance |
-| Recomputed candidates and confirmed manual validation CSV/JSON | `sequences/validation.py`, `construction.py` | Deterministic sequence_set_id/sequence_id; every occurrence assigned once; typed boundary provenance, exact-copy edges/support and connected components | Future split constraints; no split created; real Hypatia execution pending |
+| Recomputed candidates and confirmed manual validation CSV/JSON | `sequences/validation.py`, `construction.py` | Deterministic sequence_set_id/sequence_id; every occurrence assigned once; typed boundary provenance, exact-copy edges/support and connected components | Future split constraints; no split created; real sequences reported by owner, not reverified locally |
+| Canonical/video manifests, four paired original L2 stores and reviewed sequence set | `linkage/sources.py`, `candidates.py`, `storage.py` | Source-bound union of encoder top-k candidates, separate cosines/ranks, all candidate video occurrences and full labeled occurrence snapshot | Future visual review; ground_truth=false, no confirmed link, chosen sequence or split |
 | Original images | `features/diagnostics.py` | Pixel/entropy/blur/hash diagnostics, separate from embeddings | QA and descriptive reporting |
 | Verified original L2 | `similarity/cosine.py`, `storage.py` | `similarity_space_id`; matrix, unordered pairs, directed top-k, checksums | Reduction preservation, clustering/split evaluation |
 | Cosine neighborhoods plus posterior manifest metadata | `similarity/temporal.py`, `comparison.py`, `reporting.py` | Temporal/historical relations, cross-encoder Jaccard and review | Descriptive analysis and residual cohorts |
@@ -62,6 +63,15 @@ Reduction/clustering use the same matrix/top-k/metadata source contract and neve
 require that table. Historical v1 IDs and artifacts remain readable without migration.
 
 ## Interpretation boundaries
+
+Cross-dataset candidate lineage is normalized: `labeled_occurrences.content_id`
+joins `content_candidates.labeled_content_id`; each candidate's `video_content_id`
+joins **all** `candidate_occurrences.video_content_id` rows. The latter preserve
+video_id/sample_index/sequence_id without selecting a representative occurrence.
+Annotation hashes and historical splits survive for every labeled frame_id.
+Artifact identity binds both independent dataset IDs, paired mathematical spaces,
+input checksums, sequence set and scientific ranking configuration. The bounded
+query block size is operational and does not change scores, ranks or identity.
 
 - Numerical inputs exclude labels, historical splits and inferred time during
   representation, reduction and clustering. Posterior metrics join that metadata.
