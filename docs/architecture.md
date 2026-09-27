@@ -11,13 +11,14 @@ Existing package boundaries are preserved.
 | Similarity | Cosine over existing L2 contents, top-k, posterior temporal/split relations, agreement and review | ACTIVE; full cosine validated, inferred temporal analysis partial; Bhattacharyya conditional/planned |
 | Reduction | t-SNE and PaCMAP; exact preservation, seed stability, bounded selection and posterior interpretation | ACTIVE; experiment status in [status](status.md) |
 | Clustering | DBSCAN, OPTICS, HDBSCAN, original-space metrics, perturbation stability and Pareto candidates | ACTIVE; 414 full runs verified, candidate selection executed |
+| Sequences | Original-L2 occurrence changes, confirmed manual cuts, complete timeline assignment and exact-copy dependency components | AVAILABLE; synthetic validation, real Hypatia run pending; no split |
 | Splitting | Reproducible baselines, indivisible groups, class balance and residual partition quality | ACTIVE; 66 verified runs, both encoders, robust Pareto and review |
 | Detection | Frozen split/model matrix, immutable dataset views, optional YOLO11 runtime, image statistics/bootstrap and review | INFRASTRUCTURE + SMALL CPU PILOTS VALIDATED; final comparison pending |
 | Explorer | Read-only discovery, identity joins, timelines/playback and local VIKUS bundles | AVAILABLE |
 
 ```text
 src/flir_pipeline/
-  cli.py                   data/features/similarity/reduction/clustering/splitting/detection/explorer
+  cli.py                   data/features/similarity/reduction/clustering/sequences/splitting/detection/explorer
   config.py                reserved validated path configuration
   data/
     inventory.py           archive structure, matching and exploratory lineage
@@ -62,6 +63,11 @@ src/flir_pipeline/
     selection.py           bounded Pareto shortlist and explicit noise eligibility
     experiments.py         screening, seed/parameter comparisons and verification
     visualization.py       existing 2D views and runtime ZIP exemplars
+  sequences/
+    base.py / detection.py strict versioned policy, prefix centroid changes, per-video ranks and F3 localization
+    validation.py          frozen confirmed manual CSV contract and candidate consistency
+    construction.py        all-occurrence intervals, sparse exact-copy edges/components and direct QA
+    storage.py / cli.py    immutable candidates/sets, source-bound reconstruction and lightweight summary
   splitting/
     base.py                validated configuration and portable split_space_id
     construction.py        atomic groups, seeded random cuts and profile-count MILP

@@ -83,3 +83,11 @@ receive explicit full feature/similarity directories from the CLI, separately fo
 each encoder. The parser rejects unsupported methods, hidden pre-PCA and duplicate
 or oversized grids. See the [predeclared protocol](../docs/protocols/reduction.md)
 and [execution runbook](../docs/runbooks/reduction.md).
+
+`sequences/research.yaml` defines the occurrence sequence protocol: 1 FPS,
+windows 3/5/10/20, 12-decimal stable percentile ranking, S≥0.95, merge gap 3,
+diagnostic high-confidence threshold 0.975 and midpoint-constrained F3 radius 20.
+It receives full original CLIP/DINOv2 sources through explicit CLI arguments;
+no clustering, reduction or split inputs are accepted. Build requires confirmed
+manual review independently of the high-confidence flag. The
+[sequence runbook](../docs/runbooks/sequences.md) defines the complete contract.

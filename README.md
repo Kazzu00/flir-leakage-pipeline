@@ -44,10 +44,13 @@ See [inputs, outputs and execution order](docs/pipeline.md).
 - Sampled JPEGs → versioned occurrence/content manifest → shared DINOv2/CLIP
   extraction from a read-only directory, with exact-byte deduplication. This
   bridge has full Hypatia validation reported by the owner, not reverified locally;
-  video sequence identification is pending. See [evidence boundaries](docs/status.md).
+  real sequence construction/verification is pending. See [evidence boundaries](docs/status.md).
 - Independent DINOv2 CLS and CLIP projected-image embeddings, raw/L2 stores,
   pinned model revisions and resumable extraction.
 - Content-level cosine similarity, neighborhoods and posterior temporal analysis.
+- Occurrence-level sequence candidates from original CLIP/DINOv2, explicit confirmed
+  manual boundary consumption, sequence instances and exact-copy dependency components.
+  Synthetic validation only; see the [sequence runbook](docs/runbooks/sequences.md).
 - Explicit sampled-video similarity v2 with complete occurrence provenance, exact
   summaries and optional streamed full pairs. Numerical reduction/clustering accept
   this contract; local validation is synthetic, real video execution remains pending.
@@ -62,7 +65,7 @@ See [inputs, outputs and execution order](docs/pipeline.md).
 ## Architecture
 
 `src/flir_pipeline/` separates `data`, `features`, `similarity`, `reduction`,
-`clustering`, `splitting`, `detection`, `explorer` and `utils`. Metrics live beside
+`clustering`, `sequences`, `splitting`, `detection`, `explorer` and `utils`. Metrics live beside
 their experiments; optional model/UI dependencies load only where needed.
 Source notebooks and report builders consume those components.
 
@@ -102,6 +105,7 @@ Use `uv run flir-pipeline <namespace> --help` for options.
 | `similarity` | `compute`, `summary`, `verify`, `compare` |
 | `reduction` | `run`, `benchmark`, `verify`, `summary` |
 | `clustering` | `run`, `sweep`, `compare`, `verify`, `summary` |
+| `sequences` | `detect`, `build`, `verify`, `summary` |
 | `splitting` | `build`, `baseline`, `evaluate`, `compare`, `summary`, `verify`, `export-lists` |
 | `detection` | `plan`, `materialize`, `environment`, `smoke`, `probe`, `pilot-small`, `freeze`, `run`, `verify` |
 | `explorer` | `vikus-build`, `vikus-serve` |

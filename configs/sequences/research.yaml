@@ -1,0 +1,9 @@
+# Original L2 embeddings, occurrence grid; no clustering/reduction/split inputs.
+algorithm_version: occurrence_centroid_sequences_v1
+sample_fps: 1.0
+windows: [3, 5, 10, 20]
+rounding_decimals: 12
+candidate_threshold: 0.95
+high_confidence_threshold: 0.975
+merge_gap: 3
+localization_radius: 20

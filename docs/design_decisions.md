@@ -566,3 +566,41 @@ remain separate; reduction artifacts require no migration. Recomputing after a
 scope ends trades runtime for bounded retention. Remaining quadratic algorithm,
 metric and source-verification structures, N=8093 estimates and validation limits
 are recorded in the [memory audit](analysis/clustering_memory.md).
+
+## 37. Reviewed occurrence sequences are separate from exploratory clusters
+
+`sequences` uses complete contiguous 1 FPS occurrence grids and original CLIP /
+DINOv2 L2 stores. Exact copies remain separate timeline occurrences; each encoder
+is mapped through its own record_index. Float64 prefix sums, complete windows,
+12-decimal rounding before average-tie per-video ranks and multiscale consensus
+define candidates. Neighbor midpoint constraints give disjoint F3 search regions.
+Neither a high-confidence flag nor a cluster supplies manual acceptance.
+
+The third coarse representative tie-break is P1: the minimum of independently
+ranked CLIP/DINOv2 w=1 percentiles over all valid cuts per video, with the same
+12-decimal rounding and average ties as the other scales. Raw encoder magnitudes
+are not commensurate and their minimum cannot define consensus. P1 only breaks
+ties after S and median(P5,P10,P20); final localization remains F3. The explicit
+tie-policy literal enters identity, so artifacts using the former raw rule must
+be regenerated. Confirmed manual CSV schemas and acceptance rules are unchanged.
+
+Candidate publication and sequence commitment are separate CLI operations. Build
+requires the explicit confirmed manual CSV contract, preserves accept/reject and
+boundary types, and always records ground_truth=false. The inherited review has
+no source-feature binding: compatibility is checked against recomputed candidate
+positions, windows and scores, and the new identity binds the three review files
+plus the actual manifest and feature checksums. Provisional-source checksums in
+that review remain declared provenance, not independently verified evidence.
+
+Every accepted t ends one interval at t-1 and starts the next at t. Sequence IDs
+hash the source-bound set and inclusive interval, independently of source video
+identity. Exact-copy dependencies use a deterministic star per shared content,
+which has the same components as all pairwise edges while remaining linear in
+membership. Full supporting occurrences remain available. Components, including
+singletons, are future split constraints, not visual groups or actual splits.
+
+Formal verification reconstructs candidates, review consumption, intervals and
+dependencies from sources, and independently checks coverage and graph components.
+It rejects value tampering even when file checksums are updated. Summary reads
+metadata only and explicitly makes no quality claim. Real Hypatia execution and
+scientific boundary assessment remain pending; see the [runbook](runbooks/sequences.md).

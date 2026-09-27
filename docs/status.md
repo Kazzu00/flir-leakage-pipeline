@@ -13,6 +13,7 @@ incertidumbre interpretativa; **Pending compute**, una ejecución completa pendi
 | Muestreo de videos fuente | Operationally validated on real data | Smoke real de 5 s y job Hypatia 737719 COMPLETED, ExitCode 0:0; 3 videos fuente → 9648 JPEGs a 1 FPS, Parquet/grilla validados y fuentes read-only; no identifica secuencias ni define splits |
 | Puente de frames muestreados a features | Full validation reported by owner on Hypatia; not reverified locally | 9648 ocurrencias / 8093 contenidos; DINOv2 8093 × 384 y CLIP 8093 × 512; sin secuencias ni splits para estos videos |
 | Similitud de video v2 y contrato downstream | Available; synthetic local validation | Procedencia por grilla, mínimos sobre todas las occurrences, summaries/cuántiles exactos, pares opcionales por bloques; reducción/clustering numéricos compatibles, ejecución real pendiente |
+| Secuencias de video y dependencias exactas | Available; synthetic local validation | `sequences detect/build/verify/summary`; cortes multiescala sobre originales L2, revisión confirmada obligatoria, cobertura de occurrences y componentes exactos; construcción real de Hypatia pendiente, sin split ni ground truth |
 | Caracterización y diagnostics | Validated | 4168 instancias canónicas, 292 labels vacíos, geometría por clase y 1459 diagnostics; huérfanos separados |
 | DINOv2 | Validated | Full 1459 × 384 CLS; raw/L2, revisión resuelta y 1657 mappings |
 | CLIP | Validated | Full 1459 × 512 projected-image; raw/L2, revisión resuelta y 1657 mappings |
@@ -142,3 +143,20 @@ con presupuesto viable. [Streamlit](visualization/streamlit.md) y
 [VIKUS](visualization/vikus.md) apoyan esa revisión. La coherencia visual global,
 la eliminación de toda dependencia y la mejora en Precision/Recall/mAP siguen
 sin demostrarse.
+
+## Secuencias revisadas: infraestructura disponible, ejecución real pendiente
+
+La etapa independiente `sequences` implementa detección/localización multiescala,
+consumo explícito de revisión manual confirmada, sequence instances y dependencias
+por contenido exacto, conservando todas las ocurrencias. La revisión real existe
+solo en Hypatia según el responsable; no se copió ni se ejecutó aquí. Sus 13
+aceptaciones sobre tres fuentes implican una expectativa de 16 instancias que
+debe comprobarse allí junto con todos los invariantes, no un resultado observado
+localmente. La evidencia local es sintética/offline.
+
+Clustering sigue siendo exploratorio y no suministra fronteras. La revisión
+permanece ground_truth=false. Esta etapa no crea splits ni modifica las métricas
+históricas o los componentes grupales. Próximo paso: ejecutar detect/build/verify
+con las fuentes y revisión congeladas, medir recursos y conservar el recibo local.
+El [runbook de secuencias](runbooks/sequences.md) especifica contrato, comandos,
+identidades y límites de la procedencia heredada.

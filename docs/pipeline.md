@@ -12,6 +12,7 @@ what has actually executed; the following is the component dependency order.
 | Similarity | Verified original L2 → cosine and deterministic neighborhoods → matrices, pairs and posterior provenance | [Similarity](runbooks/similarity.md) |
 | Reduction | Original L2 → t-SNE / PaCMAP → coordinates, preservation and seed comparisons | [Reduction](runbooks/reduction.md) |
 | Clustering | Original L2 controls or selected reductions → DBSCAN / OPTICS / HDBSCAN → assignments, noise, coherence and ARI/AMI | [Clustering](runbooks/clustering.md) |
+| Video sequences | Original L2 mapped to all occurrences → multiscale candidates → confirmed manual accepts → intervals and exact-copy dependency components; no split | [Sequences](runbooks/sequences.md) |
 | Splitting | Selected clusters, occurrences and annotation counts → atomic allocation / seeded baselines → assignments and residual evaluation in both encoders | [Splitting](runbooks/splitting.md) |
 | Inspection | Existing assignments, saved coordinates and selected ZIP images → local exploration → display-only views or ignored bundles | [Explorers](runbooks/explorers.md) |
 | Detection | Frozen split plan and byte-checked occurrence views → controlled YOLO11n runtime → checkpoints, metrics, bootstrap and reports | [Detection](runbooks/detection.md) |
@@ -31,9 +32,12 @@ source videos
     → sampled frame occurrences (relative sampling grid)
     → occurrence manifest + exact-byte content identity / dedup
     → DINOv2 / CLIP unique-content features (same storage pipeline)
-    → content_cosine_v2 + all-occurrence source-video relations
-    → t-SNE / PaCMAP → density clustering (numerical infrastructure)
-    → future sequence identification / validated grouping protocol
+    ├→ content_cosine_v2 + all-occurrence source-video relations
+    │   → t-SNE / PaCMAP → density clustering (exploratory visual groups)
+    └→ sequences detect (original L2, all temporal occurrences)
+        → confirmed manual boundary review → sequences build / verify
+        → sequence instances + exact-duplicate dependency components
+        → future video split protocol (not implemented here)
 ```
 
 Source-video sampling has confirmed operational validation on Hypatia: a real
@@ -55,6 +59,12 @@ occurrence. Numerical reduction/clustering do not require that pair file.
 Sequence-based clustering metrics remain unavailable; source-video membership
 does not substitute for scenes. Video splitting is rejected. Existing historical
 ZIP/sequence review builders are not video reports; use v2 summaries and CSVs.
+
+The independent `sequences` stage has synthetic validation. It requires a confirmed
+manual review to commit any candidate, retains ground_truth=false and does not
+consume clustering or reduced coordinates. Its real construction is pending on
+Hypatia; existing clustering metrics/splitting do not automatically consume these
+new sequence artifacts. All occurrence copies remain in the sequence timeline.
 
 Use [pipeline traceability](pipeline_traceability.md) to follow stored identities
 and downstream consumers, and [design decisions](design_decisions.md) for scientific
