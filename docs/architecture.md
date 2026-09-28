@@ -73,6 +73,10 @@ src/flir_pipeline/
     base.py / candidates.py candidate-only policy, bounded cross-cosine and deterministic top-k union
     sources.py              mathematical feature pairing and source-bound reviewed occurrence lineage
     storage.py / cli.py     immutable normalized tables, full candidate reconstruction, counts-only summary
+    review_model.py         explicit manual vocabulary, query-level statistics and audit events
+    review_sources.py       source-bound candidate/sequence joins and explicit external membership adapter
+    review_media.py         deterministic temporal sheets for every candidate occurrence
+    review_storage.py / review_cli.py immutable review revisions, import replay and source-bound verification
   splitting/
     base.py                validated configuration and portable split_space_id
     construction.py        atomic groups, seeded random cuts and profile-count MILP

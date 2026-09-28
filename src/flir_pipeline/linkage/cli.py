@@ -5,9 +5,12 @@ from pathlib import Path
 
 import typer
 
+from flir_pipeline.linkage.review_cli import app as review_app
+
 app = typer.Typer(
     help="Candidate-only labeled/video visual linkage; no confirmed matches or splits."
 )
+app.add_typer(review_app, name="review")
 
 
 @app.command("build")

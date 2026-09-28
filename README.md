@@ -55,6 +55,9 @@ See [inputs, outputs and execution order](docs/pipeline.md).
 - Cross-dataset labeled/video candidate linkage: union of independent CLIP/DINOv2
   top-k sets, separate scores and complete occurrence/sequence ambiguity.
   Synthetic validation only; see the [linkage runbook](docs/runbooks/linkage.md).
+- Manual group-level linkage calibration with temporal contact sheets, auditable
+  decisions and stratified summaries; no confirmed links or split are created.
+  See the [manual review contract](docs/runbooks/linkage_review.md).
 - Explicit sampled-video similarity v2 with complete occurrence provenance, exact
   summaries and optional streamed full pairs. Numerical reduction/clustering accept
   this contract; local validation is synthetic, real video execution remains pending.
@@ -110,7 +113,7 @@ Use `uv run flir-pipeline <namespace> --help` for options.
 | `reduction` | `run`, `benchmark`, `verify`, `summary` |
 | `clustering` | `run`, `sweep`, `compare`, `verify`, `summary` |
 | `sequences` | `detect`, `build`, `verify`, `summary` |
-| `linkage` | `build`, `verify`, `summary` |
+| `linkage` | `build`, `verify`, `summary`; `review init/record/summary/verify` |
 | `splitting` | `build`, `baseline`, `evaluate`, `compare`, `summary`, `verify`, `export-lists` |
 | `detection` | `plan`, `materialize`, `environment`, `smoke`, `probe`, `pilot-small`, `freeze`, `run`, `verify` |
 | `explorer` | `vikus-build`, `vikus-serve` |

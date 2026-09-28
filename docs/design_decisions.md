@@ -640,3 +640,36 @@ Sequence consumption checks stored review/partition consistency and source
 binding; full external manual-review and F3 verification remains `sequences verify`.
 `summary` reads JSON counts only and makes no verification claim. Local evidence
 is synthetic; real candidates and their visual assessment are pending on Hypatia.
+
+## 39. Manual calibration records group-level evidence without promoting linkage
+
+The calibration sample proposes one group per labeled query. Every candidate
+occurrence and alternative group membership remains in the evidence, with
+same-video temporal context that may cross sequence boundaries. A display-only
+labeled occurrence never replaces its full annotation/historical lineage.
+Visual dependency groups are consumed as existing must-link constraints; the
+review does not merge sequences or combine constraints into a new split.
+
+Initialization writes blank decisions. Only explicit imported manual CSV values
+can record supported/ambiguous/unsupported or clear a decision to blank. Each
+revision preserves its imports, before/after values, reviewer, source and UTC
+timestamp. Verification replays those events from an immutable blank baseline.
+Source/renderer hashes and deterministic IDs bind evidence and decisions; original
+linkage publications remain read-only. Source compatibility uses an explicit
+normalized external-membership adapter and an explicit confirmed Hypatia v1 branch.
+The latter requires confirmed_manual_visual_dependency_validation/version 1 and
+all declared must-link/no-merge/no-split/exact-dependency-preservation semantics.
+That producer has no artifact_id or output_checksums: a named consumer source
+fingerprint binds SHA256 of metadata, the groups CSV and the explicitly selected
+membership table plus producer kind/version and sequence_set_id. No producer
+fields are fabricated and the external files remain read-only. Normalized
+producers still require their own ID and declared checksums. Verification
+rehashes these sources and checks stored PNG evidence; it does not rerender
+contact sheets from the original images.
+
+Summary denominators are sampled queries, including blank decisions, within
+each stratum/group. Blank and ambiguous cases are unresolved. These are manual
+calibration statistics, not representative accuracy. Supported evidence never
+becomes an automatic confirmed link or an exact frame/sequence claim. Metadata
+always states ground_truth=false, confirmed_matches_created=false and
+split_created=false. See the [review runbook](runbooks/linkage_review.md).

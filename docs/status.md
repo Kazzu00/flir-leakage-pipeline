@@ -15,6 +15,7 @@ incertidumbre interpretativa; **Pending compute**, una ejecución completa pendi
 | Similitud de video v2 y contrato downstream | Available; synthetic local validation | Procedencia por grilla, mínimos sobre todas las occurrences, summaries/cuántiles exactos, pares opcionales por bloques; reducción/clustering numéricos compatibles, ejecución real pendiente |
 | Secuencias de video y dependencias exactas | Available; synthetic local validation; real sequences reported by owner | `sequences detect/build/verify/summary`; cortes multiescala sobre originales L2, revisión confirmada obligatoria, cobertura de occurrences y componentes exactos; publicación real no revalidada localmente, sin split ni ground truth |
 | Linkage etiquetado → video | Available; synthetic local validation | `linkage build/verify/summary`; unión top-k CLIP/DINOv2 entre datasets, scores separados, todas las ocurrencias/secuencias y anotaciones preservadas; candidatos reales y validación visual pendientes |
+| Calibración manual etiquetado → grupo visual | Available; synthetic local validation | `linkage review init/record/summary/verify`; todas las ocurrencias, contexto temporal y decisiones auditables por consulta/grupo. Contrato confirmado de Hypatia v1 soportado con hashes del consumidor; ejecución real pendiente. Sin ground truth, enlaces confirmados ni split |
 | Caracterización y diagnostics | Validated | 4168 instancias canónicas, 292 labels vacíos, geometría por clase y 1459 diagnostics; huérfanos separados |
 | DINOv2 | Validated | Full 1459 × 384 CLS; raw/L2, revisión resuelta y 1657 mappings |
 | CLIP | Validated | Full 1459 × 512 projected-image; raw/L2, revisión resuelta y 1657 mappings |
@@ -90,6 +91,17 @@ consenso opcional. `ground_truth=false`, sin confirmación automática, asignaci
 de secuencia al contenido etiquetado, grupos visuales ni nuevos splits. Los
 candidatos completos, memoria/tiempo y revisión visual en Hypatia siguen
 pendientes. Véase el [runbook](runbooks/linkage.md).
+
+La calibración manual consume grupos visuales confirmados reportados por el
+responsable; no reconstruye ni confirma esos grupos. El esquema confirmado v1
+inspeccionado en Hypatia está soportado explícitamente, sin exigirle ID ni
+checksums de productor. La calibración liga sus tres archivos mediante SHA256
+e identidad del consumidor. Se conservó también el adaptador normalizado y se
+probaron ambos con datos/imágenes sintéticos; la ejecución real queda pendiente.
+`supported/ambiguous/unsupported` evalúan evidencia
+de enlace al grupo, sin identificar un frame o una secuencia exacta. Las tasas
+por estrato/grupo no son accuracy representativa. El nuevo flujo no crea ningún
+split leakage-safe. Véase el [contrato y flujo manual](runbooks/linkage_review.md).
 
 ## Clustering memory and sampled-video review infrastructure
 

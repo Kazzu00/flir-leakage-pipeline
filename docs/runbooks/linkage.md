@@ -1,5 +1,9 @@
 # Cross-dataset labeled/video candidate linkage
 
+Manual group-level calibration is available under `linkage review`; see the
+[manual review runbook](linkage_review.md) for source contracts, contact sheets,
+immutable decisions and the distinction from exact frame/sequence matching.
+
 `linkage` generates visual candidates between the canonical labeled manifest and
 the independently sampled video manifest. It consumes existing original features
 and reviewed video sequences. Local validation uses synthetic inputs only; no
