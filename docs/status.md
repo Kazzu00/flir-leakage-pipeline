@@ -14,8 +14,9 @@ incertidumbre interpretativa; **Pending compute**, una ejecución completa pendi
 | Puente de frames muestreados a features | Full validation reported by owner on Hypatia; not reverified locally | 9648 ocurrencias / 8093 contenidos; DINOv2 8093 × 384 y CLIP 8093 × 512; esta etapa no genera secuencias ni splits |
 | Similitud de video v2 y contrato downstream | Available; synthetic local validation | Procedencia por grilla, mínimos sobre todas las occurrences, summaries/cuántiles exactos, pares opcionales por bloques; reducción/clustering numéricos compatibles, ejecución real pendiente |
 | Secuencias de video y dependencias exactas | Available; synthetic local validation; real sequences reported by owner | `sequences detect/build/verify/summary`; cortes multiescala sobre originales L2, revisión confirmada obligatoria, cobertura de occurrences y componentes exactos; publicación real no revalidada localmente, sin split ni ground truth |
-| Linkage etiquetado → video | Available; synthetic local validation | `linkage build/verify/summary`; unión top-k CLIP/DINOv2 entre datasets, scores separados, todas las ocurrencias/secuencias y anotaciones preservadas; candidatos reales y validación visual pendientes |
-| Calibración manual etiquetado → grupo visual | Available; synthetic local validation | `linkage review init/record/summary/verify`; todas las ocurrencias, contexto temporal y decisiones auditables por consulta/grupo. Contrato confirmado de Hypatia v1 soportado con hashes del consumidor; ejecución real pendiente. Sin ground truth, enlaces confirmados ni split |
+| Linkage etiquetado → video | Available; synthetic local validation | `linkage build/verify/summary`; unión top-k CLIP/DINOv2 entre datasets, scores separados, todas las ocurrencias/secuencias y anotaciones preservadas; compatibilidad de consumo real reportada por la revisión manual, sin afirmar relevancia visual global |
+| Calibración manual etiquetado → grupo visual | Available; real init/verify compatibility reported on Hypatia | Contrato confirmado v1 ejercitado: init exitoso y verify quality_valid/source_bound=true, todas las ocurrencias preservadas y una decisión por consulta. Sin ground truth, enlaces confirmados ni split; no implica completar todos los estratos |
+| Agregación de revisiones manuales | Available; synthetic local validation | `linkage review aggregate/aggregate-verify`; revisiones inmutables revalidadas, duplicados compatibles contados una vez y conflictos rechazados, conteos descriptivos por revisión/estrato/grupo; ejecución real de agregación pendiente |
 | Caracterización y diagnostics | Validated | 4168 instancias canónicas, 292 labels vacíos, geometría por clase y 1459 diagnostics; huérfanos separados |
 | DINOv2 | Validated | Full 1459 × 384 CLS; raw/L2, revisión resuelta y 1657 mappings |
 | CLIP | Validated | Full 1459 × 512 projected-image; raw/L2, revisión resuelta y 1657 mappings |
@@ -89,15 +90,21 @@ repetido en varias secuencias y conflictos de anotación históricos.
 Se conservan separados los cosenos de CLIP y DINOv2; solo los ranks alimentan el
 consenso opcional. `ground_truth=false`, sin confirmación automática, asignación
 de secuencia al contenido etiquetado, grupos visuales ni nuevos splits. Los
-candidatos completos, memoria/tiempo y revisión visual en Hypatia siguen
-pendientes. Véase el [runbook](runbooks/linkage.md).
+recursos completos y la relevancia visual global no se establecen mediante el
+éxito de consumo del artefacto. Véase el [runbook](runbooks/linkage.md).
 
 La calibración manual consume grupos visuales confirmados reportados por el
 responsable; no reconstruye ni confirma esos grupos. El esquema confirmado v1
 inspeccionado en Hypatia está soportado explícitamente, sin exigirle ID ni
 checksums de productor. La calibración liga sus tres archivos mediante SHA256
 e identidad del consumidor. Se conservó también el adaptador normalizado y se
-probaron ambos con datos/imágenes sintéticos; la ejecución real queda pendiente.
+probaron ambos con datos/imágenes sintéticos. El responsable reportó ejecución
+real exitosa del adaptador v1 en Hypatia: `review init` completó y `review verify`
+devolvió `quality_valid=true`, `source_bound=true`,
+`all_candidate_occurrences_preserved=true` y `one_decision_per_query=true`,
+con `ground_truth=false`, `confirmed_matches_created=false` y `split_created=false`.
+Este resultado se atribuye al responsable y no se revalidó localmente. No implica
+que todos los estratos futuros estén revisados ni una evaluación representativa.
 `supported/ambiguous/unsupported` evalúan evidencia
 de enlace al grupo, sin identificar un frame o una secuencia exacta. Las tasas
 por estrato/grupo no son accuracy representativa. El nuevo flujo no crea ningún

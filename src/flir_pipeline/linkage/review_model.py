@@ -127,42 +127,43 @@ def validate_timestamp(value):
     return moment
 
 
+def decision_counts(frame):
+    """Describe an explicitly selected review unit, including unresolved blanks."""
+    total = len(frame)
+    decisions = {
+        decision or "blank": int(frame.manual_decision.eq(decision).sum())
+        for decision in DECISIONS
+    }
+    return {
+        "query_count": total,
+        "distinct_group_count": int(frame[KEYS[1]].nunique()),
+        "decision_counts": decisions,
+        "decision_rates": {
+            key: value / total if total else None for key, value in decisions.items()
+        },
+        "unresolved_count": decisions["blank"] + decisions["ambiguous"],
+    }
+
+
 def decision_summary(review):
     validate_decisions(review)
 
-    def counts(frame):
-        total = len(frame)
-        decisions = {
-            decision or "blank": int(frame.manual_decision.eq(decision).sum())
-            for decision in DECISIONS
-        }
-        return {
-            "query_count": total,
-            "distinct_group_count": int(frame[KEYS[1]].nunique()),
-            "decision_counts": decisions,
-            "decision_rates": {
-                key: value / total if total else None
-                for key, value in decisions.items()
-            },
-            "unresolved_count": decisions["blank"] + decisions["ambiguous"],
-        }
-
     return {
         "semantics": SEMANTICS,
-        "overall": counts(review),
+        "overall": decision_counts(review),
         "by_stratum": [
-            {"review_stratum": key, **counts(group)}
+            {"review_stratum": key, **decision_counts(group)}
             for key, group in review.groupby("review_stratum", sort=True)
         ],
         "by_visual_dependency_group": [
-            {"visual_dependency_group_id": key, **counts(group)}
+            {"visual_dependency_group_id": key, **decision_counts(group)}
             for key, group in review.groupby(KEYS[1], sort=True)
         ],
         "by_stratum_and_group": [
             {
                 "review_stratum": key[0],
                 "visual_dependency_group_id": key[1],
-                **counts(group),
+                **decision_counts(group),
             }
             for key, group in review.groupby(["review_stratum", KEYS[1]], sort=True)
         ],

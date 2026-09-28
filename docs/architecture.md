@@ -77,6 +77,8 @@ src/flir_pipeline/
     review_sources.py       source-bound candidate/sequence joins and explicit external membership adapter
     review_media.py         deterministic temporal sheets for every candidate occurrence
     review_storage.py / review_cli.py immutable review revisions, import replay and source-bound verification
+    review_aggregation.py    compatible-pair deduplication, source observations and descriptive counts
+    review_aggregate_storage.py constituent replay, exact-byte source binding and aggregate verification
   splitting/
     base.py                validated configuration and portable split_space_id
     construction.py        atomic groups, seeded random cuts and profile-count MILP
@@ -294,6 +296,19 @@ splits and annotations remain in a separate labeled-occurrence snapshot. Candida
 occurrences form a normalized relation by video_content_id, retaining every
 sequence membership. There is no reduction, clustering or splitting dependency.
 See the [linkage runbook](runbooks/linkage.md) for joins and verification scope.
+
+Manual-review aggregation consumes existing immutable revisions and explicit
+source locators, calling the existing full review verifier for every constituent.
+It preserves original observations/history and produces a separate unique-pair
+descriptive view. Duplicate decisions must agree and bind compatible evidence;
+group IDs are pooled only within the same frozen sequence/membership domain.
+Counts retain source revision and stratum/group membership; overlapping stratum
+cells need not be additive. The aggregate's identity binds exact constituent bytes,
+and verification rebuilds tables from reverified reviews, without creating links,
+sequence assignments or splits. Operational locators support relocation and are
+separate from scientific identity. The confirmed visual-dependency v1 adapter's
+real init/verify compatibility has been reported on Hypatia; aggregate validation
+remains synthetic locally and does not establish completed calibration coverage.
 
 This package implements characterization, representation, similarity, reduction,
 clustering/selection, partitioning and partition-quality evaluation, plus detector

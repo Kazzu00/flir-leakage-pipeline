@@ -128,7 +128,9 @@ only; stored counts are not a verification receipt or confirmed-match count.
 
 The reported real counts and zero exact cross-dataset SHA256 overlap are context
 provided by the project owner, not assumptions in production logic. Matching
-works whether exact overlap is zero or nonzero. Real feature compatibility,
-sequence publication compatibility, runtime/memory, candidate counts and visual
-relevance still require execution and review on Hypatia. No real artifact is
+works whether exact overlap is zero or nonzero. The owner now reports successful
+real manual-review init/verify with the Hypatia confirmed visual-dependency v1
+producer; see the [review runbook](linkage_review.md). This establishes exercised
+review consumption compatibility, without claiming measured full runtime/memory,
+global candidate relevance or completed calibration strata. No real artifact is
 required in the public checkout or in tests.

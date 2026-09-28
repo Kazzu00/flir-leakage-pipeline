@@ -133,3 +133,38 @@ def verify(
             membership_table,
         ),
     )
+
+
+@app.command("aggregate")
+def aggregate(
+    review_dirs: list[Path] = typer.Argument(...),
+    source_map: Path = typer.Option(
+        ...,
+        help="JSON calibrations map: calibration_id -> original review source paths.",
+    ),
+    output: Path = typer.Option(Path("reports/linkage/manual_calibration_aggregates")),
+):
+    """Combine verified immutable reviews; compatible duplicates count once, conflicts fail."""
+    from flir_pipeline.linkage.review_aggregate_storage import (
+        aggregate_reviews,
+        load_source_map,
+    )
+
+    def publish():
+        return aggregate_reviews(review_dirs, load_source_map(source_map), output)
+
+    _run(publish)
+
+
+@app.command("aggregate-verify")
+def aggregate_verify(
+    directory: Path,
+    locations: Path | None = typer.Option(
+        None,
+        help="Optional source_locations.json replacement after relocating unchanged sources.",
+    ),
+):
+    """Reverify every original revision/source and reconstruct descriptive counts/history."""
+    from flir_pipeline.linkage.review_aggregate_storage import verify_aggregate
+
+    _run(verify_aggregate, directory, locations=locations)

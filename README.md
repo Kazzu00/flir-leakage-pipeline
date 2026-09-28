@@ -56,7 +56,10 @@ See [inputs, outputs and execution order](docs/pipeline.md).
   top-k sets, separate scores and complete occurrence/sequence ambiguity.
   Synthetic validation only; see the [linkage runbook](docs/runbooks/linkage.md).
 - Manual group-level linkage calibration with temporal contact sheets, auditable
-  decisions and stratified summaries; no confirmed links or split are created.
+  decisions, stratified summaries and source-bound aggregation of immutable
+  revisions; no confirmed links or split are created. Real Hypatia v1 init/verify
+  compatibility is reported by the owner; aggregation is tested synthetically,
+  and future calibration strata are not claimed complete.
   See the [manual review contract](docs/runbooks/linkage_review.md).
 - Explicit sampled-video similarity v2 with complete occurrence provenance, exact
   summaries and optional streamed full pairs. Numerical reduction/clustering accept
@@ -113,7 +116,7 @@ Use `uv run flir-pipeline <namespace> --help` for options.
 | `reduction` | `run`, `benchmark`, `verify`, `summary` |
 | `clustering` | `run`, `sweep`, `compare`, `verify`, `summary` |
 | `sequences` | `detect`, `build`, `verify`, `summary` |
-| `linkage` | `build`, `verify`, `summary`; `review init/record/summary/verify` |
+| `linkage` | `build`, `verify`, `summary`; `review init/record/summary/verify/aggregate/aggregate-verify` |
 | `splitting` | `build`, `baseline`, `evaluate`, `compare`, `summary`, `verify`, `export-lists` |
 | `detection` | `plan`, `materialize`, `environment`, `smoke`, `probe`, `pilot-small`, `freeze`, `run`, `verify` |
 | `explorer` | `vikus-build`, `vikus-serve` |

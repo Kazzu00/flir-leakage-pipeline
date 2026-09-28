@@ -639,7 +639,8 @@ ranks and normalized lineage, detecting ambiguity loss despite rehashed outputs.
 Sequence consumption checks stored review/partition consistency and source
 binding; full external manual-review and F3 verification remains `sequences verify`.
 `summary` reads JSON counts only and makes no verification claim. Local evidence
-is synthetic; real candidates and their visual assessment are pending on Hypatia.
+is synthetic; the owner reports real consumption compatibility through manual
+review init/verify on Hypatia. Global visual assessment remains unestablished.
 
 ## 39. Manual calibration records group-level evidence without promoting linkage
 
@@ -673,3 +674,34 @@ calibration statistics, not representative accuracy. Supported evidence never
 becomes an automatic confirmed link or an exact frame/sequence claim. Metadata
 always states ground_truth=false, confirmed_matches_created=false and
 split_created=false. See the [review runbook](runbooks/linkage_review.md).
+
+The owner subsequently reported successful real Hypatia v1 review init and
+quality_valid/source_bound=true from verify, with all candidate occurrences
+preserved, one decision per query, and no ground truth, confirmed matches or
+split. This is exercised adapter compatibility, not completion of all future
+calibration strata or a local revalidation of real artifacts.
+
+## 40. Review aggregation preserves decisions and sample-specific evidence
+
+Aggregates consume only immutable review publications that pass full source-bound
+review verification. Their identity binds SHA256 of every constituent file,
+including metadata, evidence images and imports. Original revision/calibration
+IDs, source fingerprints, notes and event histories remain inspectable; operational
+source locators do not define scientific identity. Aggregate verification repeats
+constituent verification and reconstructs tables/history/counts, rather than
+trusting summaries or checksums of derived values alone.
+
+The unit is a labeled query/proposed group pair. Duplicate decisions must agree
+literally, including blank, and share the same source-bound evidence/protocol
+apart from sampling CSV/stratum. Conflicts fail without voting or selecting a
+newer revision. Compatible duplicates remain in a separate observation/duplicate
+report but count once within each cell. All groups share a frozen sequence and
+membership domain so identical group strings cannot mask different producers.
+
+Each source revision keeps its own descriptive summary. Global pooled counts
+are unique pairs, including unresolved blanks and ambiguous decisions; original
+stratum membership is retained, so overlapping cells are not additive. Different
+samples are not assumed exchangeable, rates are not representative accuracy or
+precision, and neither supported evidence nor encoder ranks create truth. No
+sequence, linkage or split assignment is produced. Aggregation is validated with
+synthetic inputs; its real execution and future calibration coverage remain open.

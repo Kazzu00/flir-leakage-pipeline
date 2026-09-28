@@ -82,6 +82,14 @@ verifican todos los checksums declarados. El kind confirmado de Hypatia con una
 versión desconocida falla; nunca se redirige a esta rama como fallback.
 Los tests reproducen el esquema informado desde Hypatia con datos sintéticos;
 no equivalen a ejecutar la calibración sobre sus archivos reales.
+El responsable reportó posteriormente una ejecución real exitosa en Hypatia:
+`review init` completó y `review verify` devolvió `quality_valid=true`,
+`source_bound=true`, `all_candidate_occurrences_preserved=true` y
+`one_decision_per_query=true`, con `ground_truth=false`,
+`confirmed_matches_created=false` y `split_created=false`. Esto valida la
+compatibilidad ejercitada del adaptador v1; no significa que todos los estratos
+futuros hayan sido revisados ni constituye una evaluación representativa.
+Los artefactos reales no se revalidaron en este checkout.
 La confirmación de **membresías de grupos** no confirma enlaces etiquetado→grupo.
 La combinación futura de restricciones visuales y exactas no se ejecuta aquí.
 
@@ -188,3 +196,108 @@ ground truth. `supported` no afirma coincidencia exacta de frame, identificació
 exacta de secuencia, ausencia de leakage o existencia de un split leakage-safe.
 La ejecución y revisión reales en Hypatia permanecen separadas de los tests
 offline sintéticos de infraestructura.
+
+## Agregar revisiones inmutables
+
+`aggregate` consume exclusivamente directorios ya publicados por `review init`
+o `review record`. Cada entrada debe pasar el contrato completo de `review verify`,
+incluyendo sus fuentes originales y el replay de importaciones manuales. No basta
+un recibo anterior ni la suma de summaries. Una revisión inicial en blanco es una
+entrada válida: sus casos siguen sin resolver. Repetir el mismo ID de revisión
+en los argumentos es un error explícito.
+
+Las revisiones no contienen rutas absolutas de sus fuentes. Por ello se requiere
+`--source-map`, un JSON con una entrada por `calibration_id` (obtenido de su
+`metadata.json`). Varias revisiones de la misma calibración comparten esa entrada.
+Ejemplo con placeholders; las rutas relativas se resuelven desde el JSON:
+
+```json
+{
+  "calibrations": {
+    "CALIBRATION_ID_A": {
+      "calibration_sample": "sample_a.csv",
+      "linkage": "../../artifacts/linkage/LINKAGE_ID",
+      "labeled_manifest": "../../artifacts/manifests/LABELED.parquet",
+      "sequence_set": "../../artifacts/sequences/sets/SEQUENCE_SET_ID",
+      "visual_dependencies": "../sequence_diagnostics/visual_dependency_validation_confirmed_v1",
+      "membership_table": "visual_dependency_membership.csv"
+    }
+  }
+}
+```
+
+Añadir la entrada de `CALIBRATION_ID_B` con su muestra y fuentes cuando corresponda.
+Los seis campos son obligatorios, incluyendo la selección explícita de membresía.
+No se necesitan las imágenes originales para verificar/agregar: se comprueban los
+bytes de las contact sheets almacenadas, sin volver a renderizarlas.
+
+```bash
+uv run flir-pipeline linkage review aggregate REVISION_A REVISION_B \
+  --source-map reports/linkage/review_sources.json \
+  --output reports/linkage/manual_calibration_aggregates
+
+uv run flir-pipeline linkage review aggregate-verify \
+  reports/linkage/manual_calibration_aggregates/AGGREGATE_ID
+```
+
+Se publica bajo `--output/AGGREGATE_ID`. Su identidad determinista liga los IDs de
+revisión/calibración y SHA256 de **todos** los archivos de cada revisión, incluido
+`metadata.json`, PNGs e importaciones. El orden de argumentos y las rutas de
+transporte no cambian la identidad; cambiar bytes de una revisión sí la cambia.
+Una publicación existente solo se reutiliza después de verificarla.
+
+El dominio de grupos debe ser idéntico: mismo set de secuencias y mismos bytes de
+la publicación de membresías visuales, incluida la tabla seleccionada. No se
+comparan IDs de grupo de productores diferentes como si fueran equivalentes.
+Las muestras pueden diferir; esto no supone intercambiabilidad estadística.
+
+La unidad agregada es **labeled_content_id + proposed_visual_dependency_group_id**.
+Una consulta con dos grupos propuestos en calibraciones diferentes son dos pares;
+el `query_count` agregado cuenta pares, nunca ocurrencias candidatas. Para un par
+repetido se requiere la misma decisión literal y evidencia compatible: todas las
+fuentes originales excepto el CSV de selección de la muestra, configuración de
+revisión/renderizado y detalles de candidatos/ocurrencias idénticos. Estrato,
+metadata de muestreo, notas y autoría pueden diferir y se conservan por separado.
+No se aplica tolerancia de cosenos, votación, selección de la revisión más reciente
+ni decisión automática. Cualquier discrepancia de decisión, **incluido blanco
+frente a una decisión**, detiene la publicación con el par y revisiones implicados.
+Una corrección requiere una revisión manual explícita y escoger las revisiones
+apropiadas en la siguiente agregación; el agregado nunca modifica las entradas.
+
+Outputs:
+
+| Archivo | Unidad y procedencia |
+|---|---|
+| `source_observations.parquet` | Todas las filas originales, con notas, reviewer/source/timestamp, evidencia y IDs de revisión/calibración |
+| `pooled_reviews.parquet` | Una decisión original sin modificar por par compatible; listas de revisiones, calibraciones y estratos |
+| `duplicate_pairs.parquet` | Pares repetidos explícitos, cantidad de observaciones y todas sus revisiones |
+| `descriptive_counts.parquet` | Conteos/tasas por revisión, estrato, grupo, estrato×grupo, revisión×estrato×grupo y total descriptivo |
+| `source_revisions.json` | Metadata completa de cada fuente, fingerprints originales e historia manual íntegra |
+| `source_locations.json` | Rutas operacionales para volver a localizar cada revisión y sus fuentes; no son la identidad científica |
+| `summary.json` | Resúmenes descriptivos, duplicados, casos sin resolver y denominadores explícitos |
+| `metadata.json` | Marcador final, identidad, checksums, procedencia de ejecución y semántica |
+
+Todos los flags `ground_truth`, `confirmed_matches_created`, `split_created` y
+`automatic_confirmation` permanecen false. El agregado no asigna secuencias, no
+crea enlaces confirmados ni combina cosenos CLIP/DINOv2.
+
+Los duplicados compatibles cuentan una sola vez por celda. Si un par pertenece a
+dos estratos originales, aparece en ambos, pero solo una vez en el total. Por ello
+**los conteos por estrato no son necesariamente aditivos**. Se conservan además
+los summaries de cada revisión con sus denominadores originales. Blancos y
+ambiguos permanecen sin resolver. El campo `overall_pooled_descriptive` presenta
+conteos/tasas descriptivos del conjunto de calibración revisado, no estimaciones
+representativas de accuracy o precision; no pondera muestras como intercambiables.
+
+`aggregate-verify` vuelve a verificar cada revisión y sus fuentes, reproduce sus
+eventos y reconstruye todas las tablas/resúmenes/procedencias. Rechaza alteraciones
+aunque se hayan actualizado los checksums de las tablas derivadas. No sustituye
+una nueva revisión visual. Las revisiones y sus fuentes deben seguir disponibles.
+Si se trasladan sin cambiar bytes, preparar una copia externa de
+`source_locations.json` con las rutas nuevas y pasar `--locations COPIA.json`;
+no editar la publicación congelada. Las rutas de estos JSONs son operacionales
+y privadas: mantenerlos fuera de Git, igual que todos los outputs de revisión.
+
+La agregación tiene validación local sintética. El éxito real de `init/verify`
+reportado en Hypatia no implica que se haya ejecutado allí la agregación ni que
+la cobertura de calibración esté completa.

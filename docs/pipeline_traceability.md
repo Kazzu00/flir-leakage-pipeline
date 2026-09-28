@@ -16,6 +16,7 @@ and ignored. Execution state is recorded separately in [status](status.md).
 | Recomputed candidates and confirmed manual validation CSV/JSON | `sequences/validation.py`, `construction.py` | Deterministic sequence_set_id/sequence_id; every occurrence assigned once; typed boundary provenance, exact-copy edges/support and connected components | Future split constraints; no split created; real sequences reported by owner, not reverified locally |
 | Canonical/video manifests, four paired original L2 stores and reviewed sequence set | `linkage/sources.py`, `candidates.py`, `storage.py` | Source-bound union of encoder top-k candidates, separate cosines/ranks, all candidate video occurrences and full labeled occurrence snapshot | Future visual review; ground_truth=false, no confirmed link, chosen sequence or split |
 | Calibration sample, linkage, labeled manifest, sequence occurrences and confirmed visual memberships | `linkage/review_*.py` | All-occurrence temporal sheets, one manual decision per query/proposed group, immutable CSV imports/history and stratified counts/rates | Manual evidence calibration; not ground truth, exact-frame/sequence identification or a leakage-safe split |
+| Existing immutable manual review revisions and original source locators | `linkage/review_aggregation.py`, `review_aggregate_storage.py` | Exact revision-file SHA256, revision/calibration IDs, original metadata/history, all observations, compatible unique pairs, duplicate report and descriptive counts | Reverified calibration summary; no automatic decisions, confirmed linkage, sequence assignment or split |
 | Original images | `features/diagnostics.py` | Pixel/entropy/blur/hash diagnostics, separate from embeddings | QA and descriptive reporting |
 | Verified original L2 | `similarity/cosine.py`, `storage.py` | `similarity_space_id`; matrix, unordered pairs, directed top-k, checksums | Reduction preservation, clustering/split evaluation |
 | Cosine neighborhoods plus posterior manifest metadata | `similarity/temporal.py`, `comparison.py`, `reporting.py` | Temporal/historical relations, cross-encoder Jaccard and review | Descriptive analysis and residual cohorts |
@@ -73,6 +74,16 @@ Annotation hashes and historical splits survive for every labeled frame_id.
 Artifact identity binds both independent dataset IDs, paired mathematical spaces,
 input checksums, sequence set and scientific ranking configuration. The bounded
 query block size is operational and does not change scores, ranks or identity.
+
+The owner reports successful real Hypatia init/verify for the confirmed visual
+dependency v1 adapter: quality_valid/source_bound=true, all candidate occurrences
+preserved, one decision per query, and ground_truth/confirmed_matches_created/
+split_created=false. This is reported compatibility evidence, not a local real-data
+rerun or completion of future calibration strata. Aggregation remains locally
+validated with synthetic reviews. It preserves each source sample/history and
+deduplicates compatible query/group keys within each reported cell. Different
+stratum membership is retained; cell counts can overlap. Global rates describe
+the reviewed calibration set and do not estimate representative accuracy/precision.
 
 - Numerical inputs exclude labels, historical splits and inferred time during
   representation, reduction and clustering. Posterior metrics join that metadata.

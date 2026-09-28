@@ -20,8 +20,8 @@ pending work. Commands assume the repository root; real artifacts remain local.
 | Features | [Extraction evidence](analysis/features.md) | [Representation decisions](design_decisions.md) | [Extract, resume and report](runbooks/features.md) |
 | Similarity | [Cosine and temporal relations](analysis/similarity.md) | Rules in the analysis | [Compute and verify](runbooks/similarity.md) |
 | Sequences | Synthetic local validation; real sequences reported by owner, not reverified locally | [Sequence policy and manual review](runbooks/sequences.md) | [Detect/build/verify/summary](runbooks/sequences.md) |
-| Linkage | Synthetic validation; real candidates pending | [Candidate-only labeled/video linkage](runbooks/linkage.md) | [Build/verify/summary](runbooks/linkage.md) |
-| Linkage manual calibration | Synthetic validation of normalized and confirmed Hypatia v1 contracts; real execution pending | [Group-level manual evidence](runbooks/linkage_review.md) | [Review init/record/summary/verify](runbooks/linkage_review.md) |
+| Linkage | Synthetic validation; real consumption compatibility reported, visual relevance not established | [Candidate-only labeled/video linkage](runbooks/linkage.md) | [Build/verify/summary](runbooks/linkage.md) |
+| Linkage manual calibration | Real Hypatia v1 init/verify compatibility reported; aggregate tested synthetically; strata coverage incomplete | [Group-level manual evidence](runbooks/linkage_review.md) | [Review init/record/summary/verify/aggregate/aggregate-verify](runbooks/linkage_review.md) |
 | Reduction | [t-SNE / PaCMAP](analysis/reduction.md) | [Reduction](protocols/reduction.md) | [Reduction](runbooks/reduction.md) |
 | Clustering | [Density and stability](analysis/clustering.md) | [Clustering](protocols/clustering.md) | [Clustering](runbooks/clustering.md) |
 | Splitting | [Baselines and residuals](analysis/splitting.md) | [Splitting](protocols/splitting.md) | [Splitting](runbooks/splitting.md) |
