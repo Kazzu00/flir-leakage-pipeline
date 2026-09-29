@@ -1,0 +1,77 @@
+# Experimental evidence grid, not a split protocol or a fitted calibration.
+# Operational paths resolve CLI/env > profile > validated metadata discovery.
+# Paths are relative to the repository working directory, never this YAML's parent.
+inputs:
+  search_roots: [artifacts]
+  # Optional dataset_variant: registered name or ID; FLIR_DATASET_VARIANT overrides.
+  # Optional: manifest, clip_features, dinov2_features, images_root/images_archive.
+  # FLIR_MANIFEST, FLIR_CLIP_FEATURES, FLIR_DINOV2_FEATURES, FLIR_IMAGES_ROOT
+  # override these paths. Images are needed for the combined visual checkpoint.
+slurm:
+  cpus_per_task: 1
+  memory: 8G
+  time: '12:00:00'
+  run_root: reports/sequence_experiments
+  # Optional partition/account: site resource choices, not scientific settings.
+protocol: sequence_experiments_v1
+encoders: [clip, dinov2]
+original_l2: true
+max_runs: 256
+reductions:
+  - method: pacmap
+    seeds: [0, 1, 2]
+    output_dimension: 2
+    parameters:
+      n_neighbors: 10
+      MN_ratio: 0.5
+      FP_ratio: 2.0
+      apply_pca: false
+      num_iters: [100, 100, 250]
+  - method: tsne
+    seeds: [0, 1, 2]
+    output_dimension: 2
+    parameters:
+      perplexity: 30.0
+      max_iter: 1000
+clustering:
+  - algorithm: dbscan
+    parameters: {min_samples: 5}
+    grid: {eps_quantile: [0.85, 0.90, 0.95]}
+  - algorithm: optics
+    parameters: {min_samples: 5, min_cluster_size: 20}
+    grid: {xi: [0.03, 0.05, 0.07]}
+  - algorithm: hdbscan
+    parameters: {min_samples: 5}
+    grid: {min_cluster_size: [10, 20, 30]}
+  # Literature adapter only; the content_density_v1 protocol is unchanged.
+  - algorithm: agglomerative
+    parameters: {linkage: average}
+    grid: {n_clusters: [8, 16]}
+boundary:
+  windows: [1, 3, 5, 10, 20]
+  baseline_radius: 30
+  baseline_min_count: 5
+  rank_threshold: 0.95
+  minimum_change: 0.02
+  local_excess: 0.01
+  merge_gap: 3
+  max_index_gap: 1
+boundary_grid:
+  baseline_radius: [20, 30]
+  rank_threshold: [0.95, 0.975]
+recurrence:
+  thresholds:
+    clip: [0.85, 0.90, 0.95]
+    dinov2: [0.80, 0.90, 0.95]
+  selection_threshold: {clip: 0.90, dinov2: 0.90}
+  broad_support: 0.05
+  refined_support: 0.30
+  rank_fraction: 0.25
+  warning_candidate_rate: 0.50
+  block_rows: 256
+  cluster_min_members: 2
+  cluster_support: 0.20
+transitions:
+  persistence: 3
+  tolerance: 0
+  max_index_gap: 1

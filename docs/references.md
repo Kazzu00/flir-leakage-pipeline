@@ -1,11 +1,16 @@
 # References
 
-Only sources already present in the repository documentation are consolidated
-here. No bibliography was completed from memory or external searches. Official
+Sources used in the repository documentation are consolidated here. The sequence
+experiment extension also checks the Glazner et al. preprint directly. Official
 implementation documentation is identified as such, not substituted for an
 unrecorded original paper citation.
 
 ## Models, leakage and reduction literature
+
+- Glazner, Tsfaty, Shalev & Weizman (2025), [Find the Leak, Fix the Split:
+  Cluster-Based Method to Prevent Leakage in Video-Derived Datasets, v1](https://arxiv.org/html/2511.13944v1).
+  Methodological reference; its 256-D PaCMAP experiment is not reproduced by the
+  repository's 2/3-D exploratory adapters.
 
 
 - Acosta-Bernal et al.: retained dataset reference; exact title/DOI remains

@@ -1,5 +1,192 @@
 # Secuencias revisadas sobre la grilla de video
 
+## Suite experimental de temporalidad y dependencia visual
+
+La extensión `sequences experiment` admite también el manifest histórico y
+familias inferidas por nombres. Es independiente del build v1 descrito debajo:
+produce evidencia y máscaras de evaluación, sin comprometer fronteras,
+sequence instances, VDGs ni train/val/test. Véase el
+[protocolo experimental](../protocols/sequence_experiments.md) para definiciones,
+denominadores, diferencias bibliográficas y límites.
+
+La [operación paralela en Hypatia](sequence_operations.md) añade resolución de
+entradas, DAG SLURM, dry-run, status, plan de recuperación y un checkpoint visual
+combinado. Los comandos seriales de esta página siguen disponibles para trabajo
+local o dentro de una asignación de cómputo. También la importación y verificación
+que leen Parquet/features deben ejecutarse en cómputo, no en login.
+
+Preparar una vez core/dev/reduction; los modelos ya deben estar extraídos.
+No se descargan modelos durante los comandos ni en tests. Ejecutar desde la
+raíz del checkout. En Hypatia configurar las variables con las ubicaciones
+**reales existentes**, fuera de Git:
+
+- `FLIR_MANIFEST`: manifest canónico completo, no un CSV de cores.
+- `FLIR_CLIP_FEATURES`, `FLIR_DINOV2_FEATURES`: stores completos del manifest.
+- `FLIR_SEQUENCE_OUTPUT`: raíz de publicaciones nuevas, separada de fuentes.
+- `FLIR_EVIDENCE_IMPORT`: opcional, solo para el adaptador de envelopes externos;
+  los cuatro contratos nativos de Hypatia no necesitan sidecar.
+
+```bash
+module load python/3.11
+source "${FLIR_VENV:-$HOME/.venvs/flir-pipeline}/bin/activate"
+export HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1
+export OMP_NUM_THREADS=1 NUMBA_NUM_THREADS=1
+export FLIR_FAMILY=video_11min
+flir-pipeline sequences experiment --help
+
+# En local o dentro de una asignación de cómputo: importar los reports nativos.
+STRUCTURE=$(flir-pipeline sequences experiment import-real-evidence \
+  --root reports --family "$FLIR_FAMILY" --dataset-variant unspecified)
+
+# Ejecución local completa: el resultado stdout es el directorio de la suite.
+SUITE=$(flir-pipeline sequences experiment suite \
+  --family "$FLIR_FAMILY" --structure "$STRUCTURE" \
+  --profile configs/hypatia_sequence_experiments.yaml)
+flir-pipeline sequences experiment verify "$SUITE" \
+  --family "$FLIR_FAMILY" --structure "$STRUCTURE"
+flir-pipeline sequences experiment summary "$SUITE"
+
+# Alternativa: el launcher llama la misma CLI; no contiene lógica científica.
+sbatch --export=ALL scripts/hypatia/sequence_suite.sbatch --structure "$STRUCTURE"
+```
+
+Elegir ejecución local **o** sbatch para la misma publicación, un solo writer.
+El launcher no es una estimación validada de recursos; medir primero una grilla
+reducida. El perfil incluye 154 fits y cuatro variantes temporales. Los parámetros
+completos expandidos, semillas, versiones y fallos de celdas se publican. El
+summary marca si todas las celdas solicitadas tuvieron éxito. La tabla de
+comparación no selecciona un ganador. No se ha ejecutado aquí este perfil FLIR
+ni se han revalidado las cifras reportadas desde Hypatia.
+
+Comandos por etapa (comparten `--family`, `--profile`, `--output` y entradas
+por flags o las variables anteriores):
+
+```bash
+flir-pipeline sequences experiment boundary --family "$FLIR_FAMILY"
+CLUSTERS=$(flir-pipeline sequences experiment clustering --family "$FLIR_FAMILY")
+RECURRENCE=$(flir-pipeline sequences experiment recurrence --family "$FLIR_FAMILY" \
+  --structure "$STRUCTURE" --clustering "$CLUSTERS")
+flir-pipeline sequences experiment evaluate --family "$FLIR_FAMILY" \
+  --structure "$STRUCTURE" --clustering "$CLUSTERS"
+flir-pipeline sequences experiment cluster-transitions --family "$FLIR_FAMILY" \
+  --structure "$STRUCTURE" --clustering "$CLUSTERS"
+flir-pipeline sequences experiment verify "$RECURRENCE" --family "$FLIR_FAMILY" \
+  --structure "$STRUCTURE" --clustering "$CLUSTERS"
+```
+
+### Importación de evidencia externa
+
+Los esquemas de las cuatro familias legacy fueron aportados por el responsable.
+`import-real-evidence` reconoce sus declaraciones `artifact`, valida archivos y
+consistencia conjunta, y publica snapshots/checksums de los 14 archivos consumidos.
+No exige campos nuevos ni promueve cores candidatos, revisión manual o linaje.
+La variante legacy permanece `unspecified`; `verify` exige originales intactos.
+Véase el [runbook nativo](native_sequence_evidence.md) para el contrato observado,
+inspección sin escritura, selección de las cuatro fuentes y comandos SLURM.
+La importación real sigue pendiente; los tests locales son sintéticos.
+
+Para otras fuentes ya normalizadas sigue disponible `import-evidence`. Ese
+adaptador requiere el envelope explícito `sequence_evidence_import_v1`, con
+filas normalizadas, identidad del manifest y checksums SHA256 de los productores.
+Relee cada archivo declarado al importar. El siguiente ejemplo es **esquemático
+y sintético** para `sequence_structure_external_v1`: no copiar sus identidades
+ni decisiones como resultado, ni agregar estos campos a los reports legacy.
+
+```json
+{
+  "schema_version": "sequence_evidence_import_v1",
+  "artifact_kind": "sequence_structure_external_v1",
+  "dataset_id": "DATASET_ID_DEL_MANIFEST",
+  "manifest_sha256": "SHA256_DE_64_HEXADECIMALES",
+  "family": "familia_sintetica",
+  "producer_files": {"manual_review.csv": "SHA256_DE_64_HEXADECIMALES"},
+  "reviewer": "identificador del revisor",
+  "reviewed_at": "2026-09-28T12:00:00Z",
+  "ground_truth": false,
+  "split_created": false,
+  "automatic_confirmation": false,
+  "exhaustive_boundary_review": false,
+  "intervals": [
+    {"element_id": "zona-ejemplo", "timeline_id": "familia_sintetica",
+     "start": 23, "end": 25, "kind": "boundary_zone",
+     "decision": "supported", "notes": "Corte exacto desconocido"}
+  ],
+  "observations": []
+}
+```
+
+Las columnas de intervalo son exactas: `element_id,timeline_id,start,end,kind,
+decision,notes`. Tipos: boundary_zone, sequence_core, sequence_core_candidate,
+sequence_instance, known_source_video. Decisiones: supported, ambiguous,
+unsupported; `candidate` se usa exclusivamente con `sequence_core_candidate`.
+Los candidatos conservan su estado y solo alimentan targets candidatos; no crean
+instancias. Las otras asignaciones requieren supported. Las zonas excluyen
+cualquier etiqueta exacta. Duplicados,
+overlaps y asignaciones exactas sobre zonas se rechazan. El complemento produce
+cores conservadores candidatos, sin inventar el corte interno.
+
+Cada observación usa `observation_id,category,subject_id,object_id,status,
+measurements,notes`. Categorías: provenance/recurrence. Estados: candidate,
+lineage_supported, ambiguous, unsupported. `measurements` es un objeto de valores
+numéricos/textuales, preservados como observaciones externas, no constantes del
+algoritmo. Por ejemplo, una relación nominal/temporal, concentración por encoder,
+Hamming o lista de pares previamente cribados puede documentarse allí con su
+archivo productor. `lineage_supported` no significa identidad byte-a-byte ni
+ground truth. No hay adaptación automática de un esquema privado no inspeccionado.
+
+### Revisión visual e historial
+
+Usar solo lectura del ZIP de imágenes o un directorio verificado; no hace falta
+extraer masivamente. Contact sheets van bajo `reports/` ignorado o fuera del repo.
+El paquete conserva medoids por encoder, matches fuertes, desacuerdos, contexto
+amplio y todas las ocurrencias de origen en Parquet. Las hojas son una selección
+explicada por `context.parquet`, no cobertura visual exhaustiva.
+
+```bash
+PACKAGE=$(flir-pipeline sequences experiment review-package "$RECURRENCE" \
+  --family "$FLIR_FAMILY" --images-archive "$FLIR_IMAGES_ZIP" \
+  --context-radius 20 --output reports/sequence_review)
+# Abrir PACKAGE/media/index.html y copiar decisions_template.csv FUERA del paquete.
+# Completar únicamente filas revisadas: supported / ambiguous / unsupported,
+# reviewer, reviewed_at ISO con zona horaria, notes. No modificar el paquete.
+REVIEW=$(flir-pipeline sequences experiment review-import "$PACKAGE" \
+  "$FLIR_REVIEW_DECISIONS" --output reports/sequence_review)
+flir-pipeline sequences experiment verify "$REVIEW" --family "$FLIR_FAMILY" \
+  --evidence "$RECURRENCE" --review-package "$PACKAGE"
+# Un nuevo lote compatible conserva el historial y publica otra revisión:
+flir-pipeline sequences experiment review-import "$PACKAGE" \
+  "$FLIR_NEXT_REVIEW_DECISIONS" --previous "$REVIEW" --output reports/sequence_review
+```
+
+Importar decisiones no crea VDGs ni fronteras. Cambios de decisión incompatibles
+se rechazan para adjudicación externa explícita; no se sobrescribe la historia.
+Para evaluar estructura nueva, normalizar una nueva revisión externa de
+intervalos y producir otra suite ligada a ella.
+
+### Contratos y verificación
+
+Familias: `sequence_boundary_candidates_v2`, `sequence_structure_review_v1`,
+`sequence_clustering_experiment_v1`, `sequence_recurrence_v1`,
+`sequence_cluster_evaluation_v1`, `sequence_cluster_transition_diagnostics_v1`,
+`sequence_experiment_suite_v1`, `sequence_review_package_v1`,
+`sequence_manual_review_v1`. Cada directorio incluye `metadata.json`,
+`receipt.json`, `summary.json` y tablas detalladas Parquet; paquetes incluyen
+medios y plantilla CSV. `summary` es liviano y declara que no verificó.
+`verify` exige fuentes actuales, inspecciona todos los archivos y los hijos de
+la suite; no constituye un nuevo experimento científico ni una refit estocástica.
+
+Pruebas y QA locales:
+
+```bash
+uv run --no-sync python -m pytest -q tests/test_sequence_experiments.py
+uv run --no-sync python -m pytest -q
+uv run --no-sync python -m ruff check .
+uv run --no-sync python -m ruff format --check src/flir_pipeline/sequences tests/test_sequence_experiments.py
+uv run --no-sync python scripts/check_notebook_source.py
+```
+
+## Ruta existente de secuencias revisadas v1
+
 Infraestructura `sequences` para `flir_video_samples_v1`, validada con fixtures
 sintéticos. El manifest, los modelos ya extraídos y la revisión real permanecen
 fuera de Git. No se ha ejecutado ni validado aquí la construcción real en Hypatia.

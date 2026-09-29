@@ -1,5 +1,50 @@
 # Architecture
 
+## Sequence experiment evidence (2026-09-28)
+
+`sequences/experiments/` extends the sequence CLI without changing the v1
+detect/build contracts or the density-clustering protocol. It reuses feature
+QA/loading from linkage, `centroid_changes` and the current v1 detector,
+reduction/density adapters, block cosine computation and assignment stability.
+Agglomerative is an explicitly experimental vector-only adapter.
+
+Modules separate strict configs, source alignment, immutable artifacts,
+boundary evidence, reviewed structure, recurrence, fitting, post-hoc evaluation,
+cluster transitions, review media/history and local orchestration. Original L2
+content vectors are the only fitting input. Historical occurrences and each
+encoder's row mapping remain available downstream. Filename families are inferred
+timelines, never asserted source provenance. Reviewed zones are intervals; their
+complements are conservative core candidates, not committed sequence instances.
+
+Every publication binds config, source checksums, software/source-code versions,
+logical table identities, file checksums and false truth/split/confirmation flags.
+Review imports bind the explicit normalized schema and producer bytes; packages
+read images through `ImageSource`, preserve context selection and replay manual
+decision history. Numerical artifacts stay in ignored artifacts/reports or
+outside the checkout; visual packages use the existing reports-only policy.
+
+`native_schema.py` records the observed legacy contracts; `native_evidence.py`
+validates their tables/flags and cross-report identities. `real_evidence.py`
+discovers native declarations as well as the earlier explicit envelopes. Native
+imports freeze all consumed bytes and bind original paths/checksums. Loading or
+verifying native structure rechecks those originals and replays normalization.
+Candidate cores retain their own interval kind/origin; no fictional reviewer/date,
+exact boundaries, instance labels or independent visual verification are added.
+
+`inputs.py` separates operational paths/resources from mathematical config.
+`stages.py` shares immutable representation coordinates between clustering jobs
+and reuses direct recurrence for the posterior cluster comparison. `slurm.py`
+owns submission/receipts/accounting only; Bash wrappers contain no scientific
+logic. Dependencies use afterok; a final immutable summary records the combined
+manual-review checkpoint. Recovery is a conservative generated plan, not automatic
+resubmission of unknown or partially published work.
+
+The suite persists masks, coverage, failures, ablations and stability comparisons,
+not a winner, VDG or split. A thin Hypatia launcher calls the same CLI. This is
+synthetically validated infrastructure; real suite execution and semantic review
+remain pending. See [protocol](protocols/sequence_experiments.md) and
+[runbook](runbooks/sequences.md#suite-experimental-de-temporalidad-y-dependencia-visual).
+
 The package follows data provenance through independent visual representations
 to verified partition experiments and controlled detector evaluation infrastructure.
 Existing package boundaries are preserved.
@@ -350,3 +395,11 @@ and tracking extras remain absent. Synthetic CI includes the reduction extra.
 The data manifest currently uses some private inventory helpers within the data
 layer. This coupling is documented technical debt; no broad package refactor was
 needed for the current pipeline.
+
+`data/variants.py` binds a generic dataset variant to its dataset identity,
+manifest checksum, optional parent identity and declared transformation. Feature
+storage isolates variant directories/checkpoints without changing encoder-space
+identity. Sequence experiment sources carry this declaration into every immutable
+publication and SLURM run identity. Legacy undeclared stores remain `unspecified`.
+`sequences/experiments/variant_comparison.py` consumes completed frozen suites and
+optional validated occurrence correspondence; it never fits or constructs groups.

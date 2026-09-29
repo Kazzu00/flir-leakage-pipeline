@@ -1,5 +1,94 @@
 # Project status
 
+## Ingesta nativa de evidencia legacy (2026-09-29)
+
+**Adaptador implementado; ejecución real pendiente.** Los esquemas aportados por
+el responsable ya tienen importación nativa mediante `hypatia_legacy_evidence_v1`.
+Se comprueban las 46 columnas/tipos y nulos admitidos, las 910 ocurrencias/712
+índices, la distribución 870/40, 13 cores candidatos/12 zonas, 78 pares/11
+candidatos y la consistencia entre reports. Los 14 archivos consumidos quedan
+ligados por SHA256 con snapshots sin cambios; verificar exige originales intactos
+y replay de la normalización. No se inventan reviewer, fecha ni ground truth.
+
+La revisión legacy conserva su `review_mode`; los cores siguen candidatos, las
+zonas no son cortes exactos y el linaje no se convierte en byte identity. La
+variante queda `unspecified`. No hay instancias, VDGs, splits ni asignaciones de
+procedencia nuevas. El [runbook nativo](runbooks/native_sequence_evidence.md)
+incluye inspección sin escritura, dry-run con fuentes, importación y verify en
+SLURM. La evidencia local procede de fixtures sintéticas, no de una importación
+ejecutada sobre los archivos reales de Hypatia.
+
+Validación de cierre: `uv run --no-sync python -m pytest -q`, con Hugging Face
+y Transformers en modo offline y un hilo para OMP/Numba: **773 passed**
+(17 min 00 s), incluidas **33 pruebas de ingesta nativa**. Ruff global, formato
+de los 26 archivos nuevos/de experimentos, siete notebooks fuente, sintaxis de
+cuatro scripts Bash, ayudas CLI y `git diff --check` pasaron. La regresión cubre
+también la infraestructura de variantes y la operación por etapas. No se
+sincronizó código remoto, no se enviaron jobs reales y no hubo commit ni push.
+
+## Variantes de dataset (2026-09-29)
+
+**Infraestructura implementada.** Registro genérico con dataset/variante/origen,
+checksums y definición; stores y checkpoints separados por variante; selección
+explícita en CLI, resolución de features y SLURM. `compare-variants` consume
+suites completas e inmutables, conserva ambas poblaciones y contrasta métricas
+disponibles, zonas, clustering, recurrencia, estabilidad y shortlists. El pairing
+opcional valida ocurrencias, método, confianza/evidencia y flag externo de verdad,
+con cobertura y exclusiones explícitas; no afirma identidad de bytes.
+
+El [ejemplo futuro](runbooks/sequence_operations.md#variantes-de-dataset-y-comparación-futura)
+documenta `original_with_hud` y `no_hud` bajo el mismo protocolo. **No se evaluó
+el dataset real sin HUD**; no hay conclusiones sobre su efecto ni un ganador
+automático. La comparación no crea secuencias, VDGs ni splits. Los stores antiguos
+sin declaración permanecen `unspecified`, sin modificación ni relabeling.
+
+Validación focalizada: `uv run --no-sync python -m pytest
+tests/test_dataset_variants.py tests/test_sequence_operations.py
+tests/test_features.py -q`: **39 passed** (3 min 19 s), incluyendo las 18 pruebas
+de variantes. Ruff global, formato de los 23 archivos nuevos/de experimentos y
+help de registro, pairing, comparación, suite y extracción pasaron.
+Regresión completa posterior: `uv run --no-sync python -m pytest -q`:
+**740 passed** (15 min 13 s). `git diff --check` pasó. No hubo extracción de
+modelos reales, experimentos con datos sin HUD, jobs remotos, commit ni push.
+
+## Actualización: experimentos de secuencias (2026-09-28)
+
+**Available; validación local sintética/offline.** `sequences experiment` integra
+el detector actual como control, ventanas multiescala configurables, baselines
+locales robustos, grids CLIP/DINOv2 × original L2/PaCMAP/t-SNE ×
+DBSCAN/OPTICS/HDBSCAN/Agglomerative experimental, evaluación posterior con máscaras
+y cobertura, recurrencia directa y por clústeres, transiciones diagnósticas,
+estabilidad y ablaciones. Incluye publicaciones inmutables, importación explícita
+de evidencia, paquetes visuales e historial manual. Véase el
+[runbook](runbooks/sequences.md#suite-experimental-de-temporalidad-y-dependencia-visual).
+
+La validación sintética incluye ambos reductores reales y los cuatro algoritmos.
+Recibo local de implementación: `uv run --no-sync python -m pytest -q` completó
+**722 passed** (13 min 27 s). Las **14 pruebas operacionales** también pasaron
+en ejecución separada sobre los últimos controles. Ruff global, formato de los
+archivos afectados, siete notebooks fuente y sintaxis de los cuatro scripts Bash
+pasaron. No hay
+un type checker configurado adicional. El launcher `.exe` de Windows quedó
+bloqueado por Control de aplicaciones (4551); help y operaciones de la CLI se
+validaron mediante su entrada Python y CliRunner, como permite el runbook.
+No es un experimento FLIR completo ni valida dependencias visuales reales.
+El perfil de Hypatia, su presupuesto y la calibración de umbrales están
+**Pending compute / review**. Los resultados comunicados sobre video_11min y
+video_13min no se codifican como constantes ni se presentan como revalidados.
+**Operacionalización In progress.** Están implementados resolución de stores,
+dry-run, DAG SLURM (82 jobs / 154 fits del perfil), recibos, status, plan
+conservador de recuperación, paquete visual combinado y summary final. Las
+pruebas comparan resultados seriales y por etapas, incluyendo reutilización de
+coordenadas y recurrencia. No se ha enviado ningún job real desde este checkout.
+
+**Bloqueo de esquema resuelto:** tras el rechazo de autenticación SSH, el
+responsable entregó los contratos observados de las cuatro familias. El adaptador
+nativo descrito arriba reemplaza la limitación previa a envelopes explícitos.
+La ejecución y verificación con los archivos reales de Hypatia aún están
+pendientes; no se presentan las fixtures como resultados reales. No se creó
+ningún split ni se confirmaron automáticamente VDGs, fronteras o secuencias. Los
+resultados históricos documentados debajo conservan su alcance anterior.
+
 Documentación reorganizada el **2026-09-23** desde el código y la evidencia local
 existente, sin ejecutar experimentos ni cambiar resultados. **Validated** indica
 comprobación dentro del protocolo, no validación semántica exhaustiva ni mejora

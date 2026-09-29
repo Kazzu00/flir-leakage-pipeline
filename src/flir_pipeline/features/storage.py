@@ -128,6 +128,7 @@ def extract_to_store(
     seed: int = 0,
     *,
     images_root: Path | None = None,
+    variant_spec: Path | None = None,
 ) -> Path:
     """Store one raw/L2 row per selected content from a read-only ZIP or directory.
 
@@ -144,6 +145,9 @@ def extract_to_store(
     if extractor is None:
         raise ValueError("An extractor is required")
     manifest = pd.read_parquet(manifest_path)
+    from flir_pipeline.data.variants import read_variant
+
+    variant = read_variant(variant_spec, manifest_path) if variant_spec else None
     if manifest.empty:
         raise ValueError("Cannot extract features from an empty manifest")
     selected = _selected_content(manifest, limit_content, seed)
@@ -152,21 +156,28 @@ def extract_to_store(
             raise ValueError("Feature output-root must be outside read-only images-root")
         source.validate(manifest if source.kind == "directory" else selected)
         return _extract_to_store(
-            manifest, selected, source, extractor, output_root, dataset_id, batch_size, seed,
+            manifest, selected, source, extractor, output_root, dataset_id, batch_size, seed, variant,
         )
 
 
 def _extract_to_store(
     manifest: pd.DataFrame, selected: pd.DataFrame, source: ImageSource,
     extractor: FeatureExtractor, output_root: Path, dataset_id: str | None,
-    batch_size: int, seed: int,
+    batch_size: int, seed: int, variant: dict | None = None,
 ) -> Path:
     """One storage/checkpoint implementation for both image transports."""
     computed_dataset_id = dataset_id_from_manifest(manifest)
     dataset_id = dataset_id or computed_dataset_id
     config = extractor.feature_space_config()
     space_id = feature_space_id(config)
-    feature_dir = output_root / extractor.name / dataset_id / space_id
+    if variant and dataset_id != variant["dataset_id"]:
+        raise ValueError("Dataset override differs from the declared variant")
+    feature_root = output_root / extractor.name / dataset_id
+    if variant:
+        # Variant identity already binds dataset_id; avoid duplicating two long
+        # hashes in Windows paths. The complete identities remain in metadata.
+        feature_root = output_root / extractor.name / "variants" / variant["dataset_variant_id"]
+    feature_dir = feature_root / space_id
     feature_dir.mkdir(parents=True, exist_ok=True)
     metadata_path = feature_dir / "metadata.json"
     signature = {
@@ -175,6 +186,8 @@ def _extract_to_store(
         "content_ids": selected["content_id"].tolist(),
         "image_sha256": selected["image_sha256"].tolist(),
     }
+    if variant:
+        signature["dataset_variant"] = variant
     final_metadata = metadata_path if metadata_path.is_file() else None
     if final_metadata:
         existing = json.loads(final_metadata.read_text(encoding="utf-8"))
@@ -293,6 +306,8 @@ def _extract_to_store(
         "created_at": datetime.now(UTC).isoformat(),
         "l2_normalized_available": True,
     }
+    if variant:
+        metadata["dataset_variant"] = variant
     _atomic_json(metadata_path, metadata)
     shutil.rmtree(partial)
     return feature_dir
@@ -307,6 +322,21 @@ def verify_feature_directory(feature_dir: Path) -> dict:
     result = _quality(raw, normalized, content_index, record_index)
     result["metadata_exists"] = (feature_dir / "metadata.json").is_file()
     result["quality_valid"] = result["quality_valid"] and result["metadata_exists"]
+    if result["metadata_exists"]:
+        from flir_pipeline.data.variants import validate_variant
+
+        metadata = json.loads((feature_dir / "metadata.json").read_text(encoding="utf-8"))
+        variant = metadata.get("dataset_variant")
+        signature = metadata.get("cache_signature", {})
+        try:
+            if variant is not None:
+                validate_variant(variant, metadata.get("dataset_id"))
+            result["dataset_variant_valid"] = (
+                "cache_signature" not in metadata or signature.get("dataset_variant") == variant
+            )
+        except (ValueError, TypeError):
+            result["dataset_variant_valid"] = False
+        result["quality_valid"] = result["quality_valid"] and result["dataset_variant_valid"]
     return result
 
 

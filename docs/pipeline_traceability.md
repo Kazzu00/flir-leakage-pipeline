@@ -1,5 +1,31 @@
 # Pipeline traceability
 
+## Sequence experiments: additional evidence path
+
+The [operational runbook](runbooks/sequence_operations.md) records the parallel
+SLURM DAG. `slurm_run.json` maps each logical stage to command, resources, job ID,
+dependencies and logs; per-stage receipts bind completed artifacts. This operational
+record is separate from scientific feature/fit identities. A combined review
+package and `sequence_final_summary_v1` close computation while preserving the
+manual gate and false VDG/split flags.
+
+| Input | Implementation | Source-bound output | Interpretation |
+|---|---|---|---|
+| Canonical/video manifest and complete original encoder stores | `sequences/experiments/sources.py`, `boundary.py` | Current-v1 control, adjacent/multiscale scores, robust local context, ranked candidate zones and occurrences | Original-space temporal evidence; filename inference remains explicit |
+| Visual vectors, deterministic grid and seeds | `fitting.py`, existing reduction/clustering adapters | Unique-content assignments, reduction coordinates, effective backend parameters and failed cells | No review labels or historical split enters fitting |
+| Normalized external evidence, manifest identity and producer checksums | `structure.py` | Frozen intervals/observations, conservative cores, occurrence membership and masks | Reviewed intervals remain uncertain; external review is not ground truth |
+| Distinct cores/instances and original L2 | `recurrence.py` | Directed NN distributions, encoder ranks, exact-copy counts, candidates and diagnostic components | No automatic VDG or sequence merge |
+| Cluster assignments and review membership | `evaluation.py`, `transitions.py` | ARI/AMI/V-measure with coverage, purity/entropy, fragmentation/merging, runs/returns and zone hits | Post-hoc comparisons; noise and ambiguous occurrence labels remain explicit |
+| Full configured run set | `runner.py` | Comparison, failures, candidate union/intersection and stability with common coverage | Experimental evidence summary without automatic winner or split |
+| Candidate evidence and verified image bytes | `review.py`, existing ImageSource | Context sheets, medoids, encoder matches, immutable CSV decisions and replayable history | supported/ambiguous/unsupported remain manual evidence |
+
+All new contracts preserve `ground_truth=false`, `split_created=false` and
+`automatic_confirmation=false`. Byte binding and deterministic scientific IDs
+are distinct: changing source row order/split metadata invalidates the old source
+receipt while leaving the numerical fit invariant. Detailed definitions and
+resource/validation boundaries are in the
+[protocol](protocols/sequence_experiments.md).
+
 This map follows inputs through implemented processes to stored artifacts and
 downstream consumers. Paths are relative to the repository; real evidence is local
 and ignored. Execution state is recorded separately in [status](status.md).
@@ -100,3 +126,24 @@ the reviewed calibration set and do not estimate representative accuracy/precisi
 - Noise cleaning and panoptic segmentation are external integration components;
   neither is implemented here. Production deployment/monitoring are outside this
   pipeline. [Architecture](architecture.md) retains the proposed handoff boundary.
+
+Dataset variants preserve a separate identity chain:
+`dataset_id -> dataset_variant_id -> feature_space_id -> experiment artifact`.
+The experiment source signature records the variant declaration, parent identity,
+manifest/feature checksums and both encoder spaces. Image changes do not imply a
+change in temporal identity; explicit correspondence retains both occurrence IDs
+and their known indices, method, confidence/evidence and external truth flag.
+Cross-variant ARI/AMI excludes non-bijective content relations and reports coverage
+without dropping the complete occurrence populations. Metrics do not create
+sequences, dependency groups or splits. The real no-HUD comparison remains future
+work after base validation; synthetic pixel tests validate infrastructure only.
+
+The native Hypatia adapter binds all 14 consumed source files by SHA256 and raw
+snapshot, with source path/family and adapter version. It validates 910 occurrences,
+712 nominal indices, 13 core candidates, 12 uncertain zones and 78 recurrence
+pairs/11 candidates for the observed revisions. These are acceptance checks of
+legacy artifacts, not predictions for future experiments. Full original summaries
+and the assistant-review mode survive without asserting truth, exact provenance,
+sequence instances, dependency groups or splits. The normalized source retains
+the unspecified variant and is verified against the canonical source identities;
+any modified original invalidates verification even if its snapshot is intact.

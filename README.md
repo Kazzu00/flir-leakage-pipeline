@@ -2,6 +2,23 @@
 
 ## Overview
 
+The experimental `flir-pipeline sequences experiment` suite evaluates temporal
+boundary zones, visual recurrence and clustering with explicit review masks,
+coverage, stability and immutable evidence. It creates no final split or automatic
+dependency confirmations. Available with synthetic offline validation; real
+Hypatia runs remain pending. See the [Hypatia commands and review workflow](docs/runbooks/sequences.md#suite-experimental-de-temporalidad-y-dependencia-visual)
+and [experimental protocol](docs/protocols/sequence_experiments.md). The
+[parallel SLURM workflow](docs/runbooks/sequence_operations.md) adds dry-run,
+source resolution, durable stage receipts, status and a combined review checkpoint.
+Native ingestion now supports the four owner-supplied Hypatia legacy schemas,
+with frozen snapshots, cross-report checks and verification of original files.
+See the [native import commands](docs/runbooks/native_sequence_evidence.md);
+real Hypatia ingestion remains to be executed and verified there.
+Generic dataset variants isolate feature stores and experiment identities;
+`compare-variants` compares completed suites with optional explicit frame pairing.
+See the [future variant example](docs/runbooks/sequence_operations.md#variantes-de-dataset-y-comparación-futura).
+Real no-HUD data has not been evaluated; no HUD effect is inferred.
+
 A reproducible pipeline for auditing FLIR frames, measuring visual correlation,
 grouping related contents and constructing leakage-aware train/validation/test
 partitions. Exact copies and nearby scenes can cross a frame-level split;

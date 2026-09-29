@@ -294,6 +294,7 @@ def features_extract(
     limit_content: int | None = typer.Option(None, min=1, help="Maximum unique contents."),
     seed: int = typer.Option(0, help="Deterministic content sample seed."),
     local_files_only: bool = typer.Option(False, help="Do not access model downloads."),
+    variant_spec: Path | None = typer.Option(None, help="Immutable dataset variant declaration; separate feature/cache namespace."),
 ) -> None:
     """Extract raw and L2 embeddings once per unique content_id."""
     if images_archive is not None and images_root is not None:
@@ -328,6 +329,7 @@ def features_extract(
             limit_content=limit_content,
             seed=seed,
             images_root=images_root,
+            variant_spec=variant_spec,
         )
     except (ValueError, OSError, RuntimeError) as error:
         typer.echo(f"Feature extraction failed: {error}", err=True)

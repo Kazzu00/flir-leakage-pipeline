@@ -1,5 +1,41 @@
 # Design decisions
 
+## 2026-09-28: operational scheduling preserves the experiment
+
+SLURM parallelizes encoders, individual representation configurations/seeds and
+algorithm grids. Reduced coordinates are published once and reused without a
+second stochastic fit; direct recurrence is reused for cluster support. Scientific
+IDs/assignments do not include job IDs, resources or paths. The operational plan
+separately binds source checksums, resolved stores, code/dependencies and jobs.
+Completed stage receipts require valid immutable publications. Corruption, orphaned
+outputs, uncertain submissions and changed sources are never repaired by deleting
+or silently recomputing them. Recovery emits a deterministic inspection/resubmission
+plan. Manual review remains an explicit guard, with no confirmation-dependent
+scientific consumer or split creation in this phase.
+
+## 2026-09-28: separate temporal and visual experimental evidence
+
+The sequence experiment extension keeps source timeline instances, conservative
+cores, reviewed uncertainty zones, algorithmic clusters and visual dependency
+groups distinct. A new subpackage reuses existing numerical adapters, while the
+v1 sequence commitment and density protocol remain unchanged. Agglomerative is
+an experimental literature comparison. Fitting uses unique visual contents;
+all occurrences and independent encoder mappings survive downstream.
+
+Post-hoc exact-label metrics require unanimous, resolved occurrence membership
+and report N/coverage under explicit noise policies. Recurrence combines ranks
+or evidence rules, never uncalibrated encoder cosines. Candidate graphs cannot
+create VDGs. Incomplete boundary review cannot supply false-positive counts or
+candidate precision. Imported schemas are explicit and checksum-bound rather
+than inferred from legacy filenames. Manual review imports have immutable,
+replayable history; incompatible decisions require external adjudication.
+
+The current detector is retained as an evidence control. Literature-inspired
+PaCMAP experiments use the existing 2/3-D protocol, not the 256-D experiment in
+Glazner et al.; this is documented as a limitation, not an exact replication.
+No new dependencies or final split are introduced. See
+[sequence experiment protocol](protocols/sequence_experiments.md).
+
 These decisions describe the current implementation and experimental protocols.
 Later sections record the executed similarity/reduction extensions.
 Clustering and splitting have executed experiments. Detector infrastructure and
@@ -705,3 +741,37 @@ samples are not assumed exchangeable, rates are not representative accuracy or
 precision, and neither supported evidence nor encoder ranks create truth. No
 sequence, linkage or split assignment is produced. Aggregation is validated with
 synthetic inputs; its real execution and future calibration coverage remain open.
+
+## Generic dataset variants and explicit pairing
+
+Variant identity includes dataset identity, name, parent identity and declared
+preparation. Source checksums bind immutable snapshots separately. Feature-space
+identity describes the mathematical encoder and remains independent of the image
+collection; storage and experiment identity include the dataset variant. Existing
+undeclared stores are never implicitly relabeled from a CLI selector.
+
+Variant comparison preserves all occurrences. Paired frames express external
+correspondence, not byte identity; neither nominal time nor equal content hashes
+automatically establishes a pair. ARI/AMI uses unique bijective content relations
+under matching fit configurations, with feature-space differences, ambiguous relations and
+unpaired coverage reported. Boundary overlap refers to mapped zone membership;
+recurrence pairing requires complete mapped core occurrence sets. Descriptive
+metrics retain their own masks/denominators and imply no causal effect or winner.
+HUD removal is only a future application of this generic infrastructure, with no
+real no-HUD experiment or scientific conclusion yet.
+
+## Native legacy evidence without promotion
+
+The owner's observed Hypatia schemas are versioned input contracts. Native
+ingestion does not force them into an envelope requiring an invented reviewer,
+review timestamp or dataset declaration. Canonical identity is established by
+an explicit frame/content/metadata join; legacy variant identity remains
+`unspecified`. Revision counts validate these existing artifacts only and never
+parameterize future fits or expected results.
+
+All consumed JSON/CSV/Parquet bytes are checksummed and frozen. Verification
+requires unchanged originals and replays the normalized tables. Boundary zones
+remain uncertain; `sequence_core_candidate` remains a candidate with legacy
+origin. Encoder ranks and candidate pairs are preserved, with no confirmed
+dependencies or components promoted to VDGs. The legacy assistant review mode
+is retained verbatim and is not independent visual ground truth.
