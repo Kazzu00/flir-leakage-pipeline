@@ -84,10 +84,26 @@ min/max por detector seed dentro de split, y variabilidad entre medias de
 split seeds por separado. Se reportan diferencias descriptivas frente a
 historical, CIs por run y dispersión, sin pruebas indiscriminadas de p-values.
 
+## Enmienda operacional previa a resultados finales
+
+El 30 de septiembre de 2026, antes de ejecutar Stage A o cualquier celda de la
+matriz controlada final, se ajustó únicamente el entorno PyTorch del detector
+para hacerlo compatible con la infraestructura GPU disponible en Hypatia.
+
+El nodo disponible utiliza una NVIDIA Quadro RTX 6000 con 24 GB de VRAM,
+driver NVIDIA 520.61.05 y CUDA 11.8. PyTorch 2.8.0 no dispone de la build CUDA
+11.8 requerida por este entorno. Por ello se fija PyTorch 2.7.1 con CUDA 11.8
+y torchvision 0.22.1, manteniendo Ultralytics 8.3.203.
+
+No se modifican arquitectura, pesos iniciales, dataset, splits, seeds,
+hiperparámetros, augmentations, resolución, número de epochs, métricas,
+bootstrap ni criterios de selección. No se habían observado resultados de
+Stage A/B al realizar esta enmienda.
+
 ## Configuración y hardware
 
 Fuente versionada: `configs/detection/yolo11n.yaml`. Ultralytics 8.3.203,
-PyTorch 2.8.0 y torchvision 0.23.0, en extra opcional `detection`. Pretrained
+PyTorch 2.7.1 y torchvision 0.22.1, en extra opcional `detection`. Pretrained
 YOLO11n del asset oficial, hash SHA256 registrado localmente. Cada run nuevo
 inicia desde esos mismos pesos, nunca desde otro split.
 

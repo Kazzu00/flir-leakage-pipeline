@@ -3,7 +3,7 @@
 protocol: controlled_detector_v1
 model: yolo11n.pt
 ultralytics_version: 8.3.203
-torch_version: 2.8.0
+torch_version: 2.7.1
 training_seeds: [42, 43, 44]
 split_seeds: [0, 1, 2, 3, 4]
 compute:

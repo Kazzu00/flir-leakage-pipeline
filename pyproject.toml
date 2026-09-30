@@ -27,8 +27,8 @@ explorer = [
 ]
 detection = [
     "ultralytics==8.3.203",
-    "torch==2.8.0",
-    "torchvision==0.23.0",
+    "torch==2.7.1",
+    "torchvision==0.22.1",
 ]
 reduction = [
     "scikit-learn>=1.5,<2",
@@ -75,3 +75,16 @@ ignore = ["B008", "E501"]
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
+
+[tool.uv.sources]
+torch = [
+    { index = "pytorch-cu118", extra = "detection" },
+]
+torchvision = [
+    { index = "pytorch-cu118", extra = "detection" },
+]
+
+[[tool.uv.index]]
+name = "pytorch-cu118"
+url = "https://download.pytorch.org/whl/cu118"
+explicit = true

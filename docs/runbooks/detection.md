@@ -19,7 +19,7 @@ en otro equipo no habilita CUDA en el portátil. Para CPU, una instalación
 explícita permite evitar wheels CUDA innecesarios:
 
 ```powershell
-uv pip install torch==2.8.0 torchvision==0.23.0 --index-url https://download.pytorch.org/whl/cpu
+python -m pip install torch==2.7.1 torchvision==0.22.1 --index-url https://download.pytorch.org/whl/cu118
 uv run --no-sync flir-pipeline detection environment
 ```
 
