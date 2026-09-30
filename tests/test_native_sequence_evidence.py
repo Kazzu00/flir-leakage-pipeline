@@ -16,6 +16,7 @@ from flir_pipeline.cli import app
 from flir_pipeline.data.identity import dataset_id_from_manifest
 from flir_pipeline.data.variants import make_variant
 from flir_pipeline.sequences.experiments.artifacts import inspect, tables
+from flir_pipeline.sequences.experiments.native_evidence import read_native
 from flir_pipeline.sequences.experiments.native_schema import (
     CSV_COLUMNS,
     NULLABLE,
@@ -37,6 +38,14 @@ from flir_pipeline.similarity.storage import file_sha256, read_json, write_json
 FAMILY = "video_11min"
 REVIEW_MODE = "assistant_visual_review_with_user_approval"
 KINDS = {role: kind for kind, role in ROLES.items()}
+# Pin the observed header independently of the importer schema constants.
+OBSERVED_CANDIDATE_HEADER = (
+    "review_order,core_a,core_b,clip_centroid_cosine,clip_symmetric_ge_090,"
+    "clip_symmetric_ge_095,clip_recurrence_score,dinov2_centroid_cosine,"
+    "dinov2_symmetric_ge_090,dinov2_symmetric_ge_095,dinov2_recurrence_score,"
+    "consensus_score,encoder_agreement_score,clip_rank,dinov2_rank,rank_sum,"
+    "mean_reciprocal_rank,joint_symmetric_ge_090,joint_centroid_min"
+)
 
 
 def csv(root, role, name, rows):
@@ -321,12 +330,10 @@ def make_reports(root):
             )
         )
     csv(root, "recurrence", "all_pairs_ranked.csv", pairs)
-    csv(
-        root,
-        "recurrence",
-        "manual_review_candidates.csv",
-        [{**r, "review_order": i + 1} for i, r in enumerate(pairs[:11])],
-    )
+    pd.DataFrame(
+        [{"review_order": i + 1, **r} for i, r in enumerate(pairs[:11])],
+        columns=OBSERVED_CANDIDATE_HEADER.split(","),
+    ).to_csv(root / "recurrence" / "manual_review_candidates.csv", index=False)
 
 
 def memory_source(root):
@@ -522,6 +529,48 @@ def test_native_occurrence_structure_conflicts_fail_closed(reports, mutation):
     data.to_parquet(path, index=False)
     with pytest.raises(ValueError):
         inspect_real(reports, FAMILY)
+
+
+def test_native_candidates_accept_observed_header_order(reports):
+    path = reports / "recurrence" / "manual_review_candidates.csv"
+    original = path.read_bytes()
+    assert original.decode("utf-8").splitlines()[0] == OBSERVED_CANDIDATE_HEADER
+    report = read_native(path.parent / "summary.json")
+    candidates = report.tables["manual_review_candidates"]
+    assert list(candidates) == OBSERVED_CANDIDATE_HEADER.split(",")
+    assert candidates.review_order.tolist() == list(range(1, 12))
+    assert path.read_bytes() == original
+
+
+@pytest.mark.parametrize(
+    "mutation",
+    [
+        "review_order_last",
+        "missing_review_order",
+        "missing_measurement",
+        "extra_column",
+        "renamed_column",
+        "duplicate_column",
+    ],
+)
+def test_native_candidates_reject_malformed_header(reports, mutation):
+    path = reports / "recurrence" / "manual_review_candidates.csv"
+    frame = pd.read_csv(path)
+    if mutation == "review_order_last":
+        frame = frame[[*frame.columns[1:], "review_order"]]
+    elif mutation == "missing_review_order":
+        frame = frame.drop(columns="review_order")
+    elif mutation == "missing_measurement":
+        frame = frame.drop(columns="clip_centroid_cosine")
+    elif mutation == "extra_column":
+        frame["unexpected_column"] = 0
+    elif mutation == "renamed_column":
+        frame = frame.rename(columns={"review_order": "review_index"})
+    else:
+        frame = frame.rename(columns={"core_a": "review_order"})
+    frame.to_csv(path, index=False)
+    with pytest.raises(ValueError, match="manual_review_candidates.csv CSV schema"):
+        read_native(path.parent / "summary.json")
 
 
 @pytest.mark.parametrize(

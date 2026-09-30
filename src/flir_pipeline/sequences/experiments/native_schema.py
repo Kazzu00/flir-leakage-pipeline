@@ -60,7 +60,7 @@ cross_split_exact_content_count""".split(),
     },
     "recurrence": {
         "all_pairs_ranked.csv": PAIR_COLUMNS,
-        "manual_review_candidates.csv": [*PAIR_COLUMNS, "review_order"],
+        "manual_review_candidates.csv": ["review_order", *PAIR_COLUMNS],
     },
 }
 OCCURRENCE_SCHEMA = dict(
