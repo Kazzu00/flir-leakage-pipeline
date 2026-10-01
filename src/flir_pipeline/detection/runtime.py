@@ -667,13 +667,12 @@ def fair_comparison(metas: list[dict], expected: pd.DataFrame) -> dict:
     return {"controlled": not errors, "errors": errors, "expected_runs": len(expected_cells), "completed_runs": len(actual_cells)}
 
 
-def execute_matrix(plan_directory: Path, output: Path) -> dict:
+def execute_stage_a(plan_directory: Path, output: Path) -> dict:
+    """Execute only the four full Stage A cells and stop after the control gate."""
     plan = verify_plan(plan_directory)
     freeze = read_json(plan_directory/"runtime_freeze.json")
     if freeze["plan_id"] != plan["plan_id"] or stable_id(freeze["model_config"]) != freeze["model_config_id"]:
         raise ValueError("Invalid execution freeze")
-    if freeze["model_config"]["device"] == "cpu":
-        raise ValueError("Automatic Stage B on CPU is disabled by the compute protocol; run pilot-small and review the cost estimate first")
     splits = plan["identity"]["splits"]
     matrix = experiment_matrix(splits, plan["identity"]["config"]["training_seeds"])
     lookup = {s["split_space_id"]: s for s in splits}
@@ -682,10 +681,32 @@ def execute_matrix(plan_directory: Path, output: Path) -> dict:
         split = lookup[cell.split_space_id]
         directory = run_one(split, cell.detector_seed, plan, freeze, output)
         pilots.append(verify_run(directory, split, freeze))
+        print(
+            f"Stage A verified {len(pilots)}/{int(matrix.pilot.sum())} "
+            f"{cell.strategy} split={cell.split_seed} detector={cell.detector_seed}",
+            flush=True,
+        )
     gate = fair_comparison(pilots, matrix.loc[matrix.pilot])
     write_json(plan_directory/"pilot_validation.json", gate)
     if not gate["controlled"]:
         raise ValueError("Stage A gate failed; Stage B cannot start")
+    return gate
+
+
+def execute_matrix(plan_directory: Path, output: Path) -> dict:
+    plan = verify_plan(plan_directory)
+    freeze = read_json(plan_directory/"runtime_freeze.json")
+    if freeze["plan_id"] != plan["plan_id"] or stable_id(freeze["model_config"]) != freeze["model_config_id"]:
+        raise ValueError("Invalid execution freeze")
+    if freeze["model_config"]["device"] == "cpu":
+        raise ValueError("Automatic Stage B on CPU is disabled by the compute protocol; run pilot-small and review the cost estimate first")
+
+    execute_stage_a(plan_directory, output)
+
+    splits = plan["identity"]["splits"]
+    matrix = experiment_matrix(splits, plan["identity"]["config"]["training_seeds"])
+    lookup = {s["split_space_id"]: s for s in splits}
+
     runs = []
     for cell in matrix.itertuples():
         split = lookup[cell.split_space_id]

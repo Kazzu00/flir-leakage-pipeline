@@ -74,6 +74,19 @@ def freeze_command(plan: Path = Path("artifacts/detection/protocol"), output: Pa
     typer.echo(f"Runtime frozen: {result['model_config_id']}")
 
 
+@app.command("stage-a")
+def stage_a_command(
+    plan: Path = Path("artifacts/detection/protocol"),
+    output: Path = Path("artifacts/detection"),
+) -> None:
+    from flir_pipeline.detection.runtime import execute_stage_a
+
+    result = execute_stage_a(plan, output)
+    typer.echo(str(result))
+    if not result["controlled"]:
+        raise typer.Exit(2)
+
+
 @app.command("run")
 def run_command(plan: Path = Path("artifacts/detection/protocol"), output: Path = Path("artifacts/detection")) -> None:
     from flir_pipeline.detection.runtime import execute_matrix
