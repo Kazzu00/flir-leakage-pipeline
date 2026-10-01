@@ -8,7 +8,7 @@ training_seeds: [42, 43, 44]
 split_seeds: [0, 1, 2, 3, 4]
 compute:
   cpu_batch_candidates: [1, 2]
-  cuda_batch_candidates: [1, 2, 4]
+  cuda_batch_candidates: [1, 2]
   small_pilot_epochs: 2
   small_pilot_train_images: 24
   small_pilot_val_images: 12

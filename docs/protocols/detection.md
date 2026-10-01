@@ -115,6 +115,21 @@ restringe por tanto la búsqueda común de batch CUDA a [1, 2, 4] y se vuelve a
 ejecutar probe, freeze y piloto pequeño. El batch resultante será idéntico para
 todas las estrategias; no se realizará ajuste específico por estrategia.
 
+
+### Segundo ajuste de batch posterior al piloto operacional
+
+Con batch 4, los pilotos pequeños de C10 y C12 completaron entrenamiento y
+evaluación. El piloto histórico produjo un CUDA OOM durante la primera epoch,
+antes de completar entrenamiento. No se había ejecutado ninguna celda de
+Stage A/B y estos pilotos no constituyen resultados científicos.
+
+Dado que el protocolo exige una configuración común para todas las estrategias,
+batch 4 se considera operacionalmente no válido para la matriz controlada
+completa. Se restringe la búsqueda CUDA a [1, 2] y se repiten probe, freeze y
+los cuatro pilotos pequeños con una nueva identidad de configuración. Los
+pilotos completados previamente con batch 4 no se reutilizan como resultados
+del nuevo runtime.
+
 ## Configuración y hardware
 
 Fuente versionada: `configs/detection/yolo11n.yaml`. Ultralytics 8.3.203,
