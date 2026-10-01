@@ -100,6 +100,21 @@ hiperparámetros, augmentations, resolución, número de epochs, métricas,
 bootstrap ni criterios de selección. No se habían observado resultados de
 Stage A/B al realizar esta enmienda.
 
+
+### Ajuste de batch posterior al piloto operacional
+
+Antes de Stage A/B, el primer piloto pequeño con datos FLIR reales mostró que
+batch 8 no era operacionalmente seguro en la Quadro RTX 6000. Aunque el probe
+sintético de forward/backward había clasificado batch 8 como seguro, el piloto
+real produjo un CUDA OOM durante entrenamiento con las augmentations y
+anotaciones reales.
+
+El intento fallido se conserva como evidencia operacional y no constituye un
+resultado científico. No se había ejecutado ninguna celda de Stage A/B. Se
+restringe por tanto la búsqueda común de batch CUDA a [1, 2, 4] y se vuelve a
+ejecutar probe, freeze y piloto pequeño. El batch resultante será idéntico para
+todas las estrategias; no se realizará ajuste específico por estrategia.
+
 ## Configuración y hardware
 
 Fuente versionada: `configs/detection/yolo11n.yaml`. Ultralytics 8.3.203,
