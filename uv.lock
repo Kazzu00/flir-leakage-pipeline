@@ -464,6 +464,7 @@ detection = [
     { name = "ultralytics" },
 ]
 dev = [
+    { name = "jsonschema" },
     { name = "pre-commit" },
     { name = "pytest" },
     { name = "pytest-cov" },
@@ -491,6 +492,7 @@ vision = [
 
 [package.metadata]
 requires-dist = [
+    { name = "jsonschema", marker = "extra == 'dev'", specifier = ">=4.22" },
     { name = "jupyter", marker = "extra == 'reporting'", specifier = ">=1.0" },
     { name = "matplotlib", specifier = ">=3.8" },
     { name = "nbclient", marker = "extra == 'reporting'", specifier = ">=0.10" },
