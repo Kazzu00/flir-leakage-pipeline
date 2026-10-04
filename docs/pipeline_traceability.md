@@ -1,5 +1,21 @@
 # Pipeline traceability
 
+## Final detector reporting (2026-10-03)
+
+The owner reports 48/48 scientific runs completed on Hypatia, with no remaining
+detector training. This local implementation does not reverify that evidence.
+`detection report` consumes an arbitrary complete frozen matrix through
+`association.load_evidence`, reuses `metrics.aggregate_runs`, and exports
+split-level descriptive associations from the YAML registry. Source artifacts
+remain immutable. Historical progress entries below describe the earlier local
+state, not the reported Hypatia completion.
+
+`final_report.py` → CSV/Parquet + Markdown + figures + receipt (ignored), and
+`export_contract.py` → `exports/frontend/detection/*.json` + JSON Schema
+(versionable). `final_report_plot.py` presents computed values without causal
+regression lines. Bootstrap intervals remain run-specific; the frontend never
+recalculates them. See the [execution and contract runbook](runbooks/detector_final_report.md).
+
 ## Sequence experiments: additional evidence path
 
 The [operational runbook](runbooks/sequence_operations.md) records the parallel

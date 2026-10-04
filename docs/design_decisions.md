@@ -1,5 +1,21 @@
 # Design decisions
 
+## 2026-10-03: final-only detector contract and split association unit
+
+The final report extends the existing evidence gate and hierarchical aggregation;
+it does not replace the notebook's partial-progress report. Publication requires
+every cell in the supplied plan, not a hardcoded experiment identity or count.
+Detector seeds are averaged within split before correlations and strategy means.
+Single-split SD is undefined, and image-bootstrap intervals are retained per run
+rather than averaged. Correlations are descriptive and never leakage effect sizes.
+
+Pydantic models generate a stable JSON Schema and validate the producer bundle;
+independent JSON Schema validation is a dev test dependency. Only the lightweight
+contract is intended for versioning. Sources and detailed analysis remain ignored.
+Two staged destinations are validated before publication, with rollback for normal
+I/O failures and an explicit single-writer requirement. This local implementation
+does not certify the completed Hypatia experiment reported by the owner.
+
 ## 2026-09-28: operational scheduling preserves the experiment
 
 SLURM parallelizes encoders, individual representation configurations/seeds and

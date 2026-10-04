@@ -1,5 +1,29 @@
 # Project status
 
+## Reporte final del detector (2026-10-03)
+
+**Infraestructura de reporte implementada; ejecución científica en Hypatia
+pendiente de revalidación.** El responsable reporta 48/48 runs científicos
+completos en Hypatia y ningún entrenamiento pendiente. El clon local conserva
+un plan anterior y pilotos pequeños, sin esa matriz final; no se sustituye su
+freeze ni se publican resultados científicos ficticios.
+
+`detection report` verifica una matriz completa, agrega detector seeds antes de
+splits/asociaciones y produce reporte, tablas, seis figuras y contrato
+`detection-export-v1` para `flir-pipeline-explorer`. El estado COMPLETE solo se
+publica al pasar el gate de fuentes del entorno de ejecución. Los estados
+históricos del detector que aparecen debajo describen la evidencia local previa.
+Véase el [runbook](runbooks/detector_final_report.md).
+
+Validación local sintética/offline: **804 passed** en la suite completa;
+**52 passed** en el bloque detector y **24 passed** en la revisión final de los
+tests nuevos. Ruff global, formato de los cuatro archivos nuevos Python, siete
+notebooks fuente, ayuda CLI y chequeos de diff pasaron. El schema se contrastó
+con JSON Schema Draft 2020-12. Se usó un entorno de revisión compatible con las
+restricciones DLL de Windows y una ruta temporal corta para la suite; versiones
+y comandos están en el runbook. No hay type checker adicional configurado.
+Estas pruebas no verifican los 48 runs reales de Hypatia ni publican su export.
+
 ## Ingesta nativa de evidencia legacy (2026-09-29)
 
 **Adaptador implementado; ejecución real pendiente.** Los esquemas aportados por

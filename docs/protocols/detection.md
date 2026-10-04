@@ -249,6 +249,23 @@ promediar silenciosamente puntos. La figura 09 reserva A–E para las cinco vist
 macro y F para Heavy Machinery, con dos subpaneles por encoder. El reporte registra
 el SHA256 del registro utilizado; los CSV científicos solo existen al abrirse el gate.
 
+## Reporte final y frontera del frontend (2026-10-03)
+
+`detection report` extiende este protocolo con agregación por split y un contrato
+de presentación versionado. Usa el mismo gate de integridad; no cambia el plan,
+freeze, bootstrap o registro de asociaciones. El gráfico de progreso descrito
+arriba conserva puntos por run; las nuevas asociaciones finales promedian primero
+detector seeds y utilizan **un punto por split**. Pearson/Spearman globales y
+Pearson centrado por estrategia son resúmenes descriptivos, sin p-values ni
+conclusiones causales. SD entre splits con un único split permanece null.
+
+El responsable reporta la matriz 48/48 completa en Hypatia; esta implementación
+local no la revalida ni publica resultados desde los pilotos antiguos. El ciclo
+piloto pequeño → Stage A → matriz completa → reporte verificado → export se
+describe en el [runbook de cierre](../runbooks/detector_final_report.md), con el
+comando exacto y requisitos de fuentes. Los cálculos y la semántica residen aquí;
+`flir-pipeline-explorer` consume exclusivamente el contrato ligero validado.
+
 ## Fuentes de la integración
 
 - [YOLO11, documentación oficial](https://docs.ultralytics.com/models/yolo11/).

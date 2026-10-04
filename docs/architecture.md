@@ -1,5 +1,18 @@
 # Architecture
 
+## Final scientific presentation boundary (2026-10-03)
+
+Heavy immutable artifacts → existing verification and hierarchical aggregation
+→ final analysis → versioned lightweight export → `flir-pipeline-explorer`.
+`detection/final_report.py` orchestrates the final-only gate; the earlier progress
+report remains separate. `export_contract.py` owns typed presentation models and
+their JSON Schema. Scientific state, split means, correlations, bootstrap
+intervals and interpretation are computed/validated here; the frontend only
+presents them. Future final-stage exports should follow this boundary, with
+their own versioned contracts; other stages have not been exported by this change.
+
+See [publication, source bindings and environment boundaries](runbooks/detector_final_report.md).
+
 ## Sequence experiment evidence (2026-09-28)
 
 `sequences/experiments/` extends the sequence CLI without changing the v1
