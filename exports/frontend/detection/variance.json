@@ -1,0 +1,30 @@
+[
+  {
+    "between_split_std": 0.01797510440324638,
+    "between_vs_within_ratio": 1.6434268169687218,
+    "mean_within_split_detector_seed_std": 0.010937575204231614,
+    "n_splits": 5,
+    "strategy": "C10"
+  },
+  {
+    "between_split_std": 0.011717171186797907,
+    "between_vs_within_ratio": 1.9293280864368834,
+    "mean_within_split_detector_seed_std": 0.006073187483854746,
+    "n_splits": 5,
+    "strategy": "C12"
+  },
+  {
+    "between_split_std": null,
+    "between_vs_within_ratio": null,
+    "mean_within_split_detector_seed_std": 0.01107971409428536,
+    "n_splits": 1,
+    "strategy": "historical"
+  },
+  {
+    "between_split_std": 0.027782066398596608,
+    "between_vs_within_ratio": 2.275964421925785,
+    "mean_within_split_detector_seed_std": 0.012206722623145877,
+    "n_splits": 5,
+    "strategy": "random_content"
+  }
+]

@@ -1,0 +1,47 @@
+{
+  "completed_runs": 48,
+  "detector_seed_count": 3,
+  "excluded_small_pilots": 4,
+  "expected_runs": 48,
+  "file_sha256": {
+    "associations.json": "2b86c533cfd5e78d83ecbd9f9bc49fd980e70f0e3f5d5151f3345e648356fc95",
+    "bootstrap.json": "dcb1272fdf4b107ae296a714398218cc8b9c09d357823e1c3f8121e1f6b5e0e9",
+    "classes.json": "2f8be358f71932a2816775b3364e2a445a063b6fde82d4f960798a2d54ae2474",
+    "runs.json": "38b26f72fc382801f15c6cd55ea74480756ae9c0bb2199bc23e912b1ad2bf397",
+    "schema/detection-export-v1.schema.json": "a37b0b4d20cf68e8ff39b909fbf3bbc2d3769b7c318fbfafe77e43d09f23643f",
+    "splits.json": "d0087073249d50c3178748ae624a726b52fbd4e1b080fe191310ad9de42b690a",
+    "strategies.json": "a42865279a289df04d101ae9ed258ce8272a2a7536c938fb19969dfb80133d4a",
+    "summary.json": "bd56240ff2341717031b85c9f0c930832ad1dc53094ce84b78c9193ebe58f8d6",
+    "support.json": "10b9c88f39e688ce2e2921ad89f402975b22e826cca85e26228453bf337f82f5",
+    "variance.json": "3dc6016be453126986b4e7fbefa14a11090324a4ba4fc4ad5161c12ada29473f"
+  },
+  "generated_at": "2026-10-04T19:41:48.647902+00:00",
+  "generated_from_verified_artifacts": true,
+  "limitations": [
+    "Las estrategias pueden tener distinta composición de test, distribución de clases y dificultad visual.",
+    "Las detector seeds de un split comparten contexto; no son observaciones independientes de split.",
+    "Puede permanecer dependencia residual entre frames.",
+    "El bootstrap por imagen supone independencia y puede subestimar incertidumbre con dependencia residual entre frames.",
+    "Proxy de distancia de índices de frame/nombre Δ≤5; no son segundos ni ground truth.",
+    "Los clústeres no identifican secuencias ground truth ni acreditan eliminación de leakage.",
+    "Comparación descriptiva controlada: dependencia residual, composición, dificultad visual y membresía de train/validation/test pueden variar conjuntamente. No estima inflación causal por leakage.",
+    "C10: 5 split(s); generalización limitada a estas particiones evaluadas.",
+    "C12: 5 split(s); generalización limitada a estas particiones evaluadas.",
+    "historical: 1 split(s); variación entre splits no definida.",
+    "random_content: 5 split(s); generalización limitada a estas particiones evaluadas."
+  ],
+  "model_config_id": "73416cdcfc4cdff3",
+  "plan_id": "a05366b5c2d72834",
+  "schema_version": "detection-export-v1",
+  "scientific_result": true,
+  "source_commit": "18d61b35e4c82f41b0c9092e997fb9088f7a10f5",
+  "source_receipt_sha256": {
+    "protocol/plan.json": "e2a6ab49ca056fd9bdb7882890fe2cba31e161ae0b10e36956c8f1991b28dbe5",
+    "protocol/runtime_freeze.json": "60672368f894479926fcbb16f2b14d780d09dbee4977b6ec84b2f742204ac051",
+    "registry": "3a81ce84d8b9e7c5c4cc7a1e9244157957645b027d4b21f9bc48f781ad94ae8c"
+  },
+  "source_worktree_dirty": false,
+  "split_count": 16,
+  "state": "COMPLETE_CONTROLLED_COMPARISON",
+  "strategy_count": 4
+}

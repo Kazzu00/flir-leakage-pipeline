@@ -1,0 +1,642 @@
+[
+  {
+    "class_id": 0,
+    "class_name": "Vehicles",
+    "split_seed": 0,
+    "split_space_id": "88ccf4e12335a83f",
+    "strategy": "C10",
+    "support": 30
+  },
+  {
+    "class_id": 1,
+    "class_name": "Buildings",
+    "split_seed": 0,
+    "split_space_id": "88ccf4e12335a83f",
+    "strategy": "C10",
+    "support": 521
+  },
+  {
+    "class_id": 2,
+    "class_name": "Roads",
+    "split_seed": 0,
+    "split_space_id": "88ccf4e12335a83f",
+    "strategy": "C10",
+    "support": 227
+  },
+  {
+    "class_id": 3,
+    "class_name": "Rivers",
+    "split_seed": 0,
+    "split_space_id": "88ccf4e12335a83f",
+    "strategy": "C10",
+    "support": 144
+  },
+  {
+    "class_id": 4,
+    "class_name": "Heavy Machinery",
+    "split_seed": 0,
+    "split_space_id": "88ccf4e12335a83f",
+    "strategy": "C10",
+    "support": 27
+  },
+  {
+    "class_id": 0,
+    "class_name": "Vehicles",
+    "split_seed": 1,
+    "split_space_id": "d1e0e22b4da64503",
+    "strategy": "C10",
+    "support": 30
+  },
+  {
+    "class_id": 1,
+    "class_name": "Buildings",
+    "split_seed": 1,
+    "split_space_id": "d1e0e22b4da64503",
+    "strategy": "C10",
+    "support": 515
+  },
+  {
+    "class_id": 2,
+    "class_name": "Roads",
+    "split_seed": 1,
+    "split_space_id": "d1e0e22b4da64503",
+    "strategy": "C10",
+    "support": 210
+  },
+  {
+    "class_id": 3,
+    "class_name": "Rivers",
+    "split_seed": 1,
+    "split_space_id": "d1e0e22b4da64503",
+    "strategy": "C10",
+    "support": 147
+  },
+  {
+    "class_id": 4,
+    "class_name": "Heavy Machinery",
+    "split_seed": 1,
+    "split_space_id": "d1e0e22b4da64503",
+    "strategy": "C10",
+    "support": 26
+  },
+  {
+    "class_id": 0,
+    "class_name": "Vehicles",
+    "split_seed": 2,
+    "split_space_id": "02ccd8e857470233",
+    "strategy": "C10",
+    "support": 30
+  },
+  {
+    "class_id": 1,
+    "class_name": "Buildings",
+    "split_seed": 2,
+    "split_space_id": "02ccd8e857470233",
+    "strategy": "C10",
+    "support": 515
+  },
+  {
+    "class_id": 2,
+    "class_name": "Roads",
+    "split_seed": 2,
+    "split_space_id": "02ccd8e857470233",
+    "strategy": "C10",
+    "support": 230
+  },
+  {
+    "class_id": 3,
+    "class_name": "Rivers",
+    "split_seed": 2,
+    "split_space_id": "02ccd8e857470233",
+    "strategy": "C10",
+    "support": 144
+  },
+  {
+    "class_id": 4,
+    "class_name": "Heavy Machinery",
+    "split_seed": 2,
+    "split_space_id": "02ccd8e857470233",
+    "strategy": "C10",
+    "support": 27
+  },
+  {
+    "class_id": 0,
+    "class_name": "Vehicles",
+    "split_seed": 3,
+    "split_space_id": "7b0bd203efaea755",
+    "strategy": "C10",
+    "support": 30
+  },
+  {
+    "class_id": 1,
+    "class_name": "Buildings",
+    "split_seed": 3,
+    "split_space_id": "7b0bd203efaea755",
+    "strategy": "C10",
+    "support": 520
+  },
+  {
+    "class_id": 2,
+    "class_name": "Roads",
+    "split_seed": 3,
+    "split_space_id": "7b0bd203efaea755",
+    "strategy": "C10",
+    "support": 228
+  },
+  {
+    "class_id": 3,
+    "class_name": "Rivers",
+    "split_seed": 3,
+    "split_space_id": "7b0bd203efaea755",
+    "strategy": "C10",
+    "support": 144
+  },
+  {
+    "class_id": 4,
+    "class_name": "Heavy Machinery",
+    "split_seed": 3,
+    "split_space_id": "7b0bd203efaea755",
+    "strategy": "C10",
+    "support": 27
+  },
+  {
+    "class_id": 0,
+    "class_name": "Vehicles",
+    "split_seed": 4,
+    "split_space_id": "35a234cf83ab104e",
+    "strategy": "C10",
+    "support": 30
+  },
+  {
+    "class_id": 1,
+    "class_name": "Buildings",
+    "split_seed": 4,
+    "split_space_id": "35a234cf83ab104e",
+    "strategy": "C10",
+    "support": 515
+  },
+  {
+    "class_id": 2,
+    "class_name": "Roads",
+    "split_seed": 4,
+    "split_space_id": "35a234cf83ab104e",
+    "strategy": "C10",
+    "support": 229
+  },
+  {
+    "class_id": 3,
+    "class_name": "Rivers",
+    "split_seed": 4,
+    "split_space_id": "35a234cf83ab104e",
+    "strategy": "C10",
+    "support": 144
+  },
+  {
+    "class_id": 4,
+    "class_name": "Heavy Machinery",
+    "split_seed": 4,
+    "split_space_id": "35a234cf83ab104e",
+    "strategy": "C10",
+    "support": 27
+  },
+  {
+    "class_id": 0,
+    "class_name": "Vehicles",
+    "split_seed": 0,
+    "split_space_id": "79a8ca09669699fc",
+    "strategy": "C12",
+    "support": 31
+  },
+  {
+    "class_id": 1,
+    "class_name": "Buildings",
+    "split_seed": 0,
+    "split_space_id": "79a8ca09669699fc",
+    "strategy": "C12",
+    "support": 512
+  },
+  {
+    "class_id": 2,
+    "class_name": "Roads",
+    "split_seed": 0,
+    "split_space_id": "79a8ca09669699fc",
+    "strategy": "C12",
+    "support": 178
+  },
+  {
+    "class_id": 3,
+    "class_name": "Rivers",
+    "split_seed": 0,
+    "split_space_id": "79a8ca09669699fc",
+    "strategy": "C12",
+    "support": 151
+  },
+  {
+    "class_id": 4,
+    "class_name": "Heavy Machinery",
+    "split_seed": 0,
+    "split_space_id": "79a8ca09669699fc",
+    "strategy": "C12",
+    "support": 34
+  },
+  {
+    "class_id": 0,
+    "class_name": "Vehicles",
+    "split_seed": 1,
+    "split_space_id": "4da6a1bb4ad5e33f",
+    "strategy": "C12",
+    "support": 31
+  },
+  {
+    "class_id": 1,
+    "class_name": "Buildings",
+    "split_seed": 1,
+    "split_space_id": "4da6a1bb4ad5e33f",
+    "strategy": "C12",
+    "support": 495
+  },
+  {
+    "class_id": 2,
+    "class_name": "Roads",
+    "split_seed": 1,
+    "split_space_id": "4da6a1bb4ad5e33f",
+    "strategy": "C12",
+    "support": 184
+  },
+  {
+    "class_id": 3,
+    "class_name": "Rivers",
+    "split_seed": 1,
+    "split_space_id": "4da6a1bb4ad5e33f",
+    "strategy": "C12",
+    "support": 151
+  },
+  {
+    "class_id": 4,
+    "class_name": "Heavy Machinery",
+    "split_seed": 1,
+    "split_space_id": "4da6a1bb4ad5e33f",
+    "strategy": "C12",
+    "support": 34
+  },
+  {
+    "class_id": 0,
+    "class_name": "Vehicles",
+    "split_seed": 2,
+    "split_space_id": "c3a680e8c5020194",
+    "strategy": "C12",
+    "support": 31
+  },
+  {
+    "class_id": 1,
+    "class_name": "Buildings",
+    "split_seed": 2,
+    "split_space_id": "c3a680e8c5020194",
+    "strategy": "C12",
+    "support": 495
+  },
+  {
+    "class_id": 2,
+    "class_name": "Roads",
+    "split_seed": 2,
+    "split_space_id": "c3a680e8c5020194",
+    "strategy": "C12",
+    "support": 184
+  },
+  {
+    "class_id": 3,
+    "class_name": "Rivers",
+    "split_seed": 2,
+    "split_space_id": "c3a680e8c5020194",
+    "strategy": "C12",
+    "support": 151
+  },
+  {
+    "class_id": 4,
+    "class_name": "Heavy Machinery",
+    "split_seed": 2,
+    "split_space_id": "c3a680e8c5020194",
+    "strategy": "C12",
+    "support": 34
+  },
+  {
+    "class_id": 0,
+    "class_name": "Vehicles",
+    "split_seed": 3,
+    "split_space_id": "4912c8491085e274",
+    "strategy": "C12",
+    "support": 31
+  },
+  {
+    "class_id": 1,
+    "class_name": "Buildings",
+    "split_seed": 3,
+    "split_space_id": "4912c8491085e274",
+    "strategy": "C12",
+    "support": 495
+  },
+  {
+    "class_id": 2,
+    "class_name": "Roads",
+    "split_seed": 3,
+    "split_space_id": "4912c8491085e274",
+    "strategy": "C12",
+    "support": 184
+  },
+  {
+    "class_id": 3,
+    "class_name": "Rivers",
+    "split_seed": 3,
+    "split_space_id": "4912c8491085e274",
+    "strategy": "C12",
+    "support": 151
+  },
+  {
+    "class_id": 4,
+    "class_name": "Heavy Machinery",
+    "split_seed": 3,
+    "split_space_id": "4912c8491085e274",
+    "strategy": "C12",
+    "support": 34
+  },
+  {
+    "class_id": 0,
+    "class_name": "Vehicles",
+    "split_seed": 4,
+    "split_space_id": "6de6878534f641e6",
+    "strategy": "C12",
+    "support": 31
+  },
+  {
+    "class_id": 1,
+    "class_name": "Buildings",
+    "split_seed": 4,
+    "split_space_id": "6de6878534f641e6",
+    "strategy": "C12",
+    "support": 495
+  },
+  {
+    "class_id": 2,
+    "class_name": "Roads",
+    "split_seed": 4,
+    "split_space_id": "6de6878534f641e6",
+    "strategy": "C12",
+    "support": 184
+  },
+  {
+    "class_id": 3,
+    "class_name": "Rivers",
+    "split_seed": 4,
+    "split_space_id": "6de6878534f641e6",
+    "strategy": "C12",
+    "support": 151
+  },
+  {
+    "class_id": 4,
+    "class_name": "Heavy Machinery",
+    "split_seed": 4,
+    "split_space_id": "6de6878534f641e6",
+    "strategy": "C12",
+    "support": 34
+  },
+  {
+    "class_id": 0,
+    "class_name": "Vehicles",
+    "split_seed": 0,
+    "split_space_id": "9cbd4bf45de58e21",
+    "strategy": "historical",
+    "support": 12
+  },
+  {
+    "class_id": 1,
+    "class_name": "Buildings",
+    "split_seed": 0,
+    "split_space_id": "9cbd4bf45de58e21",
+    "strategy": "historical",
+    "support": 589
+  },
+  {
+    "class_id": 2,
+    "class_name": "Roads",
+    "split_seed": 0,
+    "split_space_id": "9cbd4bf45de58e21",
+    "strategy": "historical",
+    "support": 270
+  },
+  {
+    "class_id": 3,
+    "class_name": "Rivers",
+    "split_seed": 0,
+    "split_space_id": "9cbd4bf45de58e21",
+    "strategy": "historical",
+    "support": 93
+  },
+  {
+    "class_id": 4,
+    "class_name": "Heavy Machinery",
+    "split_seed": 0,
+    "split_space_id": "9cbd4bf45de58e21",
+    "strategy": "historical",
+    "support": 19
+  },
+  {
+    "class_id": 0,
+    "class_name": "Vehicles",
+    "split_seed": 0,
+    "split_space_id": "c2e75560b458bddd",
+    "strategy": "random_content",
+    "support": 21
+  },
+  {
+    "class_id": 1,
+    "class_name": "Buildings",
+    "split_seed": 0,
+    "split_space_id": "c2e75560b458bddd",
+    "strategy": "random_content",
+    "support": 516
+  },
+  {
+    "class_id": 2,
+    "class_name": "Roads",
+    "split_seed": 0,
+    "split_space_id": "c2e75560b458bddd",
+    "strategy": "random_content",
+    "support": 240
+  },
+  {
+    "class_id": 3,
+    "class_name": "Rivers",
+    "split_seed": 0,
+    "split_space_id": "c2e75560b458bddd",
+    "strategy": "random_content",
+    "support": 141
+  },
+  {
+    "class_id": 4,
+    "class_name": "Heavy Machinery",
+    "split_seed": 0,
+    "split_space_id": "c2e75560b458bddd",
+    "strategy": "random_content",
+    "support": 25
+  },
+  {
+    "class_id": 0,
+    "class_name": "Vehicles",
+    "split_seed": 1,
+    "split_space_id": "30c01fe0fb11002b",
+    "strategy": "random_content",
+    "support": 28
+  },
+  {
+    "class_id": 1,
+    "class_name": "Buildings",
+    "split_seed": 1,
+    "split_space_id": "30c01fe0fb11002b",
+    "strategy": "random_content",
+    "support": 426
+  },
+  {
+    "class_id": 2,
+    "class_name": "Roads",
+    "split_seed": 1,
+    "split_space_id": "30c01fe0fb11002b",
+    "strategy": "random_content",
+    "support": 238
+  },
+  {
+    "class_id": 3,
+    "class_name": "Rivers",
+    "split_seed": 1,
+    "split_space_id": "30c01fe0fb11002b",
+    "strategy": "random_content",
+    "support": 157
+  },
+  {
+    "class_id": 4,
+    "class_name": "Heavy Machinery",
+    "split_seed": 1,
+    "split_space_id": "30c01fe0fb11002b",
+    "strategy": "random_content",
+    "support": 30
+  },
+  {
+    "class_id": 0,
+    "class_name": "Vehicles",
+    "split_seed": 2,
+    "split_space_id": "491de44d3cd34267",
+    "strategy": "random_content",
+    "support": 8
+  },
+  {
+    "class_id": 1,
+    "class_name": "Buildings",
+    "split_seed": 2,
+    "split_space_id": "491de44d3cd34267",
+    "strategy": "random_content",
+    "support": 576
+  },
+  {
+    "class_id": 2,
+    "class_name": "Roads",
+    "split_seed": 2,
+    "split_space_id": "491de44d3cd34267",
+    "strategy": "random_content",
+    "support": 218
+  },
+  {
+    "class_id": 3,
+    "class_name": "Rivers",
+    "split_seed": 2,
+    "split_space_id": "491de44d3cd34267",
+    "strategy": "random_content",
+    "support": 160
+  },
+  {
+    "class_id": 4,
+    "class_name": "Heavy Machinery",
+    "split_seed": 2,
+    "split_space_id": "491de44d3cd34267",
+    "strategy": "random_content",
+    "support": 28
+  },
+  {
+    "class_id": 0,
+    "class_name": "Vehicles",
+    "split_seed": 3,
+    "split_space_id": "644fb301b08cde0f",
+    "strategy": "random_content",
+    "support": 20
+  },
+  {
+    "class_id": 1,
+    "class_name": "Buildings",
+    "split_seed": 3,
+    "split_space_id": "644fb301b08cde0f",
+    "strategy": "random_content",
+    "support": 456
+  },
+  {
+    "class_id": 2,
+    "class_name": "Roads",
+    "split_seed": 3,
+    "split_space_id": "644fb301b08cde0f",
+    "strategy": "random_content",
+    "support": 219
+  },
+  {
+    "class_id": 3,
+    "class_name": "Rivers",
+    "split_seed": 3,
+    "split_space_id": "644fb301b08cde0f",
+    "strategy": "random_content",
+    "support": 172
+  },
+  {
+    "class_id": 4,
+    "class_name": "Heavy Machinery",
+    "split_seed": 3,
+    "split_space_id": "644fb301b08cde0f",
+    "strategy": "random_content",
+    "support": 29
+  },
+  {
+    "class_id": 0,
+    "class_name": "Vehicles",
+    "split_seed": 4,
+    "split_space_id": "b5aef03de2071d7f",
+    "strategy": "random_content",
+    "support": 30
+  },
+  {
+    "class_id": 1,
+    "class_name": "Buildings",
+    "split_seed": 4,
+    "split_space_id": "b5aef03de2071d7f",
+    "strategy": "random_content",
+    "support": 492
+  },
+  {
+    "class_id": 2,
+    "class_name": "Roads",
+    "split_seed": 4,
+    "split_space_id": "b5aef03de2071d7f",
+    "strategy": "random_content",
+    "support": 236
+  },
+  {
+    "class_id": 3,
+    "class_name": "Rivers",
+    "split_seed": 4,
+    "split_space_id": "b5aef03de2071d7f",
+    "strategy": "random_content",
+    "support": 133
+  },
+  {
+    "class_id": 4,
+    "class_name": "Heavy Machinery",
+    "split_seed": 4,
+    "split_space_id": "b5aef03de2071d7f",
+    "strategy": "random_content",
+    "support": 33
+  }
+]

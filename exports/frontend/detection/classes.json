@@ -1,0 +1,222 @@
+[
+  {
+    "class_id": 0,
+    "class_name": "Vehicles",
+    "mean_map50": 0.7211181903340572,
+    "mean_map50_95": 0.29214994237460445,
+    "mean_precision": 0.4220687514634302,
+    "mean_recall": 0.8822222222222222,
+    "n_splits": 5,
+    "std_map50_95": 0.05307330962370033,
+    "strategy": "C10"
+  },
+  {
+    "class_id": 1,
+    "class_name": "Buildings",
+    "mean_map50": 0.6679368964663274,
+    "mean_map50_95": 0.2646489146718632,
+    "mean_precision": 0.6563968912418662,
+    "mean_recall": 0.6527477558189594,
+    "n_splits": 5,
+    "std_map50_95": 0.01257053807867527,
+    "strategy": "C10"
+  },
+  {
+    "class_id": 2,
+    "class_name": "Roads",
+    "mean_map50": 0.4055703189364432,
+    "mean_map50_95": 0.17509818931082152,
+    "mean_precision": 0.44927013201356214,
+    "mean_recall": 0.4299624458677715,
+    "n_splits": 5,
+    "std_map50_95": 0.04168172266087956,
+    "strategy": "C10"
+  },
+  {
+    "class_id": 3,
+    "class_name": "Rivers",
+    "mean_map50": 0.23407920861260698,
+    "mean_map50_95": 0.07832849985257748,
+    "mean_precision": 0.5643819905083678,
+    "mean_recall": 0.20969387755102042,
+    "n_splits": 5,
+    "std_map50_95": 0.023583940126383353,
+    "strategy": "C10"
+  },
+  {
+    "class_id": 4,
+    "class_name": "Heavy Machinery",
+    "mean_map50": 0.11367551963907337,
+    "mean_map50_95": 0.028081486426692552,
+    "mean_precision": 0.20284393947437426,
+    "mean_recall": 0.1748338081671415,
+    "n_splits": 5,
+    "std_map50_95": 0.014136186695556859,
+    "strategy": "C10"
+  },
+  {
+    "class_id": 0,
+    "class_name": "Vehicles",
+    "mean_map50": 0.10291085596842117,
+    "mean_map50_95": 0.023390407772772535,
+    "mean_precision": 0.09258959734768543,
+    "mean_recall": 0.367741935483871,
+    "n_splits": 5,
+    "std_map50_95": 0.006337167642813194,
+    "strategy": "C12"
+  },
+  {
+    "class_id": 1,
+    "class_name": "Buildings",
+    "mean_map50": 0.6970877246879894,
+    "mean_map50_95": 0.2794481717768916,
+    "mean_precision": 0.6782494496760789,
+    "mean_recall": 0.6884143518518518,
+    "n_splits": 5,
+    "std_map50_95": 0.010039053461559174,
+    "strategy": "C12"
+  },
+  {
+    "class_id": 2,
+    "class_name": "Roads",
+    "mean_map50": 0.2540977689036999,
+    "mean_map50_95": 0.11182972012192058,
+    "mean_precision": 0.35968478218561867,
+    "mean_recall": 0.32995847581827065,
+    "n_splits": 5,
+    "std_map50_95": 0.04478238327075905,
+    "strategy": "C12"
+  },
+  {
+    "class_id": 3,
+    "class_name": "Rivers",
+    "mean_map50": 0.018318835890885142,
+    "mean_map50_95": 0.004991298554051224,
+    "mean_precision": 0.05295815295815296,
+    "mean_recall": 0.003973509933774834,
+    "n_splits": 5,
+    "std_map50_95": 0.001469645768175717,
+    "strategy": "C12"
+  },
+  {
+    "class_id": 4,
+    "class_name": "Heavy Machinery",
+    "mean_map50": 0.043760546287784384,
+    "mean_map50_95": 0.01094769841437237,
+    "mean_precision": 0.07594859677883889,
+    "mean_recall": 0.09411764705882353,
+    "n_splits": 5,
+    "std_map50_95": 0.007693335744954225,
+    "strategy": "C12"
+  },
+  {
+    "class_id": 0,
+    "class_name": "Vehicles",
+    "mean_map50": 0.050938739756070446,
+    "mean_map50_95": 0.014354215888732648,
+    "mean_precision": 0.04979371176554276,
+    "mean_recall": 0.25,
+    "n_splits": 1,
+    "std_map50_95": null,
+    "strategy": "historical"
+  },
+  {
+    "class_id": 1,
+    "class_name": "Buildings",
+    "mean_map50": 0.6232584886121831,
+    "mean_map50_95": 0.25052107319538786,
+    "mean_precision": 0.7299593112151149,
+    "mean_recall": 0.5031126202603282,
+    "n_splits": 1,
+    "std_map50_95": null,
+    "strategy": "historical"
+  },
+  {
+    "class_id": 2,
+    "class_name": "Roads",
+    "mean_map50": 0.2687262832926552,
+    "mean_map50_95": 0.11824897066938933,
+    "mean_precision": 0.34526234014804197,
+    "mean_recall": 0.345679012345679,
+    "n_splits": 1,
+    "std_map50_95": null,
+    "strategy": "historical"
+  },
+  {
+    "class_id": 3,
+    "class_name": "Rivers",
+    "mean_map50": 0.5942996883718007,
+    "mean_map50_95": 0.25400260194249236,
+    "mean_precision": 0.6448099002446829,
+    "mean_recall": 0.5017921146953405,
+    "n_splits": 1,
+    "std_map50_95": null,
+    "strategy": "historical"
+  },
+  {
+    "class_id": 4,
+    "class_name": "Heavy Machinery",
+    "mean_map50": 0.5346359527136958,
+    "mean_map50_95": 0.21725793904553237,
+    "mean_precision": 0.25419224882070773,
+    "mean_recall": 0.7368421052631579,
+    "n_splits": 1,
+    "std_map50_95": null,
+    "strategy": "historical"
+  },
+  {
+    "class_id": 0,
+    "class_name": "Vehicles",
+    "mean_map50": 0.6799056270471746,
+    "mean_map50_95": 0.36861802169817975,
+    "mean_precision": 0.2667280123645444,
+    "mean_recall": 0.8834920634920636,
+    "n_splits": 5,
+    "std_map50_95": 0.1387748435790271,
+    "strategy": "random_content"
+  },
+  {
+    "class_id": 1,
+    "class_name": "Buildings",
+    "mean_map50": 0.7326593349034175,
+    "mean_map50_95": 0.3186404797473565,
+    "mean_precision": 0.7180741284036777,
+    "mean_recall": 0.6778210709788958,
+    "n_splits": 5,
+    "std_map50_95": 0.022385923635011566,
+    "strategy": "random_content"
+  },
+  {
+    "class_id": 2,
+    "class_name": "Roads",
+    "mean_map50": 0.5546826860726773,
+    "mean_map50_95": 0.25758050898856344,
+    "mean_precision": 0.48037233546443014,
+    "mean_recall": 0.6059702240042532,
+    "n_splits": 5,
+    "std_map50_95": 0.016120440554079362,
+    "strategy": "random_content"
+  },
+  {
+    "class_id": 3,
+    "class_name": "Rivers",
+    "mean_map50": 0.588381118791717,
+    "mean_map50_95": 0.24372510167597264,
+    "mean_precision": 0.5390546726126653,
+    "mean_recall": 0.6291959096153069,
+    "n_splits": 5,
+    "std_map50_95": 0.02679745064736894,
+    "strategy": "random_content"
+  },
+  {
+    "class_id": 4,
+    "class_name": "Heavy Machinery",
+    "mean_map50": 0.2664342223090495,
+    "mean_map50_95": 0.07080027316008491,
+    "mean_precision": 0.20754634457262083,
+    "mean_recall": 0.49055679952231673,
+    "n_splits": 5,
+    "std_map50_95": 0.016348872809679026,
+    "strategy": "random_content"
+  }
+]
