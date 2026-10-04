@@ -7,6 +7,27 @@ import typer
 app = typer.Typer(help="Frozen historical/random/cluster detector comparison.")
 
 
+@app.command("report")
+def report_command(
+    plan: Path = Path("artifacts/detection/protocol"),
+    artifacts: Path = Path("artifacts/detection"),
+    split_root: Path = Path("artifacts/splitting/runs"),
+    analysis_output: Path = Path("artifacts/detection/final_report"),
+    frontend_output: Path = Path("exports/frontend/detection"),
+    associations: Path = Path("configs/detection/associations.yaml"),
+) -> None:
+    """Verify a complete frozen experiment and publish descriptive report/export."""
+    from flir_pipeline.detection.final_report import generate_final_report
+
+    try:
+        manifest = generate_final_report(plan, artifacts, split_root, analysis_output, frontend_output, associations)
+    except (OSError, ValueError, KeyError, TypeError, AssertionError) as exc:
+        typer.echo(f"Final detector report refused: {exc}", err=True)
+        raise typer.Exit(2) from exc
+    typer.echo(f"{manifest['state']}: {manifest['completed_runs']}/{manifest['expected_runs']} verified runs; "
+               f"{manifest['split_count']} splits. Report: {analysis_output}; export: {frontend_output}")
+
+
 @app.command("plan")
 def plan_command(comparison: Path, config: Path = Path("configs/detection/yolo11n.yaml"), output: Path = Path("artifacts/detection/protocol")) -> None:
     from flir_pipeline.detection.protocol import audit_and_plan
