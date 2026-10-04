@@ -53,6 +53,24 @@ def artifact_files(directory, meta):
 
 def load_linkage_context(paths):
     """Verify publication/lineage bindings; full numerical QA remains linkage verify."""
+    labeled, sequences, candidates, occurrences, signature = load_candidate_context(
+        paths.linkage, paths.labeled_manifest, paths.sequence_set
+    )
+    signature["calibration_sample_sha256"] = file_sha256(paths.calibration_sample)
+    return labeled, sequences, candidates, occurrences, signature
+
+
+def load_candidate_context(linkage, labeled_manifest, sequence_set):
+    """Read existing candidate evidence without requiring a manual calibration.
+
+    Shared by review and presentation exports. This checks stored identities,
+    checksums and occurrence bindings, without recalculating encoder scores.
+    """
+    from types import SimpleNamespace
+
+    paths = SimpleNamespace(
+        linkage=linkage, labeled_manifest=labeled_manifest, sequence_set=sequence_set
+    )
     linkage_meta = read_json(paths.linkage / "metadata.json")
     if (
         linkage_meta.get("artifact_kind") != ARTIFACT_KIND
@@ -123,7 +141,6 @@ def load_linkage_context(paths):
         candidates,
         occurrences,
         {
-            "calibration_sample_sha256": file_sha256(paths.calibration_sample),
             "labeled_manifest_sha256": file_sha256(paths.labeled_manifest),
             "linkage_files": linkage_files,
             "linkage_id": linkage_meta["artifact_id"],
