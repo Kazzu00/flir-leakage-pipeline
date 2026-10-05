@@ -103,7 +103,9 @@ class Content(Model):
     record_ids: list[ID] = Field(min_length=1)
     class_ids: list[Annotated[int, Field(ge=0, le=4)]] | None
     class_names: list[str] | None
-    annotation_consensus: Literal["identical", "conflicting", "unavailable"]
+    annotation_consensus: Literal[
+        "identical_label_bytes", "different_label_bytes", "unavailable"
+    ]
     preview_key: ID
     width: Annotated[int, Field(gt=0)] | None
     height: Annotated[int, Field(gt=0)] | None
