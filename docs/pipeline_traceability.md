@@ -1,5 +1,15 @@
 # Pipeline traceability
 
+## Frozen membership provenance (2026-10-05)
+
+Frozen plan → every selected verified split → checksum-bound `source_groups`
+→ exact cross-seed equality → `ClusterEvidence` → organization memberships.
+This alternative applies only when the original clustering publication is absent.
+Split metadata receipts and per-split membership checksums remain exported;
+unavailable upstream scientific configuration/diagnostics remain null. The full
+clustering publication retains precedence. No reconstruction or fitting occurs.
+See the [fallback contract](runbooks/organization_evidence_export.md).
+
 ## Organization presentation contract (2026-10-04)
 
 Frozen detector plan + existing split/clustering storage →

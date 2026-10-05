@@ -1,5 +1,21 @@
 # Project status
 
+## Membresía congelada para organización (2026-10-05)
+
+Implementado fallback de presentación para publicaciones de clustering ausentes:
+consume exclusivamente membresías verificadas de todos los splits seleccionados,
+exige igualdad exacta entre seeds y conserva su procedencia por SHA256. Una
+publicación presente pero inválida no activa el fallback. Configuración y
+diagnósticos upstream no disponibles permanecen null; no se ejecuta clustering.
+La evidencia operacional comunicada por el responsable en Hypatia no fue
+revalidada localmente ni prueba que el export real haya terminado. Véase el
+[runbook](runbooks/organization_evidence_export.md) para validación sintética y
+el paso pendiente de export en Hypatia.
+
+Validación offline/sintética: **70 passed** en organización/linkage y **874 passed**
+en la suite completa, con 40 warnings preexistentes. Ruff global, ayuda CLI,
+schema independiente y checks de diff aprobados. No se publicaron datos reales.
+
 ## Evidencia organizativa M02 para frontend (2026-10-04)
 
 **Infraestructura implementada; export real pendiente en Hypatia.**

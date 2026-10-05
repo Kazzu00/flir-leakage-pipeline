@@ -5,6 +5,56 @@ Infraestructura de presentación de evidencia existente para
 `/organization/evaluation`. La implementación local usa fixtures sintéticas.
 **No se ha exportado ni revalidado aquí la membresía real de Hypatia.**
 
+## Membresía congelada cuando falta la publicación original
+
+`full_clustering_artifact` significa que la publicación original de clustering
+está disponible y verificada. Sigue siendo la fuente preferida y conserva los
+campos y diagnósticos existentes.
+
+`frozen_split_membership` significa que esa publicación está ausente, pero las
+etiquetas exactas consumidas al construir los splits finales permanecen en sus
+`source_groups.parquet` inmutables. No es un experimento de clustering recuperado.
+El exportador no ejecuta clustering ni reconstruye parámetros o etiquetas.
+
+Solo los splits seleccionados por el plan/freeze pueden establecer esta evidencia.
+Cada split pasa las verificaciones existentes de identidad, metadata SHA256,
+dataset, asignaciones, conteos, cobertura e indivisibilidad. Se exige contenido
+único con cobertura exacta del manifest, `cluster_id` de tipo entero >= -1 y
+`group_id`/`group_type` no nulos. Se ordenan únicamente las filas por `content_id`:
+la igualdad de dataframe es exacta (incluidos tipos) para `content_id`,
+`cluster_id`, `group_id` y `group_type` entre **todos** los splits seleccionados
+que referencian la misma identidad. Una discrepancia cancela el export; no se
+elige una seed, no se vota y no se mezclan membresías.
+
+La configuración conserva el `cluster_run_id` upstream y declara `source_kind`,
+`full_clustering_artifact_available=false`, `membership_consistency_verified=true`,
+`source_split_ids` y `source_membership_checksums` (split ID → SHA256 del Parquet).
+Los receipts del manifest conservan además el SHA256 de metadata de cada split.
+No se crea un receipt ficticio de clustering. Para la ruta completa, el flag de
+consistencia entre splits permanece false y esas listas/mapas están vacíos:
+la autoridad es el clustering original y cada split se comprueba contra él.
+
+En fallback quedan null algoritmo, representación, extractor, modelo, identidades
+de features/configuración/reducción, seed de reducción y parámetros. Probabilidad,
+reachability, core distance, sus flags de infinito y ordering position también
+quedan null. Los conteos, fracción de ruido, distribución por video y spans son
+resúmenes de las membresías almacenadas; no se producen métricas de calidad ni
+medoides. La fila -1 conserva `is_noise=true`: no constituye un clúster científico
+ni un grupo global indivisible. **cluster != sequence; cluster != ground truth.**
+
+Una publicación presente pero corrupta, incompleta o ambigua **falla** y nunca
+activa el fallback. El exportador comprueba también metadata excluida por discovery;
+metadata ilegible, identidades inválidas y archivos de publicación huérfanos
+impiden demostrar ausencia. Una publicación parcial que declara la identidad
+seleccionada también bloquea el fallback. No se borra ni repara ninguna fuente.
+
+El responsable reportó validación operacional en Hypatia de checksums y membresía
+idéntica entre las seeds seleccionadas de C10/C12. Es evidencia de membresía
+preservada, no de disponibilidad de diagnósticos/configuración upstream ni de éxito
+del export. Esas observaciones no son constantes de implementación y no fueron
+revalidadas en este clon. El siguiente paso operacional es ejecutar el export con
+el plan, manifest y raíces reales en Hypatia y revisar su provenance/limitaciones.
+
 ## Flujo y fuentes
 
 Implementación y pruebas locales → export real en Hypatia → sincronización
@@ -21,7 +71,8 @@ confirmaciones automáticas. El contrato del detector permanece intacto.
   por `split_metadata_sha256` al plan. Se reutilizan `discover_runs`,
   `load_split`, `checked_file` y `with_split`, comprobando también el índice de
   asignación por contenido y los conteos congelados.
-- Los runs de clustering referenciados por esos splits. `inspect_clustering`
+- Los runs de clustering referenciados por esos splits, o la membresía congelada
+  verificada bajo las condiciones anteriores cuando están ausentes. `inspect_clustering`
   verifica configuración, identidad y checksums; `load_cluster` verifica índice,
   representantes, labels y summaries. Solo se exportan las configuraciones
   seleccionadas; no todos los experimentos exploratorios. Se conservan las
@@ -212,6 +263,23 @@ bytes upstream y entorno, los JSON científicos son byte-estables salvo
 entorno Pillow. No se garantiza igualdad binaria entre versiones de codecs.
 
 ## Validación local
+
+Validación del fallback (2026-10-05): **70 passed** en el bloque completo de
+organización/linkage (147.84 s), después de **35 passed** en la selección
+focalizada inicial. Incluye rutas completa/congelada/mixta, discrepancias entre
+seeds, cobertura, tipos/columnas/nulos, checksums, ruido, procedencia, determinismo,
+splits no seleccionados y publicaciones presentes corruptas. Los tests bloquean
+explícitamente fitting y recomputación científica en ambas rutas. Se usó
+`.venv-review` con las variables offline de los comandos siguientes; la ayuda
+CLI, Ruff global y `git diff --check` pasaron.
+
+Suite completa para este cambio: **874 passed**, **40 warnings** preexistentes,
+879.60 s. Comando: `uv run --no-sync python -m pytest -q --basetemp $validationTemp`,
+con `$validationTemp = 'C:/flir-frozen-' + [guid]::NewGuid().ToString('N').Substring(0,8)`
+(directorio temporal nuevo y corto para Windows). Los warnings siguen en
+`clustering/selection.py` y `detection/association.py`, sin modificaciones.
+Estos resultados validan infraestructura con fixtures sintéticas, no el export
+real de Hypatia.
 
 Los tests nuevos cubren ocurrencias duplicadas, leakage histórico exacto,
 seeds múltiples, grupos C10/C12 sintéticos, ruido/probabilidades, componentes,

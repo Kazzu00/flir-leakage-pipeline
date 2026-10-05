@@ -1,5 +1,14 @@
 # Architecture
 
+## Frozen organization membership evidence (2026-10-05)
+
+`ClusterEvidence` separates stored membership from an optional full `ClusterData`.
+Selected splits still use verified `load_split`; shared cluster/noise checks also
+apply without upstream clustering. Only an absent publication permits exact
+cross-seed comparison of frozen membership. Contract receipts bind every source
+split and membership checksum; unavailable configuration/diagnostics remain null.
+This read-only presentation path does not reconstruct a clustering experiment.
+
 ## Organization evidence presentation (2026-10-04)
 
 `explorer/organization_sources.py` resolves frozen selections through existing
