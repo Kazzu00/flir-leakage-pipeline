@@ -317,6 +317,12 @@ def test_export_preserves_records_contents_splits_and_selected_clusters(evidence
         if r["reachability_infinite"]
     )
     assert sum(c["is_noise"] for c in data["clusters"]) == 2
+    assert all(
+        c["source_kind"] == "full_clustering_artifact"
+        and c["full_clustering_artifact_available"]
+        and c["algorithm"] is not None
+        for c in data["clustering_configurations"]
+    )
     assert any(
         c["annotation_consensus"] == "different_label_bytes" and c["class_ids"] is None
         for c in data["contents"]
@@ -584,7 +590,8 @@ def test_cli_schema_and_missing_optional_evidence(evidence):
     )
 
 
-def test_no_fitting_or_scientific_metric_recomputation(evidence, monkeypatch):
+@pytest.mark.parametrize("fallback", [False, True])
+def test_no_fitting_or_scientific_metric_recomputation(evidence, monkeypatch, fallback):
     from flir_pipeline.clustering import storage as clustering
     from flir_pipeline.linkage import candidates
     from flir_pipeline.sequences.experiments import recurrence
@@ -602,7 +609,10 @@ def test_no_fitting_or_scientific_metric_recomputation(evidence, monkeypatch):
     ):
         for name in names:
             monkeypatch.setattr(module, name, reject)
-    organization.export_organization(**evidence[0])
+    args = evidence[0]
+    if fallback:
+        args = {**args, "clustering_root": args["clustering_root"].parent / "absent"}
+    organization.export_organization(**args)
 
 
 def test_source_receipt_detects_replacement(tmp_path):
@@ -613,3 +623,301 @@ def test_source_receipt_detects_replacement(tmp_path):
     path.write_text("[]")
     with pytest.raises(ValueError, match="Source changed"):
         sources.watch(path)
+
+
+@pytest.fixture
+def frozen_evidence(evidence):
+    args, *rest = evidence
+    return (
+        {**args, "clustering_root": args["clustering_root"].parent / "absent"},
+        *rest,
+    )
+
+
+def edit_selected_groups(evidence, change):
+    """Publish changed synthetic bytes and re-freeze, to test beyond checksums."""
+    args, _, specs, *_ = evidence
+    spec = next(s for s in specs if s["strategy"] == "C10" and s["split_seed"] == 1)
+    directory = args["split_root"] / spec["split_space_id"]
+    path = directory / "source_groups.parquet"
+    change(pd.read_parquet(path)).to_parquet(path, index=False)
+    rebind(directory, path.name)
+    spec["split_metadata_sha256"] = sha256(directory / "metadata.json")
+    freeze(args["plan_directory"], specs)
+
+
+def test_frozen_export_preserves_exact_labels_nulls_and_all_provenance(frozen_evidence):
+    args, manifest, specs, *_ = frozen_evidence
+    # File ordering is operational, not membership: sort only before comparing.
+    edit_selected_groups(frozen_evidence, lambda g: g.iloc[::-1])
+    before = snapshot(args["split_root"])
+    organization.export_organization(**args)
+    data = payload(args)
+    for config in data["clustering_configurations"]:
+        cid = config["cluster_run_id"]
+        selected = [s for s in specs if s["clustering_space_id"] == cid]
+        assert config["source_kind"] == "frozen_split_membership"
+        assert config["full_clustering_artifact_available"] is False
+        assert config["membership_consistency_verified"] is True
+        assert config["source_split_ids"] == sorted(
+            s["split_space_id"] for s in selected
+        )
+        assert config["source_membership_checksums"] == {
+            s["split_space_id"]: sha256(
+                args["split_root"] / s["split_space_id"] / "source_groups.parquet"
+            )
+            for s in selected
+        }
+        assert all(
+            config[k] is None
+            for k in (
+                "feature_space_id",
+                "configuration_id",
+                "model_id",
+                "representation",
+                "reduction_space_id",
+                "reduction_seed",
+                "extractor",
+                "algorithm",
+                "parameters",
+                "effective_parameters",
+            )
+        )
+        stored = (
+            pd.read_parquet(
+                args["split_root"]
+                / selected[0]["split_space_id"]
+                / "source_groups.parquet"
+            )
+            .set_index("content_id")
+            .cluster_id.to_dict()
+        )
+        exported = [
+            m for m in data["cluster_memberships"] if m["cluster_run_id"] == cid
+        ]
+        assert {m["content_id"]: m["cluster_id"] for m in exported} == stored
+        assert set(stored) == set(manifest.content_id)
+        assert all(m["is_noise"] == (m["cluster_id"] == -1) for m in exported)
+        assert all(
+            m[k] is None
+            for m in exported
+            for k in (
+                "probability",
+                "reachability",
+                "reachability_infinite",
+                "core_distance",
+                "core_distance_infinite",
+                "ordering_position",
+            )
+        )
+    assert not any(
+        s["artifact_kind"] == "clustering_run"
+        for s in data["manifest"]["evidence_sources"]
+    )
+    assert any(
+        "publication" in s and "unavailable" in s
+        for s in data["manifest"]["limitations"]
+    )
+    assert before == snapshot(args["split_root"])
+    Draft202012Validator(schema()).validate(data)
+    OrganizationExport.model_validate(data)
+
+
+@pytest.mark.parametrize(
+    "column,value",
+    [
+        ("cluster_id", 19),
+        ("group_id", "different-group"),
+        ("group_type", "different-type"),
+    ],
+)
+def test_frozen_cross_seed_disagreement_fails(frozen_evidence, column, value):
+    def change(groups):
+        groups.loc[groups.cluster_id.eq(0), column] = value
+        return groups
+
+    edit_selected_groups(frozen_evidence, change)
+    with pytest.raises(ValueError, match="Frozen memberships differ"):
+        organization.export_organization(**frozen_evidence[0])
+
+
+@pytest.mark.parametrize(
+    "failure",
+    [
+        "missing_content",
+        "duplicate_content",
+        "unknown_content",
+        "negative_label",
+        "fractional_label",
+        "string_label",
+        "boolean_label",
+        "null_label",
+        "null_group",
+        "null_type",
+        "noise_group",
+        "fractured_cluster",
+        "missing_content_id",
+        "missing_cluster_id",
+        "missing_group_id",
+        "missing_group_type",
+    ],
+)
+def test_invalid_frozen_membership_fails_closed(frozen_evidence, failure):
+    def change(g):
+        if failure == "missing_content":
+            return g.iloc[1:]
+        if failure == "duplicate_content":
+            return pd.concat([g, g.iloc[:1]])
+        if failure.startswith("missing_"):
+            return g.drop(columns=failure.removeprefix("missing_"))
+        if failure == "unknown_content":
+            g.loc[0, "content_id"] = "unknown"
+        elif failure == "negative_label":
+            g.loc[0, "cluster_id"] = -2
+        elif failure == "fractional_label":
+            g["cluster_id"] = g.cluster_id.astype(float) + 0.5
+        elif failure == "string_label":
+            g["cluster_id"] = g.cluster_id.astype(str)
+        elif failure == "boolean_label":
+            g["cluster_id"] = True
+        elif failure == "null_label":
+            g["cluster_id"] = g.cluster_id.astype("Int64")
+            g.loc[0, "cluster_id"] = pd.NA
+        elif failure == "null_group":
+            g.loc[0, "group_id"] = None
+        elif failure == "null_type":
+            g.loc[0, "group_type"] = None
+        elif failure == "noise_group":
+            g.loc[g.cluster_id.eq(-1), "group_type"] = "cluster"
+        elif failure == "fractured_cluster":
+            g.loc[g.cluster_id.eq(1), "cluster_id"] = 0
+        return g
+
+    edit_selected_groups(frozen_evidence, change)
+    with pytest.raises(ValueError):
+        organization.export_organization(**frozen_evidence[0])
+    assert not frozen_evidence[0]["output"].exists()
+
+
+def test_frozen_scientific_json_independent_of_discovery_order(
+    frozen_evidence, monkeypatch
+):
+    from flir_pipeline.explorer import organization_sources
+
+    args = frozen_evidence[0]
+    organization.export_organization(**args)
+    before = {
+        p.name: p.read_bytes()
+        for p in args["output"].glob("*.json")
+        if p.name != "manifest.json"
+    }
+    discover = organization_sources.discover_runs
+
+    def reversed_discovery(*a, **kw):
+        runs, issues = discover(*a, **kw)
+        return runs[::-1], issues
+
+    monkeypatch.setattr(organization_sources, "discover_runs", reversed_discovery)
+    organization.export_organization(**args)
+    assert before == {
+        p.name: p.read_bytes()
+        for p in args["output"].glob("*.json")
+        if p.name != "manifest.json"
+    }
+
+
+def test_full_and_frozen_sources_can_coexist(evidence):
+    args = evidence[0]
+    # Only relocate a newly created synthetic publication, outside discovery.
+    (args["clustering_root"] / "second").rename(
+        args["clustering_root"].parent / "outside"
+    )
+    organization.export_organization(**args)
+    configs = payload(args)["clustering_configurations"]
+    assert {c["source_kind"] for c in configs} == {
+        "full_clustering_artifact",
+        "frozen_split_membership",
+    }
+
+
+def test_frozen_split_checksum_tampering_fails(frozen_evidence):
+    args, _, specs, *_ = frozen_evidence
+    spec = next(s for s in specs if s["strategy"] == "C10")
+    path = args["split_root"] / spec["split_space_id"] / "source_groups.parquet"
+    groups = pd.read_parquet(path)
+    groups.loc[groups.cluster_id.eq(0), "cluster_id"] = 99
+    groups.to_parquet(path, index=False)
+    with pytest.raises(ValueError, match="checksum"):
+        organization.export_organization(**args)
+
+
+def test_unselected_split_cannot_supply_or_override_frozen_membership(frozen_evidence):
+    args, _, specs, *_ = frozen_evidence
+    spec = next(s for s in specs if s["strategy"] == "C10")
+    original = args["split_root"] / spec["split_space_id"]
+    unselected = args["split_root"] / "unselected"
+    shutil.copytree(original, unselected)
+    meta = read_json(unselected / "metadata.json")
+    meta["identity_payload"]["seed"] = 99
+    meta["split_space_id"] = split_space_id(meta["identity_payload"])
+    write_payload(unselected / "metadata.json", meta)
+    path = unselected / "source_groups.parquet"
+    groups = pd.read_parquet(path)
+    groups.loc[groups.cluster_id.eq(0), "cluster_id"] = 99
+    groups.to_parquet(path, index=False)
+    rebind(unselected, path.name)
+    organization.export_organization(**args)
+    assert all(c["cluster_id"] != 99 for c in payload(args)["cluster_memberships"])
+    # A valid unselected publication cannot stand in for a missing selected split.
+    original.rename(args["output"].parent / "selected-outside-root")
+    with pytest.raises(ValueError, match="Cannot resolve selected split"):
+        organization.export_organization(**args)
+
+
+@pytest.mark.parametrize(
+    "failure",
+    ["checksum", "incomplete", "quality", "metadata", "no_metadata", "duplicate"],
+)
+def test_present_invalid_clustering_never_falls_back(evidence, failure):
+    args = evidence[0]
+    directory = args["clustering_root"] / "run"
+    if failure == "checksum":
+        np.save(directory / "cluster_labels.npy", np.zeros(6, dtype=int))
+    elif failure == "incomplete":
+        (directory / "cluster_labels.npy").unlink()
+    elif failure == "quality":
+        write_payload(directory / "quality.json", {"quality_valid": False})
+        rebind(directory, "quality.json")
+    elif failure == "metadata":
+        (directory / "metadata.json").write_text("{broken")
+    elif failure == "no_metadata":
+        (directory / "metadata.json").unlink()
+    else:
+        shutil.copytree(directory, args["clustering_root"] / "copy")
+    with pytest.raises(ValueError):
+        organization.export_organization(**args)
+
+
+@pytest.mark.parametrize(
+    "failure", ["configuration", "diagnostic", "provenance", "digest", "availability"]
+)
+def test_frozen_contract_rejects_speculative_or_incomplete_evidence(
+    frozen_evidence, failure
+):
+    args = frozen_evidence[0]
+    organization.export_organization(**args)
+    data = payload(args)
+    config = data["clustering_configurations"][0]
+    if failure == "configuration":
+        config["algorithm"] = "dbscan"
+    elif failure == "diagnostic":
+        data["cluster_memberships"][0]["reachability"] = 0.5
+    elif failure == "provenance":
+        sid = config["source_split_ids"].pop()
+        del config["source_membership_checksums"][sid]
+    elif failure == "digest":
+        config["source_membership_checksums"][config["source_split_ids"][0]] = "0" * 64
+    else:
+        config["full_clustering_artifact_available"] = True
+    with pytest.raises(ValueError):
+        OrganizationExport.model_validate(data)

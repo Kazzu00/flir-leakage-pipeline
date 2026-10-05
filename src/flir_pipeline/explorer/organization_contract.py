@@ -138,22 +138,70 @@ class SplitMembership(Model):
 
 class ClusteringConfiguration(Model):
     cluster_run_id: ID
+    source_kind: Literal["full_clustering_artifact", "frozen_split_membership"]
+    full_clustering_artifact_available: bool
+    membership_consistency_verified: bool
+    source_split_ids: list[ID]
+    source_membership_checksums: dict[ID, Digest]
     dataset_id: ID
-    feature_space_id: ID
-    configuration_id: ID
+    feature_space_id: ID | None
+    configuration_id: ID | None
     model_id: str | None
     strategy_labels: list[ID]
-    representation: ID
+    representation: ID | None
     reduction_space_id: str | None
     reduction_seed: Count | None
-    extractor: ID
-    algorithm: Literal["dbscan", "optics", "hdbscan"]
-    parameters: dict[str, JsonValue]
-    effective_parameters: dict[str, JsonValue]
+    extractor: ID | None
+    algorithm: Literal["dbscan", "optics", "hdbscan"] | None
+    parameters: dict[str, JsonValue] | None
+    effective_parameters: dict[str, JsonValue] | None
     n_clusters: Count
     n_noise: Count
     noise_fraction: Annotated[float, Field(ge=0, le=1)]
     ground_truth: Literal[False] = False
+
+    @model_validator(mode="after")
+    def evidence_authority(self):
+        full = self.source_kind == "full_clustering_artifact"
+        if self.full_clustering_artifact_available != full:
+            raise ValueError("Clustering source kind/availability mismatch")
+        fields = (
+            self.feature_space_id,
+            self.configuration_id,
+            self.model_id,
+            self.representation,
+            self.reduction_space_id,
+            self.reduction_seed,
+            self.extractor,
+            self.algorithm,
+            self.parameters,
+            self.effective_parameters,
+        )
+        if full:
+            if any(
+                v is None
+                for v in (
+                    self.feature_space_id,
+                    self.configuration_id,
+                    self.representation,
+                    self.extractor,
+                    self.algorithm,
+                    self.parameters,
+                    self.effective_parameters,
+                )
+            ):
+                raise ValueError("Full clustering requires its existing configuration")
+        elif (
+            any(v is not None for v in fields)
+            or not self.membership_consistency_verified
+            or not self.source_split_ids
+            or len(set(self.source_split_ids)) != len(self.source_split_ids)
+            or set(self.source_split_ids) != set(self.source_membership_checksums)
+        ):
+            raise ValueError(
+                "Frozen membership needs provenance and null unavailable configuration"
+            )
+        return self
 
 
 class TemporalSpan(Model):
@@ -317,8 +365,35 @@ class OrganizationExport(Model):
         sources = unique(
             self.manifest.evidence_sources, lambda r: r.artifact_id, "evidence source"
         )
-        if not set(splits) | set(configurations) <= set(sources):
+        full_ids = {
+            cid
+            for cid, c in configurations.items()
+            if c.source_kind == "full_clustering_artifact"
+        }
+        if not set(splits) | full_ids <= set(sources):
             raise ValueError("Missing split/clustering source receipt")
+        for cid, c in configurations.items():
+            if c.source_kind != "frozen_split_membership":
+                continue
+            selected_ids = {
+                sid
+                for sid, s in splits.items()
+                if s.source_strategy == "cluster_aware" and s.cluster_run_id == cid
+            }
+            if set(c.source_split_ids) != selected_ids:
+                raise ValueError(
+                    "Frozen provenance must include every selected source split"
+                )
+            for sid in c.source_split_ids:
+                receipt = sources[sid]
+                if (
+                    receipt.artifact_kind != "split_run"
+                    or receipt.output_checksums.get("source_groups.parquet")
+                    != c.source_membership_checksums[sid]
+                ):
+                    raise ValueError(
+                        "Frozen membership checksum differs from split receipt"
+                    )
         if any(
             g.evidence_artifact_id not in sources
             or not set(g.evidence_sources) <= set(sources)
@@ -434,6 +509,25 @@ class OrganizationExport(Model):
         clustered = defaultdict(set)
         labels = {}
         for m in self.cluster_memberships:
+            configuration = configurations.get(m.cluster_run_id)
+            if (
+                configuration is not None
+                and configuration.source_kind == "frozen_split_membership"
+                and any(
+                    v is not None
+                    for v in (
+                        m.probability,
+                        m.reachability,
+                        m.reachability_infinite,
+                        m.core_distance,
+                        m.core_distance_infinite,
+                        m.ordering_position,
+                    )
+                )
+            ):
+                raise ValueError(
+                    "Frozen membership cannot invent clustering diagnostics"
+                )
             key = (m.cluster_run_id, m.cluster_id)
             if (
                 key not in clusters

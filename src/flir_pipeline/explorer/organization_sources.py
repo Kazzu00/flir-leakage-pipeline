@@ -13,13 +13,20 @@ from flir_pipeline.clustering.inspection import inspect_clustering
 from flir_pipeline.data.identity import dataset_id_from_manifest
 from flir_pipeline.data.local_images import declared_file
 from flir_pipeline.detection.protocol import experiment_matrix, verify_plan
-from flir_pipeline.explorer.data import load_cluster, load_split, with_split
+from flir_pipeline.explorer.data import (
+    load_cluster,
+    load_split,
+    validate_cluster_split,
+    with_split,
+)
 from flir_pipeline.explorer.discovery import (
+    REQUIRED,
     checked_file,
     discover_runs,
     read_json,
     sha256,
 )
+from flir_pipeline.explorer.models import ClusterData
 from flir_pipeline.similarity.storage import stable_id
 from flir_pipeline.splitting.base import SplitConfig, split_space_id
 
@@ -66,6 +73,80 @@ class Sources:
             not p.is_file() or sha256(p) != digest for p, digest in self.files.items()
         ):
             raise ValueError("Source changed during export; publication cancelled")
+
+
+@dataclass
+class ClusterEvidence:
+    """Stored labels and their authority; a frozen membership is not a new run."""
+
+    clustering_space_id: str
+    dataset_id: str
+    memberships: pd.DataFrame
+    source_kind: str
+    full_artifact: ClusterData | None = None
+    source_membership_checksums: dict[str, str] = field(default_factory=dict)
+
+
+def require_absent_clustering(root, cid):
+    """Discovery exclusions cannot establish absence of a publication.
+
+    Unreadable metadata or orphaned publication files cannot be attributed safely;
+    they block fallback rather than silently masking a possibly selected run.
+    """
+    if root.exists() and not root.is_dir():
+        raise ValueError("Clustering root is not a directory")
+    if (root.is_dir() and root.name == cid) or any(
+        p.is_dir() and p.name == cid for p in root.rglob("*")
+    ):
+        raise ValueError(f"Selected clustering directory is present but invalid: {cid}")
+    for path in sorted(root.rglob("metadata.json")):
+        try:
+            meta = read_json(path)
+            if not isinstance(meta, dict):
+                raise ValueError("Metadata is not an object")
+        except (OSError, ValueError) as error:
+            raise ValueError(
+                "Cannot establish clustering absence: unreadable metadata"
+            ) from error
+        if (
+            meta.get("artifact_kind") == "clustering_run"
+            or (path.parent / "cluster_labels.npy").exists()
+        ) and (
+            meta.get("artifact_kind") != "clustering_run"
+            or not isinstance(meta.get("clustering_space_id"), str)
+            or not meta["clustering_space_id"]
+        ):
+            raise ValueError(
+                "Cannot establish clustering absence: invalid publication identity"
+            )
+        if meta.get("clustering_space_id") == cid:
+            raise ValueError(
+                f"Selected clustering is present but invalid/ambiguous: {cid}"
+            )
+    for name in REQUIRED["clustering_run"]:
+        for path in root.rglob(name):
+            if not (path.parent / "metadata.json").is_file():
+                raise ValueError(
+                    "Cannot establish clustering absence: orphaned publication files"
+                )
+
+
+def frozen_membership(split, manifest):
+    """Only reorder verified source rows; never coerce labels or group values."""
+    columns = ["content_id", "cluster_id", "group_id", "group_type"]
+    groups = split.groups
+    if not set(columns) <= set(groups):
+        raise ValueError("Missing required source_groups column")
+    if (
+        groups[columns].isna().any().any()
+        or not groups.content_id.is_unique
+        or set(groups.content_id) != set(manifest.content_id)
+        or not pd.api.types.is_integer_dtype(groups.cluster_id.dtype)
+        or groups.cluster_id.lt(-1).any()
+    ):
+        raise ValueError("Invalid frozen source_groups membership")
+    validate_cluster_split(split)
+    return groups[columns].sort_values("content_id").reset_index(drop=True)
 
 
 def selected_runs(plan_directory, manifest_path, split_root, clustering_root, sources):
@@ -173,14 +254,39 @@ def selected_runs(plan_directory, manifest_path, split_root, clustering_root, so
                 raise ValueError("Record counts differ from frozen plan")
         if run.clustering_space_id:
             cid = run.clustering_space_id
-            if cid not in cluster_lookup:
-                raise ValueError(f"Missing selected scientific clustering: {cid}")
             if cid not in clusters:
-                cluster_run = cluster_lookup[cid]
-                sources.artifact(cluster_run.directory, cluster_run.metadata, cid)
-                inspect_clustering(cluster_run.directory)
-                clusters[cid] = load_cluster(cluster_run, manifest)
-            with_split(clusters[cid], split)
+                if cid in cluster_lookup:
+                    cluster_run = cluster_lookup[cid]
+                    sources.artifact(cluster_run.directory, cluster_run.metadata, cid)
+                    inspect_clustering(cluster_run.directory)
+                    full = load_cluster(cluster_run, manifest)
+                    clusters[cid] = ClusterEvidence(
+                        cid, dataset, full.contents, "full_clustering_artifact", full
+                    )
+                else:
+                    require_absent_clustering(clustering_root, cid)
+                    clusters[cid] = ClusterEvidence(
+                        cid,
+                        dataset,
+                        frozen_membership(split, manifest),
+                        "frozen_split_membership",
+                    )
+            evidence = clusters[cid]
+            if evidence.full_artifact is not None:
+                with_split(evidence.full_artifact, split)
+            else:
+                current = frozen_membership(split, manifest)
+                try:
+                    pd.testing.assert_frame_equal(
+                        evidence.memberships, current, check_exact=True
+                    )
+                except AssertionError as error:
+                    raise ValueError(
+                        f"Frozen memberships differ across selected splits: {cid}"
+                    ) from error
+                evidence.source_membership_checksums[run.space_id] = run.metadata[
+                    "output_sha256"
+                ]["source_groups.parquet"]
         splits.append((spec, split))
     sources.unchanged()
     return manifest, plan, splits, clusters

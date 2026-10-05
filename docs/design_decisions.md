@@ -1,5 +1,15 @@
 # Design decisions
 
+## 2026-10-05: preserved frozen membership is a separate evidence authority
+
+A missing clustering publication may be represented only by the exact stored
+membership of every selected split referencing its identity. Equality includes
+content, cluster, group and group type after ordering only. Existing split/freeze
+checks remain mandatory; a present invalid clustering publication fails closed.
+The original identity is retained without inventing a clustering receipt,
+configuration or diagnostics. Noise remains unassigned and singleton in splits.
+This is presentation provenance, not a new fit or a change to clustering semantics.
+
 ## 2026-10-04: occurrence-preserving organization export
 
 The frozen detector plan is the selection authority for final M02 splits and

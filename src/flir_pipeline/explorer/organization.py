@@ -135,8 +135,10 @@ def consensus(rows, key):
 def content_records(records, raw, clusters):
     by_content = defaultdict(list)
     representatives = {}
-    for cluster in clusters.values():
-        for row in cluster.contents.itertuples():
+    for evidence in clusters.values():
+        if evidence.full_artifact is None:
+            continue
+        for row in evidence.memberships.itertuples():
             representatives.setdefault(row.content_id, row.representative_frame_id)
     for r in records:
         by_content[r["content_id"]].append(r)
@@ -299,14 +301,16 @@ def scientific_tables(manifest, selected, clusters, evidence):
                 "class_support": spec.get("class_counts"),
             }
         )
-    for cid, cluster in sorted(clusters.items()):
-        meta = cluster.run.metadata
-        labels = cluster.contents.cluster_id
-        metrics = cluster.metrics
+    for cid, cluster_evidence in sorted(clusters.items()):
+        cluster = cluster_evidence.full_artifact
+        meta = cluster.run.metadata if cluster is not None else {}
+        memberships = cluster_evidence.memberships
+        labels = memberships.cluster_id
+        metrics = cluster.metrics if cluster is not None else None
         n_clusters, n_noise = len(set(labels) - {-1}), int(labels.eq(-1).sum())
         probabilities = {}
         diagnostics = {}
-        if "membership_probabilities.npy" in meta["optional_files"]:
+        if "membership_probabilities.npy" in meta.get("optional_files", []):
             from flir_pipeline.clustering.storage import quality_checks
 
             values = np.load(
@@ -320,7 +324,7 @@ def scientific_tables(manifest, selected, clusters, evidence):
             probabilities = dict(
                 zip(cluster.contents.content_id, values.tolist(), strict=True)
             )
-        if "algorithm_diagnostics.npz" in meta["optional_files"]:
+        if "algorithm_diagnostics.npz" in meta.get("optional_files", []):
             with np.load(
                 checked_file(cluster.run, "algorithm_diagnostics.npz"),
                 allow_pickle=False,
@@ -357,7 +361,7 @@ def scientific_tables(manifest, selected, clusters, evidence):
                     core_distance_infinite=bool(np.isinf(distance[i])),
                     ordering_position=int(positions[i]),
                 )
-        if (
+        if metrics is not None and (
             metrics["n_clusters_excluding_noise"] != n_clusters
             or abs(metrics["noise_fraction"] - n_noise / len(labels)) > 1e-12
         ):
@@ -367,9 +371,16 @@ def scientific_tables(manifest, selected, clusters, evidence):
         result["clustering_configurations"].append(
             dict(
                 cluster_run_id=cid,
-                dataset_id=meta["dataset_id"],
-                feature_space_id=meta["feature_space_id"],
-                configuration_id=meta["configuration_id"],
+                source_kind=cluster_evidence.source_kind,
+                full_clustering_artifact_available=cluster is not None,
+                membership_consistency_verified=cluster is None,
+                source_split_ids=sorted(cluster_evidence.source_membership_checksums),
+                source_membership_checksums=dict(
+                    sorted(cluster_evidence.source_membership_checksums.items())
+                ),
+                dataset_id=cluster_evidence.dataset_id,
+                feature_space_id=meta.get("feature_space_id"),
+                configuration_id=meta.get("configuration_id"),
                 model_id=meta.get("model_id"),
                 strategy_labels=sorted(
                     {
@@ -378,19 +389,23 @@ def scientific_tables(manifest, selected, clusters, evidence):
                         if s["clustering_space_id"] == cid
                     }
                 ),
-                representation=cluster.run.representation,
+                representation=cluster.run.representation
+                if cluster is not None
+                else None,
                 reduction_space_id=meta.get("reduction_space_id"),
                 reduction_seed=meta.get("reduction_seed"),
-                extractor=cluster.run.encoder,
-                algorithm=cluster.run.algorithm,
-                parameters=meta["config"],
-                effective_parameters=meta["effective_parameters"],
+                extractor=cluster.run.encoder if cluster is not None else None,
+                algorithm=cluster.run.algorithm if cluster is not None else None,
+                parameters=meta.get("config"),
+                effective_parameters=meta.get("effective_parameters"),
                 n_clusters=n_clusters,
                 n_noise=n_noise,
-                noise_fraction=metrics["noise_fraction"],
+                noise_fraction=metrics["noise_fraction"]
+                if metrics is not None
+                else n_noise / len(labels),
             )
         )
-        for label, members in cluster.contents.groupby("cluster_id", sort=True):
+        for label, members in memberships.groupby("cluster_id", sort=True):
             ids = set(members.content_id)
             member_records = [r for r in records if r["content_id"] in ids]
             videos = defaultdict(set)
@@ -751,11 +766,23 @@ def export_organization(
                 "Missing previews do not affect scientific memberships. Media stays local and requires separate synchronization.",
                 "Counts and ranges summarize stored memberships only; no confidence scores or new boundaries are generated.",
                 *evidence.limitations,
+                *(
+                    [
+                        "The original clustering publication for one or more selected split identities is unavailable. "
+                        "Exact content-to-cluster membership remains preserved in checksum-verified frozen split artifacts "
+                        "and was verified identical across all selected split seeds. Original clustering diagnostics "
+                        "and unavailable configuration fields were not reconstructed."
+                    ]
+                    if any(c.full_artifact is None for c in clusters.values())
+                    else []
+                ),
             ],
             terminology={
                 "record": "historical or source-video occurrence; record_id preserves frame_id",
                 "content": "unique exact visual bytes; duplicates retain all record IDs",
                 "cluster": "algorithmic visual grouping, never sequence identity",
+                "full_clustering_artifact": "the verified original clustering publication is available",
+                "frozen_split_membership": "the original clustering publication is unavailable; exact labels consumed by split construction remain preserved and cross-seed verified in immutable selected split artifacts",
                 "candidate_pair": "existing top-k candidate ID; not a newly constructed group/component",
                 "candidate_core": "stored diagnostic core membership; never a confirmed sequence",
                 "diagnostic_component": "existing component-to-core-to-content evidence; not ground truth",

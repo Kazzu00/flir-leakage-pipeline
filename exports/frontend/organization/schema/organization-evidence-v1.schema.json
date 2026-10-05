@@ -256,13 +256,20 @@
       "additionalProperties": false,
       "properties": {
         "algorithm": {
-          "enum": [
-            "dbscan",
-            "optics",
-            "hdbscan"
+          "anyOf": [
+            {
+              "enum": [
+                "dbscan",
+                "optics",
+                "hdbscan"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
           ],
-          "title": "Algorithm",
-          "type": "string"
+          "title": "Algorithm"
         },
         "cluster_run_id": {
           "minLength": 1,
@@ -270,9 +277,16 @@
           "type": "string"
         },
         "configuration_id": {
-          "minLength": 1,
-          "title": "Configuration Id",
-          "type": "string"
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Configuration Id"
         },
         "dataset_id": {
           "minLength": 1,
@@ -280,26 +294,55 @@
           "type": "string"
         },
         "effective_parameters": {
-          "additionalProperties": {
-            "$ref": "#/$defs/JsonValue"
-          },
-          "title": "Effective Parameters",
-          "type": "object"
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Effective Parameters"
         },
         "extractor": {
-          "minLength": 1,
-          "title": "Extractor",
-          "type": "string"
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Extractor"
         },
         "feature_space_id": {
-          "minLength": 1,
-          "title": "Feature Space Id",
-          "type": "string"
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Feature Space Id"
+        },
+        "full_clustering_artifact_available": {
+          "title": "Full Clustering Artifact Available",
+          "type": "boolean"
         },
         "ground_truth": {
           "const": false,
           "default": false,
           "title": "Ground Truth",
+          "type": "boolean"
+        },
+        "membership_consistency_verified": {
+          "title": "Membership Consistency Verified",
           "type": "boolean"
         },
         "model_id": {
@@ -330,11 +373,18 @@
           "type": "number"
         },
         "parameters": {
-          "additionalProperties": {
-            "$ref": "#/$defs/JsonValue"
-          },
-          "title": "Parameters",
-          "type": "object"
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Parameters"
         },
         "reduction_seed": {
           "anyOf": [
@@ -360,9 +410,43 @@
           "title": "Reduction Space Id"
         },
         "representation": {
-          "minLength": 1,
-          "title": "Representation",
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Representation"
+        },
+        "source_kind": {
+          "enum": [
+            "full_clustering_artifact",
+            "frozen_split_membership"
+          ],
+          "title": "Source Kind",
           "type": "string"
+        },
+        "source_membership_checksums": {
+          "additionalProperties": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "propertyNames": {
+            "minLength": 1
+          },
+          "title": "Source Membership Checksums",
+          "type": "object"
+        },
+        "source_split_ids": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Source Split Ids",
+          "type": "array"
         },
         "strategy_labels": {
           "items": {
@@ -375,6 +459,11 @@
       },
       "required": [
         "cluster_run_id",
+        "source_kind",
+        "full_clustering_artifact_available",
+        "membership_consistency_verified",
+        "source_split_ids",
+        "source_membership_checksums",
         "dataset_id",
         "feature_space_id",
         "configuration_id",
