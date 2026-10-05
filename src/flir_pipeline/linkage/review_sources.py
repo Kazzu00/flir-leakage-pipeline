@@ -60,11 +60,20 @@ def load_linkage_context(paths):
     return labeled, sequences, candidates, occurrences, signature
 
 
-def load_candidate_context(linkage, labeled_manifest, sequence_set):
+def load_candidate_context(
+    linkage,
+    labeled_manifest,
+    sequence_set,
+    *,
+    allow_labeled_manifest_reserialization=False,
+):
     """Read existing candidate evidence without requiring a manual calibration.
 
     Shared by review and presentation exports. This checks stored identities,
     checksums and occurrence bindings, without recalculating encoder scores.
+    Presentation may explicitly accept different manifest serialization only after
+    exact table/dtype and dataset identity checks. Review stays byte-strict, with
+    its existing signature unchanged unless this option is explicitly enabled.
     """
     from types import SimpleNamespace
 
@@ -89,11 +98,12 @@ def load_candidate_context(linkage, labeled_manifest, sequence_set):
         pd.read_parquet(paths.linkage / "labeled_occurrences.parquet"),
         check_exact=True,
     )
+    current_manifest_sha256 = file_sha256(paths.labeled_manifest)
+    historical_manifest_sha256 = signature["checksums"]["labeled_manifest"]
+    reserialized = current_manifest_sha256 != historical_manifest_sha256
     if (
-        file_sha256(paths.labeled_manifest)
-        != signature["checksums"]["labeled_manifest"]
-        or dataset_id_from_manifest(labeled) != linkage_meta["labeled_dataset_id"]
-    ):
+        reserialized and not allow_labeled_manifest_reserialization
+    ) or dataset_id_from_manifest(labeled) != linkage_meta["labeled_dataset_id"]:
         raise ValueError("Labeled manifest differs from the linkage source")
     seq_meta = read_json(paths.sequence_set / "metadata.json")
     if (
@@ -146,6 +156,18 @@ def load_candidate_context(linkage, labeled_manifest, sequence_set):
             "linkage_id": linkage_meta["artifact_id"],
             "sequence_files": sequence_files,
             "sequence_set_id": seq_meta["artifact_id"],
+            **(
+                {
+                    "labeled_manifest_binding": {
+                        "historical_manifest_sha256": historical_manifest_sha256,
+                        "current_manifest_sha256": current_manifest_sha256,
+                        "exact_tabular_identity_verified": True,
+                        "source_manifest_reserialized": reserialized,
+                    }
+                }
+                if allow_labeled_manifest_reserialization
+                else {}
+            ),
         },
     )
 

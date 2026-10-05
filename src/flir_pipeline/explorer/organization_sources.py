@@ -37,6 +37,7 @@ class Sources:
 
     files: dict[Path, str] = field(default_factory=dict)
     receipts: list[dict] = field(default_factory=list)
+    labeled_manifest_bindings: dict[str, dict] = field(default_factory=dict)
 
     def watch(self, path):
         path = Path(path).resolve()
@@ -586,9 +587,23 @@ def load_candidates(
             sources.artifact(directory, meta, aid)
             seq_meta = read_json(seq / "metadata.json")
             sources.artifact(seq, seq_meta, seq_meta["artifact_id"])
-            _, video, candidates, _, _ = load_candidate_context(
-                directory, manifest_path, seq
+            _, video, candidates, _, signature = load_candidate_context(
+                directory,
+                manifest_path,
+                seq,
+                allow_labeled_manifest_reserialization=True,
             )
+            binding = signature["labeled_manifest_binding"]
+            sources.labeled_manifest_bindings[aid] = binding
+            if binding["source_manifest_reserialized"]:
+                limitation = (
+                    "The labeled manifest file used for this export has different serialized "
+                    "Parquet bytes from the source checksum recorded by the linkage publication. "
+                    "Its complete labeled occurrence table was verified exactly equal to the "
+                    "checksum-bound linkage snapshot, and dataset identity is unchanged."
+                )
+                if limitation not in result.limitations:
+                    result.limitations.append(limitation)
             result.video_records.append(video)
             for row in candidates.sort_values("candidate_id").to_dict("records"):
                 gid = row["candidate_id"]
