@@ -5,6 +5,41 @@ Infraestructura de presentación de evidencia existente para
 `/organization/evaluation`. La implementación local usa fixtures sintéticas.
 **No se ha exportado ni revalidado aquí la membresía real de Hypatia.**
 
+## Compatibilidad con un manifest reserializado
+
+La identidad binaria de un archivo Parquet (SHA256) puede cambiar al reserializar
+la misma tabla. Para la presentación de candidatos etiquetado→video, organización
+activa explícitamente `allow_labeled_manifest_reserialization=True` en
+`load_candidate_context()`. El valor por defecto es false: los lectores de
+linkage/revisión conservan su requisito de checksum original y sus firmas previas.
+La opción no se propaga a la verificación de revisiones manuales ni a otros
+adaptadores de evidencia.
+
+Un checksum distinto solo se acepta cuando la tabla actual completa, ordenada por
+`frame_id` y con índice reiniciado, pasa el `pd.testing.assert_frame_equal` existente
+con `check_exact=True` contra `labeled_occurrences.parquet`, y el
+`dataset_id_from_manifest` actual coincide con `labeled_dataset_id` de linkage.
+Se conservan columnas y su orden, tipos y valores exactos; no se convierten tipos,
+seleccionan subconjuntos ni toleran cambios de etiquetas/contenidos/filas. El
+snapshot almacenado debe conservar su orden canónico existente. Metadata y todos
+los archivos de linkage, incluido ese snapshot, siguen verificados por sus
+checksums; el sequence set mantiene las mismas comprobaciones.
+
+En `manifest.evidence_sources`, cada fuente `labeled_video_link_candidates` incluye
+`labeled_manifest_binding` con `historical_manifest_sha256`,
+`current_manifest_sha256`, `exact_tabular_identity_verified=true` y
+`source_manifest_reserialized`. Esta última bandera es true exactamente cuando
+los dos hashes difieren; el hash actual debe coincidir con el manifest del export.
+Para otras fuentes el campo es null. Si se activa la compatibilidad, las
+limitaciones del export explican la diferencia de serialización y la igualdad
+tabular/del dataset verificada. No se cambia ni se recupera el dataset, no se
+reescribe metadata y no se genera un Parquet sustituto.
+
+El responsable reportó igualdad tabular exacta en una comparación controlada en
+Hypatia. Ese resultado motiva esta compatibilidad, pero no sustituye las
+verificaciones durante cada export ni demuestra que el export real haya terminado.
+Los hashes y conteos de esa observación no forman parte de la implementación.
+
 ## Membresía congelada cuando falta la publicación original
 
 `full_clustering_artifact` significa que la publicación original de clustering
@@ -263,6 +298,22 @@ bytes upstream y entorno, los JSON científicos son byte-estables salvo
 entorno Pillow. No se garantiza igualdad binaria entre versiones de codecs.
 
 ## Validación local
+
+Compatibilidad de reserialización (2026-10-05): **21 passed** en los tests nuevos
+focalizados; **91 passed** en organización/linkage (178.80 s); **97 passed** en
+`tests/test_linkage_review.py` y `tests/test_linkage_review_aggregate.py` (116.89 s).
+Se comprobaron ambos casos de checksum, rechazo de diferencias tabulares y de
+dataset, checksums intactos de publicaciones/sequence set, opt-in, procedencia,
+fuentes sin escrituras y determinismo. Se usó `.venv-review` con las variables
+offline siguientes. Ruff global, formato de los archivos Python modificados y
+`git diff --check` pasaron. Esta validación es sintética y no certifica el export
+real de Hypatia.
+
+Regresión completa de la compatibilidad: **895 passed**, **40 warnings**
+preexistentes, 1114.49 s. Comando: `uv run --no-sync python -m pytest -q --basetemp $validationTemp`,
+con `$validationTemp = 'C:/flir-reser-' + [guid]::NewGuid().ToString('N').Substring(0,8)`.
+Se mantuvieron las variables offline indicadas abajo. Los warnings pertenecen a
+`clustering/selection.py` y `detection/association.py`, sin cambios en esta tarea.
 
 Validación del fallback (2026-10-05): **70 passed** en el bloque completo de
 organización/linkage (147.84 s), después de **35 passed** en la selección

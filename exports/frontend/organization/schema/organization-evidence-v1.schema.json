@@ -675,6 +675,39 @@
       "type": "object"
     },
     "JsonValue": {},
+    "LabeledManifestBinding": {
+      "additionalProperties": false,
+      "description": "Distinguish serialization bytes from verified complete table identity.",
+      "properties": {
+        "current_manifest_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Current Manifest Sha256",
+          "type": "string"
+        },
+        "exact_tabular_identity_verified": {
+          "const": true,
+          "title": "Exact Tabular Identity Verified",
+          "type": "boolean"
+        },
+        "historical_manifest_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Historical Manifest Sha256",
+          "type": "string"
+        },
+        "source_manifest_reserialized": {
+          "title": "Source Manifest Reserialized",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "historical_manifest_sha256",
+        "current_manifest_sha256",
+        "exact_tabular_identity_verified",
+        "source_manifest_reserialized"
+      ],
+      "title": "LabeledManifestBinding",
+      "type": "object"
+    },
     "LinkageGroup": {
       "additionalProperties": false,
       "properties": {
@@ -1510,6 +1543,17 @@
           "minLength": 1,
           "title": "Artifact Kind",
           "type": "string"
+        },
+        "labeled_manifest_binding": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/LabeledManifestBinding"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "metadata_sha256": {
           "pattern": "^[0-9a-f]{64}$",

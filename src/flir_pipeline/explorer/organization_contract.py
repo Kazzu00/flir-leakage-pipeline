@@ -30,11 +30,39 @@ class Semantics(Model):
     )
 
 
+class LabeledManifestBinding(Model):
+    """Distinguish serialization bytes from verified complete table identity."""
+
+    historical_manifest_sha256: Digest
+    current_manifest_sha256: Digest
+    exact_tabular_identity_verified: Literal[True]
+    source_manifest_reserialized: bool
+
+    @model_validator(mode="after")
+    def serialized_identity(self):
+        if self.source_manifest_reserialized != (
+            self.historical_manifest_sha256 != self.current_manifest_sha256
+        ):
+            raise ValueError("Manifest reserialization flag differs from checksums")
+        return self
+
+
 class Source(Model):
     artifact_id: ID
     artifact_kind: ID
     metadata_sha256: Digest
     output_checksums: dict[str, Digest]
+    labeled_manifest_binding: LabeledManifestBinding | None = None
+
+    @model_validator(mode="after")
+    def manifest_binding_scope(self):
+        if (self.artifact_kind == "labeled_video_link_candidates") != (
+            self.labeled_manifest_binding is not None
+        ):
+            raise ValueError(
+                "Labeled manifest binding is required exactly for linkage sources"
+            )
+        return self
 
 
 class Manifest(Model):
@@ -365,6 +393,15 @@ class OrganizationExport(Model):
         sources = unique(
             self.manifest.evidence_sources, lambda r: r.artifact_id, "evidence source"
         )
+        if any(
+            s.labeled_manifest_binding is not None
+            and s.labeled_manifest_binding.current_manifest_sha256
+            != self.manifest.manifest_sha256
+            for s in sources.values()
+        ):
+            raise ValueError(
+                "Linkage manifest binding differs from exported manifest checksum"
+            )
         full_ids = {
             cid
             for cid, c in configurations.items()

@@ -755,7 +755,16 @@ def export_organization(
             strategy_count=len({s["strategy"] for s, _ in splits}),
             clustering_configuration_ids=sorted(clusters),
             evidence_sources=sorted(
-                sources.receipts, key=lambda r: (r["artifact_kind"], r["artifact_id"])
+                [
+                    {
+                        **r,
+                        "labeled_manifest_binding": sources.labeled_manifest_bindings.get(
+                            r["artifact_id"]
+                        ),
+                    }
+                    for r in sources.receipts
+                ],
+                key=lambda r: (r["artifact_kind"], r["artifact_id"]),
             ),
             limitations=[
                 "Stored identities, checksums and relationships verified; no scientific metrics or detector outcomes recomputed.",

@@ -1,5 +1,16 @@
 # Design decisions
 
+## 2026-10-05: explicit presentation compatibility for manifest serialization
+
+Organization export may opt into accepting different labeled-manifest Parquet
+bytes only when the existing exact full DataFrame comparison (including dtypes)
+against linkage's checksum-bound occurrence snapshot and the declared dataset
+identity both pass. The shared candidate loader remains byte-strict by default;
+manual review signatures and source verification remain unchanged. Organization
+source receipts distinguish historical/current hashes and declare exact tabular
+verification and reserialization explicitly. No source is rewritten and no
+replacement manifest is produced. See the [organization runbook](runbooks/organization_evidence_export.md).
+
 ## 2026-10-05: preserved frozen membership is a separate evidence authority
 
 A missing clustering publication may be represented only by the exact stored
