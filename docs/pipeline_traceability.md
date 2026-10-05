@@ -1,5 +1,18 @@
 # Pipeline traceability
 
+## Organization presentation contract (2026-10-04)
+
+Frozen detector plan + existing split/clustering storage →
+`explorer/organization_sources.py` → normalized record/content memberships in
+`explorer/organization.py` → `organization_contract.py` / JSON Schema → local
+frontend ID joins. Candidate linkage reuses the review source reader; sequence
+experiment components join stored core/content/occurrence tables without new
+assignments. Native boundary intervals and external review semantics survive.
+Optional checksum-verified thumbnails use `FrameReader`/`ImageSource` and stay
+ignored. Publication verifies identities, checksums and relationships; it does
+not rerun scientific metrics or validate detector training completion. See the
+[source contracts and Hypatia runbook](runbooks/organization_evidence_export.md).
+
 ## Final detector reporting (2026-10-03)
 
 The owner reports 48/48 scientific runs completed on Hypatia, with no remaining

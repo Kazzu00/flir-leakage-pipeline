@@ -2,6 +2,13 @@
 
 ## Overview
 
+`flir-pipeline explorer export-organization` exports existing frozen M02
+record/content, split, clustering and candidate-linkage memberships through
+`organization-evidence-v1`. Timelines preserve provenance and optional previews
+remain local/ignored. Available with synthetic offline validation; final Hypatia
+memberships have not been exported locally. See the
+[organization contract and Hypatia runbook](docs/runbooks/organization_evidence_export.md).
+
 `flir-pipeline detection report` implements final evidence-gated detector analysis
 and the versioned `detection-export-v1` contract for `flir-pipeline-explorer`.
 The owner reports the completed 48-run experiment on Hypatia; those artifacts

@@ -1,5 +1,21 @@
 # Design decisions
 
+## 2026-10-04: occurrence-preserving organization export
+
+The frozen detector plan is the selection authority for final M02 splits and
+their source clustering, rather than candidate display aliases or hardcoded
+counts. Normalized files preserve record-level historical cross-partition
+duplicates and unique-content clustering independently. Counts/ranges summarize
+saved memberships; no detector or clustering metric is recalculated.
+
+Existing top-k links retain candidate-pair IDs; existing diagnostic components
+join their stored core/content/occurrence evidence. No connected components,
+interval memberships or sequence instances are constructed during export.
+Filename-derived families are explicitly heuristic timelines with null verified
+video IDs. Ambiguous time/annotation consensus remains null. Media is a separate,
+optional ignored publication with one preview per content and graceful absence.
+Only code, tests, schema and documentation are versioned by this local change.
+
 ## 2026-10-03: final-only detector contract and split association unit
 
 The final report extends the existing evidence gate and hierarchical aggregation;
