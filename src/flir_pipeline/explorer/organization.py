@@ -145,15 +145,18 @@ def content_records(records, raw, clusters):
         representative = representatives.get(cid, rows[0]["record_id"])
         selected = next(r for r in rows if r["record_id"] == representative)
         annotated = [r for r in rows if r["cohort"] == "labeled"]
+        # The manifest binds label bytes, not semantic equivalence. Different
+        # hashes can reflect formatting/order alone; preserve the disagreement
+        # without claiming a bounding-box conflict or choosing one annotation.
         annotation_hashes = {raw[r["record_id"]].get("label_sha256") for r in annotated}
         status = (
             "unavailable"
             if not annotation_hashes
             or None in annotation_hashes
             or "" in annotation_hashes
-            else "identical"
+            else "identical_label_bytes"
             if len(annotation_hashes) == 1
-            else "conflicting"
+            else "different_label_bytes"
         )
         temporal = consensus(rows, "temporal_source") or "unknown"
         single_timeline = consensus(rows, "timeline_id") is not None
@@ -175,10 +178,10 @@ def content_records(records, raw, clusters):
                 temporal_source=temporal,
                 record_ids=sorted(r["record_id"] for r in rows),
                 class_ids=consensus(annotated, "class_ids")
-                if status == "identical"
+                if status == "identical_label_bytes"
                 else None,
                 class_names=consensus(annotated, "class_names")
-                if status == "identical"
+                if status == "identical_label_bytes"
                 else None,
                 annotation_consensus=status,
                 preview_key=hashlib.sha256(cid.encode()).hexdigest(),

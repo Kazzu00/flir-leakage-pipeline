@@ -399,8 +399,8 @@
       "properties": {
         "annotation_consensus": {
           "enum": [
-            "identical",
-            "conflicting",
+            "identical_label_bytes",
+            "different_label_bytes",
             "unavailable"
           ],
           "title": "Annotation Consensus",

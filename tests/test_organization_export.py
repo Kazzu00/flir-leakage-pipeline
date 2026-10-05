@@ -318,7 +318,7 @@ def test_export_preserves_records_contents_splits_and_selected_clusters(evidence
     )
     assert sum(c["is_noise"] for c in data["clusters"]) == 2
     assert any(
-        c["annotation_consensus"] == "conflicting" and c["class_ids"] is None
+        c["annotation_consensus"] == "different_label_bytes" and c["class_ids"] is None
         for c in data["contents"]
     )
     assert len(data["timelines"]) == 3 and result["source_video_count"] == 0
