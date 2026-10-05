@@ -1,5 +1,26 @@
 # Project status
 
+## Evidencia organizativa M02 para frontend (2026-10-04)
+
+**Infraestructura implementada; export real pendiente en Hypatia.**
+`explorer export-organization` consume el plan/freeze existente, resuelve sus
+splits y clustering seleccionado, y exporta ocurrencias, contenidos únicos,
+membresías, timelines y evidencia candidata/revisión existente. No regenera
+clustering/splits/linkage ni modifica el contrato del detector.
+
+El schema `organization-evidence-v1` valida relaciones y semántica conservadora;
+los previews son opcionales e ignorados por Git. Hay fixtures sintéticas para
+duplicados, particiones históricas, seeds, ruido, candidatos, zonas inclusivas,
+media y publicación con rollback. No se ejecutó un export científico real local.
+Véase el [runbook y alcance de validación](runbooks/organization_evidence_export.md).
+
+Regresión general sintética/offline: **838 passed**, con 40 FutureWarning de
+pandas en código preexistente de clustering/association. Ruff global, formato,
+ayuda CLI, siete notebooks fuente y checks de diff aprobados. Esta evidencia
+valida software, no las membresías reales del experimento final.
+Revisión final tras precisar diferencias de bytes de labels, sin afirmar
+conflictos semánticos: **34 passed** en el bloque de organización.
+
 ## Reporte final del detector (2026-10-03)
 
 **Infraestructura de reporte implementada; ejecución científica en Hypatia

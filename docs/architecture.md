@@ -1,5 +1,18 @@
 # Architecture
 
+## Organization evidence presentation (2026-10-04)
+
+`explorer/organization_sources.py` resolves frozen selections through existing
+storage readers; `organization.py` produces normalized presentation tables and
+optional unique-content previews. `organization_contract.py` defines typed
+cross-file invariants and generates `organization-evidence-v1` JSON Schema.
+The split unit remains the historical occurrence; clustering uses unique
+content. Additional video evidence has a separate cohort and no invented split.
+Filename timelines remain heuristic, explicit video IDs remain authoritative,
+and candidate components never become sequence instances. The exporter reuses
+the detector report's staged publication primitive without changing detector
+values or files. See the [contract runbook](runbooks/organization_evidence_export.md).
+
 ## Final scientific presentation boundary (2026-10-03)
 
 Heavy immutable artifacts → existing verification and hierarchical aggregation
