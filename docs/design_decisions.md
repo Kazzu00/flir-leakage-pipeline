@@ -1,5 +1,16 @@
 # Design decisions
 
+## 2026-10-05: occurrence-scoped compatibility for sequence presentation
+
+Only organization export opts into tolerating manifest serialization drift for
+stored structure/recurrence evidence. Dataset identity, immutable artifact
+inspection and every existing frame/content/timeline/position check remain
+mandatory. The default adapters and scientific sequence source checks remain
+byte-strict. Sequence provenance claims exact occurrence binding, never full
+manifest table equality; linkage retains its separate stronger table assertion.
+The export records both hashes and the verification scope without modifying
+scientific sources. See the [organization runbook](runbooks/organization_evidence_export.md).
+
 ## 2026-10-05: explicit presentation compatibility for manifest serialization
 
 Organization export may opt into accepting different labeled-manifest Parquet

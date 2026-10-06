@@ -30,12 +30,11 @@ class Semantics(Model):
     )
 
 
-class LabeledManifestBinding(Model):
-    """Distinguish serialization bytes from verified complete table identity."""
+class ManifestSerializationBinding(Model):
+    """Retain both file identities without equating different serialized bytes."""
 
     historical_manifest_sha256: Digest
     current_manifest_sha256: Digest
-    exact_tabular_identity_verified: Literal[True]
     source_manifest_reserialized: bool
 
     @model_validator(mode="after")
@@ -47,20 +46,42 @@ class LabeledManifestBinding(Model):
         return self
 
 
+class LabeledManifestBinding(ManifestSerializationBinding):
+    """Linkage verifies the complete manifest table, including dtypes and values."""
+
+    exact_tabular_identity_verified: Literal[True]
+
+
+class SequenceManifestBinding(ManifestSerializationBinding):
+    """Sequence evidence verifies its stored occurrence/content/temporal bindings."""
+
+    exact_occurrence_binding_verified: Literal[True]
+
+
 class Source(Model):
     artifact_id: ID
     artifact_kind: ID
     metadata_sha256: Digest
     output_checksums: dict[str, Digest]
-    labeled_manifest_binding: LabeledManifestBinding | None = None
+    labeled_manifest_binding: (
+        LabeledManifestBinding | SequenceManifestBinding | None
+    ) = None
 
     @model_validator(mode="after")
     def manifest_binding_scope(self):
-        if (self.artifact_kind == "labeled_video_link_candidates") != (
-            self.labeled_manifest_binding is not None
+        binding_type = {
+            "labeled_video_link_candidates": LabeledManifestBinding,
+            "sequence_structure_review_v1": SequenceManifestBinding,
+            "sequence_recurrence_v1": SequenceManifestBinding,
+        }.get(self.artifact_kind)
+        if (
+            binding_type is None
+            and self.labeled_manifest_binding is not None
+            or binding_type is not None
+            and not isinstance(self.labeled_manifest_binding, binding_type)
         ):
             raise ValueError(
-                "Labeled manifest binding is required exactly for linkage sources"
+                "Manifest verification scope differs from the evidence source kind"
             )
         return self
 
@@ -400,7 +421,7 @@ class OrganizationExport(Model):
             for s in sources.values()
         ):
             raise ValueError(
-                "Linkage manifest binding differs from exported manifest checksum"
+                "Evidence manifest binding differs from exported manifest checksum"
             )
         full_ids = {
             cid
