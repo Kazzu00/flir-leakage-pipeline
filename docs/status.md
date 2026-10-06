@@ -1,5 +1,14 @@
 # Project status
 
+## Organización v2: pares normalizados (2026-10-05)
+
+El responsable comunica un export v1 real completado en Hypatia; no se revalidó
+localmente. El productor v2 separa todos los pares candidatos en `candidate_pairs`
+y conserva cores/componentes y sus membresías. Usa JSON compacto con checksums
+sobre bytes exactos. **Export real v2 pendiente**; la validación local es sintética.
+Los apartados previos conservados debajo documentan el estado histórico v1.
+Véase el [contrato vigente y migración](runbooks/organization_evidence_export.md).
+
 ## Membresía congelada para organización (2026-10-05)
 
 Implementado fallback de presentación para publicaciones de clustering ausentes:

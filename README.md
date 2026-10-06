@@ -3,8 +3,8 @@
 ## Overview
 
 `flir-pipeline explorer export-organization` exports existing frozen M02
-record/content, split, clustering and candidate-linkage memberships through
-`organization-evidence-v1`. Timelines preserve provenance and optional previews
+record/content, split, clustering, candidate pairs and grouped evidence through
+`organization-evidence-v2`. Timelines preserve provenance and optional previews
 remain local/ignored. Available with synthetic offline validation; final Hypatia
 memberships have not been exported locally. See the
 [organization contract and Hypatia runbook](docs/runbooks/organization_evidence_export.md).

@@ -354,7 +354,7 @@ def test_export_preserves_records_contents_splits_and_selected_clusters(evidence
 
 
 def test_candidates_noncontiguous_and_boundary_zones_remain_diagnostic(evidence):
-    args, _, _, _, _ = evidence
+    args, _, _, structure, recurrence = evidence
     organization.export_organization(**args)
     data = payload(args)
     group = next(
@@ -362,6 +362,37 @@ def test_candidates_noncontiguous_and_boundary_zones_remain_diagnostic(evidence)
     )
     assert group["linkage_group_id"] == "component-1" and group["member_count"] == 5
     assert not group["ground_truth"] and not group["automatic_confirmation"]
+    stored = artifact_tables(structure)
+    cores = {
+        g["linkage_group_id"]: g
+        for g in data["linkage_groups"]
+        if g["kind"] == "candidate_core"
+    }
+    assert set(cores) == set(stored["cores"].element_id)
+    for row in stored["cores"].to_dict("records"):
+        assert cores[row["element_id"]]["upstream_metadata"] == row
+    assigned = stored["membership"].loc[stored["membership"].evaluation_mask]
+    expected = {
+        (core, content): sorted(rows.frame_id)
+        for (core, content), rows in assigned.groupby(["target_label", "content_id"])
+    }
+    actual = {
+        (m["linkage_group_id"], m["content_id"]): m["record_ids"]
+        for m in data["linkage_memberships"]
+        if m["evidence_artifact_id"] == inspect(structure)["artifact_id"]
+    }
+    assert actual == expected
+    component_members = [
+        m
+        for m in data["linkage_memberships"]
+        if m["evidence_artifact_id"] == inspect(recurrence)["artifact_id"]
+    ]
+    assert {m["content_id"]: m["record_ids"] for m in component_members} == {
+        content: sorted(rows.frame_id)
+        for content, rows in assigned.groupby("content_id")
+    }
+    assert all(m["role"] == "core_member" for m in data["linkage_memberships"])
+    assert not data["candidate_pairs"]
     zone = data["boundary_zones"][0]
     assert (zone["start"], zone["end"], zone["inclusive"], zone["exact_cut"]) == (
         10,
@@ -489,6 +520,10 @@ def test_integrity_failures_preserve_previous_export(evidence, failure):
         ("split_memberships", "partition", "validation"),
         ("clusters", "ground_truth", True),
         ("linkage_groups", "automatic_confirmation", True),
+        ("linkage_groups", "kind", "candidate_pair"),
+        ("linkage_memberships", "role", "query"),
+        ("linkage_memberships", "role", "candidate"),
+        ("linkage_memberships", "role", "query_and_candidate"),
     ],
 )
 def test_contract_rejects_unknown_references_or_scientific_promotion(
@@ -594,7 +629,7 @@ def test_cli_schema_and_missing_optional_evidence(evidence):
     assert not payload(args)["linkage_groups"]
     assert "No candidate" in payload(args)["manifest"]["limitations"][-1]
     checked_in = Path(
-        "exports/frontend/organization/schema/organization-evidence-v1.schema.json"
+        "exports/frontend/organization/schema/organization-evidence-v2.schema.json"
     )
     assert read_json(checked_in) == schema()
     assert (

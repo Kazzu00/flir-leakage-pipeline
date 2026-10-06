@@ -1,5 +1,23 @@
 # Design decisions
 
+## 2026-10-05: normalized candidate edges in organization-evidence-v2
+
+A stored labeled/video candidate is an edge between exact content identities,
+not a generic group with redundant query/candidate memberships. The v2 producer
+copies every authoritative candidate field into `candidate_pairs` once, preserving
+IDs, float values, nullable ranks, flags and upstream counts without fitting,
+filtering or clipping. Cores/components retain their existing membership semantics.
+Consumers join each endpoint through contents to records, timelines and media.
+Manifest-level literal semantics prohibit ground truth, automatic confirmation,
+sequence identity, confirmed dependency and split constraint interpretations.
+
+Only organization JSON serialization becomes deterministic compact UTF-8; checksum
+receipts bind those exact bytes. Detector reports and scientific publications are
+unchanged. This is an explicit schema version change, not a v1 semantic mutation;
+existing v1 destinations require separate v2 destinations. The owner reports a
+completed real v1 export on Hypatia; real v2 execution remains pending. See the
+[organization runbook](runbooks/organization_evidence_export.md).
+
 ## 2026-10-05: occurrence-scoped compatibility for sequence presentation
 
 Only organization export opts into tolerating manifest serialization drift for

@@ -5,7 +5,7 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, JsonValue, model_validator
 
-SCHEMA_VERSION = "organization-evidence-v1"
+SCHEMA_VERSION = "organization-evidence-v2"
 ID = Annotated[str, Field(min_length=1)]
 Count = Annotated[int, Field(ge=0)]
 Index = Annotated[int, Field(ge=0)]
@@ -18,7 +18,19 @@ class Model(BaseModel):
     model_config = ConfigDict(extra="forbid", allow_inf_nan=False)
 
 
+class CandidatePairSemantics(Model):
+    evidence_status: Literal["candidate_only"] = "candidate_only"
+    ground_truth: Literal[False] = False
+    automatic_confirmation: Literal[False] = False
+    sequence_identity: Literal[False] = False
+    confirmed_dependency: Literal[False] = False
+    split_constraint: Literal[False] = False
+
+
 class Semantics(Model):
+    candidate_pairs: CandidatePairSemantics = Field(
+        default_factory=CandidatePairSemantics
+    )
     ground_truth_clusters: Literal[False] = False
     ground_truth_sequences: Literal[False] = False
     automatic_confirmation: Literal[False] = False
@@ -87,7 +99,7 @@ class Source(Model):
 
 
 class Manifest(Model):
-    schema_version: Literal["organization-evidence-v1"] = SCHEMA_VERSION
+    schema_version: Literal["organization-evidence-v2"] = SCHEMA_VERSION
     scientific_result: Literal["existing_evidence_export"] = "existing_evidence_export"
     generated_from_verified_artifacts: Literal[True] = True
     verification_scope: Literal[
@@ -109,6 +121,7 @@ class Manifest(Model):
     timeline_count: Count
     split_count: Count
     strategy_count: Count
+    candidate_pair_count: Count
     clustering_configuration_ids: list[ID]
     evidence_sources: list[Source]
     semantics: Semantics = Field(default_factory=Semantics)
@@ -284,10 +297,31 @@ class ClusterMembership(Model):
     ordering_position: Index | None = None
 
 
+class CandidatePair(Model):
+    """Stored edge, with scores copied exactly; occurrences join through content."""
+
+    model_config = ConfigDict(strict=True)
+    evidence_artifact_id: ID
+    candidate_id: ID
+    labeled_content_id: ID
+    video_content_id: ID
+    # Stored dot products can marginally exceed [-1, 1] from roundoff. Never clip.
+    clip_cosine: float
+    dinov2_cosine: float
+    clip_rank: Annotated[int, Field(gt=0)] | None
+    dinov2_rank: Annotated[int, Field(gt=0)] | None
+    clip_topk: bool
+    dinov2_topk: bool
+    both_topk: bool
+    mean_reciprocal_rank: float
+    video_occurrence_count: Count
+    video_sequence_count: Count
+
+
 class LinkageGroup(Model):
     evidence_artifact_id: ID
     linkage_group_id: ID
-    kind: Literal["candidate_pair", "diagnostic_component", "candidate_core"]
+    kind: Literal["diagnostic_component", "candidate_core"]
     member_count: Count
     source_video_ids: list[ID]
     temporal_spans: list[TemporalSpan]
@@ -305,7 +339,7 @@ class LinkageMembership(Model):
     record_ids: list[ID]
     source_video_ids: list[ID]
     frame_indices: list[Index]
-    role: Literal["query", "candidate", "query_and_candidate", "core_member"]
+    role: Literal["core_member"]
     upstream_element_ids: list[ID]
 
 
@@ -385,6 +419,7 @@ class OrganizationExport(Model):
     clustering_configurations: list[ClusteringConfiguration]
     clusters: list[Cluster]
     cluster_memberships: list[ClusterMembership]
+    candidate_pairs: list[CandidatePair]
     linkage_groups: list[LinkageGroup]
     linkage_memberships: list[LinkageMembership]
     boundary_zones: list[BoundaryZone]
@@ -414,6 +449,37 @@ class OrganizationExport(Model):
         sources = unique(
             self.manifest.evidence_sources, lambda r: r.artifact_id, "evidence source"
         )
+        unique(
+            self.candidate_pairs,
+            lambda r: (r.evidence_artifact_id, r.candidate_id),
+            "candidate pair",
+        )
+        unique(
+            self.candidate_pairs,
+            lambda r: (
+                r.evidence_artifact_id,
+                r.labeled_content_id,
+                r.video_content_id,
+            ),
+            "candidate endpoints",
+        )
+        cohorts = defaultdict(set)
+        for r in records.values():
+            cohorts[r.content_id].add(r.cohort)
+        for pair in self.candidate_pairs:
+            source = sources.get(pair.evidence_artifact_id)
+            if (
+                source is None
+                or source.artifact_kind != "labeled_video_link_candidates"
+            ):
+                raise ValueError("Missing candidate pair source receipt")
+            if (
+                pair.labeled_content_id not in contents
+                or pair.video_content_id not in contents
+                or "labeled" not in cohorts[pair.labeled_content_id]
+                or "video_evidence" not in cohorts[pair.video_content_id]
+            ):
+                raise ValueError("Broken candidate pair content/cohort reference")
         if any(
             s.labeled_manifest_binding is not None
             and s.labeled_manifest_binding.current_manifest_sha256
@@ -690,6 +756,7 @@ class OrganizationExport(Model):
             raise ValueError("Unknown boundary/review reference")
         m = self.manifest
         actual = (
+            len(self.candidate_pairs),
             len(records),
             len(contents),
             len(labeled),
@@ -700,6 +767,7 @@ class OrganizationExport(Model):
             len({s.strategy for s in splits.values()}),
         )
         expected = (
+            m.candidate_pair_count,
             m.record_count,
             m.unique_content_count,
             m.labeled_record_count,
