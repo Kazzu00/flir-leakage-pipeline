@@ -16,7 +16,7 @@ import pandas as pd
 from flir_pipeline.data.classes import class_name
 from flir_pipeline.data.local_images import relative_posix_path
 from flir_pipeline.data.temporal import audit_temporal_lineage
-from flir_pipeline.detection.final_report import _publish, clean, write_payload
+from flir_pipeline.detection.final_report import _publish, clean
 from flir_pipeline.explorer.discovery import checked_file, sha256
 from flir_pipeline.explorer.frames import FrameReader
 from flir_pipeline.explorer.organization_contract import (
@@ -29,6 +29,22 @@ from flir_pipeline.explorer.organization_sources import (
     load_candidates,
     selected_runs,
 )
+
+
+def write_payload(path: Path, payload) -> None:
+    """Organization-only compact bytes; checksums bind this exact UTF-8 encoding."""
+    path.write_bytes(
+        (
+            json.dumps(
+                clean(payload),
+                ensure_ascii=False,
+                allow_nan=False,
+                sort_keys=True,
+                separators=(",", ":"),
+            )
+            + "\n"
+        ).encode("utf-8")
+    )
 
 
 def value(row, key):
@@ -263,6 +279,10 @@ def scientific_tables(manifest, selected, clusters, evidence):
         clustering_configurations=[],
         clusters=[],
         cluster_memberships=[],
+        candidate_pairs=sorted(
+            evidence.candidate_pairs,
+            key=lambda r: (r["evidence_artifact_id"], r["candidate_id"]),
+        ),
         linkage_groups=[],
         linkage_memberships=[],
         boundary_zones=[],
@@ -754,6 +774,7 @@ def export_organization(
             timeline_count=len(tables["timelines"]),
             split_count=len(splits),
             strategy_count=len({s["strategy"] for s, _ in splits}),
+            candidate_pair_count=len(tables["candidate_pairs"]),
             clustering_configuration_ids=sorted(clusters),
             evidence_sources=sorted(
                 [
@@ -793,7 +814,8 @@ def export_organization(
                 "cluster": "algorithmic visual grouping, never sequence identity",
                 "full_clustering_artifact": "the verified original clustering publication is available",
                 "frozen_split_membership": "the original clustering publication is unavailable; exact labels consumed by split construction remain preserved and cross-seed verified in immutable selected split artifacts",
-                "candidate_pair": "existing top-k candidate ID; not a newly constructed group/component",
+                "candidate_pair": "stored candidate edge with unchanged ID and scores; not a group, sequence identity, confirmed dependency or split constraint",
+                "candidate_pair_join": "each endpoint content_id joins contents.content_id -> contents.record_ids -> records; records.timeline_id joins timelines and contents.preview_key joins media; presentation joins only",
                 "candidate_core": "stored diagnostic core membership; never a confirmed sequence",
                 "diagnostic_component": "existing component-to-core-to-content evidence; not ground truth",
                 "timeline_id": "presentation namespace for an existing video ID or archive/filename family; not a scientific sequence ID",

@@ -297,6 +297,7 @@ def selected_runs(plan_directory, manifest_path, split_root, clustering_root, so
 class CandidateEvidence:
     """Raw authoritative rows; IDs remain scoped by artifact, never reminted."""
 
+    candidate_pairs: list[dict] = field(default_factory=list)
     groups: list[dict] = field(default_factory=list)
     memberships: list[dict] = field(default_factory=list)
     boundaries: list[dict] = field(default_factory=list)
@@ -662,41 +663,12 @@ def load_candidates(
                 if limitation not in result.limitations:
                     result.limitations.append(limitation)
             result.video_records.append(video)
-            for row in candidates.sort_values("candidate_id").to_dict("records"):
-                gid = row["candidate_id"]
-                result.groups.append(
-                    dict(
-                        evidence_artifact_id=aid,
-                        linkage_group_id=gid,
-                        kind="candidate_pair",
-                        evidence_sources=[aid, seq_meta["artifact_id"]],
-                        upstream_metadata=row,
-                        review_state=None,
-                    )
-                )
-                pair_members = {}
-                for column, role, records in (
-                    ("labeled_content_id", "query", manifest),
-                    ("video_content_id", "candidate", video),
-                ):
-                    member = dict(
-                        evidence_artifact_id=aid,
-                        linkage_group_id=gid,
-                        content_id=row[column],
-                        record_ids=sorted(
-                            records.loc[records.content_id.eq(row[column]), "frame_id"]
-                        ),
-                        role=role,
-                        upstream_element_ids=[],
-                    )
-                    if row[column] in pair_members:
-                        member["record_ids"] = sorted(
-                            set(member["record_ids"])
-                            | set(pair_members[row[column]]["record_ids"])
-                        )
-                        member["role"] = "query_and_candidate"
-                    pair_members[row[column]] = member
-                result.memberships.extend(pair_members.values())
+            # Preserve every authoritative field; contract validation rejects unknown
+            # fields rather than silently dropping future upstream evidence.
+            result.candidate_pairs.extend(
+                dict(evidence_artifact_id=aid, **row)
+                for row in candidates.sort_values("candidate_id").to_dict("records")
+            )
         elif kind == KIND:
             if review_source_map is None:
                 raise ValueError(
@@ -751,9 +723,9 @@ def load_candidates(
             raise ValueError(
                 f"Unsupported evidence kind {kind!r}; select explicit supported publication roots"
             )
-    if not result.groups:
+    if not result.groups and not result.candidate_pairs:
         result.limitations.append(
-            "No candidate linkage/component memberships were supplied; empty tables are unavailable evidence, not absence of relationships."
+            "No candidate pairs or linkage/component memberships were supplied; empty tables are unavailable evidence, not absence of relationships."
         )
     sources.unchanged()
     return result

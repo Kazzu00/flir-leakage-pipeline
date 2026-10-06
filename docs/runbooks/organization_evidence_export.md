@@ -5,6 +5,73 @@ Infraestructura de presentación de evidencia existente para
 `/organization/evaluation`. La implementación local usa fixtures sintéticas.
 **No se ha exportado ni revalidado aquí la membresía real de Hypatia.**
 
+## Contrato v2: pares como aristas (2026-10-05)
+
+El responsable comunica que el export **v1** real terminó en Hypatia. Esa ejecución
+no fue revalidada aquí. El export **v2 real sigue pendiente**: las comprobaciones
+locales usan datos sintéticos y no ejecutan experimentos científicos.
+
+Un par candidato relaciona dos contenidos; no es un grupo de miembros. En v2,
+`candidate_pairs.json` conserva una fila por par almacenado, sin muestreo, umbrales,
+recomputación, redondeo ni clipping. Se copian `candidate_id`, endpoints,
+`clip_cosine`, `dinov2_cosine`, `clip_rank`, `dinov2_rank`, `clip_topk`,
+`dinov2_topk`, `both_topk`, `mean_reciprocal_rank`, `video_occurrence_count` y
+`video_sequence_count`. Los ranks ausentes permanecen null. Un campo upstream
+nuevo no reconocido hace fallar la validación; no se descarta silenciosamente.
+`candidate_pair_count` contrasta la cantidad de filas del bundle. Tanto
+`candidate_id` como la combinación de endpoints son únicos dentro de cada
+artefacto de evidencia.
+
+`linkage_groups` conserva cores candidatos y componentes diagnósticos;
+`linkage_memberships` conserva sus membresías `core_member` originales.
+Ya no admite `candidate_pair`, `query`, `candidate` ni `query_and_candidate`.
+
+Para cada endpoint del par, el frontend hace el join de presentación:
+`labeled_content_id` o `video_content_id` → `contents.content_id` →
+`contents.record_ids` → `records.record_id`. Desde los registros se resuelve
+`timeline_id` hacia `timelines`; desde el contenido, `preview_key` hacia `media`.
+Un contenido compartido puede tener ocurrencias en ambos cohorts; el frontend
+puede distinguirlas mediante `records.cohort`. No se duplican registros ni spans
+en la tabla de pares y estos joins no crean una identidad de secuencia.
+
+`manifest.semantics.candidate_pairs` declara `evidence_status=candidate_only`,
+`ground_truth=false`, `automatic_confirmation=false`, `sequence_identity=false`,
+`confirmed_dependency=false` y `split_constraint=false`. Son literales validados
+por Pydantic y JSON Schema; no se repiten en cada fila ni se promueven por revisión.
+
+Los JSON generados, incluido el schema del bundle y el recibo de media, usan UTF-8,
+claves ordenadas, separadores compactos `(',', ':')`, `ensure_ascii=False`,
+`allow_nan=False` y un LF final. Los SHA256 del manifest corresponden a esos bytes
+exactos. El timestamp y la procedencia Git del manifest siguen describiendo cada
+ejecución; las tablas científicas son deterministas para entradas idénticas.
+El schema versionado en Git conserva indentación legible. El serializador del
+reporte detector permanece intacto.
+
+La migración es explícita: el productor genera únicamente
+`organization-evidence-v2` y su schema nuevo; no modifica semánticas v1.
+Para conservar el bundle v1 de Hypatia, ejecutar v2 con destinos nuevos, por ejemplo
+`--output exports/frontend/organization-v2 --media-output artifacts/frontend/organization-media-v2`.
+Los destinos v1 existentes no se sobrescriben automáticamente: su schema/recibo
+no pertenece al contrato v2. No borrar artefactos originales para migrar.
+
+Medición local de la misma fixture sintética `linkage_export_args`, sin previews:
+616.655 bytes en v1 frente a 459.283 bytes en v2, sumando todos los JSON generados
+incluido el schema (reducción del 25,5 %). Los pares antes ocupaban 15.539 bytes
+entre grupos y membresías; ahora `candidate_pairs.json` ocupa 3.640 bytes y esas
+dos tablas vacías suman 6 bytes. La fixture incluye 360 ocurrencias de video;
+esta medición no estima el tamaño final ni valida los 27.320 pares de Hypatia.
+
+Validación v2 local, offline y sintética en `.venv-review`: primera pasada de
+organización/linkage **115 passed**; suite completa tras las comprobaciones
+adicionales de cores, roles legacy y rollback **924 passed**, 40 warnings
+preexistentes, en 973,12 s. Comandos: `uv run --no-sync python -m pytest
+tests/test_organization_export.py tests/test_organization_linkage.py -q`,
+`uv run --no-sync python -m pytest -q`, `uv run --no-sync ruff check .`,
+`ruff format --check` sobre los cinco Python modificados, ayuda CLI de
+`explorer export-organization` y `git diff --check`. Se verifican todos los
+campos upstream fila por fila con igualdad exacta, checksums de bytes compactos,
+schema independiente, fuentes intactas y rollback sin alterar publicaciones.
+
 ## Compatibilidad con un manifest reserializado
 
 La identidad binaria de un archivo Parquet (SHA256) puede cambiar al reserializar
@@ -159,7 +226,7 @@ organizativa; no verifica la finalización de entrenamientos del detector.
 
 | Fuente existente | Adaptador y salida |
 |---|---|
-| `labeled_video_link_candidates` | `load_candidate_context`, compartido con revisión manual. Requiere `--sequence-root` para resolver el `sequence_set_id` ligado. Cada `candidate_id` se conserva como `kind=candidate_pair`; no se construyen componentes nuevos. Query, candidato, scores separados y todas sus ocurrencias permanecen visibles. |
+| `labeled_video_link_candidates` | `load_candidate_context`, compartido con revisión manual. Requiere `--sequence-root` para resolver el `sequence_set_id` ligado. Cada `candidate_id` se conserva exactamente en `candidate_pairs.json`, con todos los scores, ranks y flags almacenados. Sus ocurrencias se resuelven mediante contenidos; no se crean grupos ni membresías para pares. |
 | `sequence_structure_review_v1` | `experiments.artifacts.inspect/tables`; cores desde `cores` y membresías desde `membership`. Las zonas se copian desde `intervals`. El adaptador nativo revalida además originales mediante `verify_native`. |
 | `sequence_recurrence_v1` | Join de `diagnostic_components` → `core_content_membership` → membresía de ocurrencias de la estructura ligada. Requiere esa estructura exacta dentro de las raíces suministradas. No se ejecuta `diagnostic_components` ni se asigna el interior de intervalos. |
 | `labeled_visual_dependency_manual_calibration` | `inspect_snapshot` y `verify_review`; requiere `--review-source-map` con el formato existente de `linkage review aggregate`. Decisiones externas en `reviews.json`, sin convertir grupos propuestos en membresías confirmadas. |
@@ -193,8 +260,8 @@ uv run --no-sync flir-pipeline explorer export-organization \
   --clustering-root artifacts/clustering \
   --linkage-root artifacts/linkage \
   --sequence-root artifacts/sequences \
-  --output exports/frontend/organization \
-  --media-output artifacts/frontend/organization-media \
+  --output exports/frontend/organization-v2 \
+  --media-output artifacts/frontend/organization-media-v2 \
   --include-previews
 ```
 
@@ -220,8 +287,9 @@ utiliza las dependencias core. La CLI devuelve código 2 ante fuentes inválidas
 
 ## Contrato normalizado
 
-Schema version: `organization-evidence-v1`. Todos los JSON están en
-`exports/frontend/organization/`:
+Schema version: `organization-evidence-v2`. Todos los JSON están en el destino
+`--output` (`exports/frontend/organization/` por defecto; el comando de migración
+anterior usa `exports/frontend/organization-v2/`):
 
 | Archivo | Unidad y claves |
 |---|---|
@@ -233,16 +301,17 @@ Schema version: `organization-evidence-v1`. Todos los JSON están en
 | `clustering_configurations.json` | Configuración seleccionada, representación, algoritmo, parámetros, reducción e identidades. Conteos/ruido contrastados con labels almacenados. |
 | `clusters.json` | Clave compuesta `(cluster_run_id, cluster_id)`; tamaños, videos explícitos y rangos por timeline. `-1` es ruido. |
 | `cluster_memberships.json` | Una fila `(cluster_run_id, content_id)` con label, ruido y probabilidad autoritativa o null. |
-| `linkage_groups.json` | Clave `(evidence_artifact_id, linkage_group_id)`; tipo, fuentes, metadata original, conteos y rangos. |
+| `candidate_pairs.json` | Una arista `(evidence_artifact_id, candidate_id)` por par upstream; endpoints de contenido y todos los scores/ranks/flags/conteos originales. Sin registros ni rangos duplicados. |
+| `linkage_groups.json` | Clave `(evidence_artifact_id, linkage_group_id)`; únicamente `candidate_core` o `diagnostic_component`, fuentes, metadata original, conteos y rangos. |
 | `linkage_memberships.json` | Una fila `(evidence_artifact_id, linkage_group_id, content_id)`; registros vinculados, índices observados, rol y referencias a cores. |
 | `boundary_zones.json` | Intervalos originales inclusivos, decisión y timeline; nunca un corte exacto. |
 | `reviews.json` | Revisión original × query; decisión externa, contenido y referencia al grupo propuesto upstream. No crea una membresía. |
 | `timelines.json` | Video explícito o familia inferida dentro de un archive; puntos por contenido y posición, preservando todos los registros. |
 | `media.json` | Una entrada por contenido, preview key, ruta relativa, dimensiones, SHA256 y disponibilidad. |
-| `schema/organization-evidence-v1.schema.json` | JSON Schema Draft 2020-12 generado desde los modelos Pydantic. |
+| `schema/organization-evidence-v2.schema.json` | JSON Schema Draft 2020-12 generado desde los modelos Pydantic. |
 
 Para validar con JSON Schema, construir el objeto lógico
-`{stem_del_archivo: JSON_parseado}` de los 14 JSON raíz. El productor valida ese
+`{stem_del_archivo: JSON_parseado}` de los 15 JSON raíz. El productor valida ese
 objeto con `OrganizationExport` antes de publicarlo y después de serializarlo.
 El modelo añade validaciones de IDs, coverage, conteos, ruido, grupos indivisibles
 y consistencia entre tablas que JSON Schema por sí solo no expresa. Los tests

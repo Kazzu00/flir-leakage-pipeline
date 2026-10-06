@@ -14,7 +14,10 @@ This read-only presentation path does not reconstruct a clustering experiment.
 `explorer/organization_sources.py` resolves frozen selections through existing
 storage readers; `organization.py` produces normalized presentation tables and
 optional unique-content previews. `organization_contract.py` defines typed
-cross-file invariants and generates `organization-evidence-v1` JSON Schema.
+cross-file invariants and generates `organization-evidence-v2` JSON Schema.
+Candidate edges have a dedicated table and join occurrences through contents;
+only cores/components retain linkage memberships. Organization JSON uses compact
+deterministic serialization with byte-bound checksums and unchanged source readers.
 The split unit remains the historical occurrence; clustering uses unique
 content. Additional video evidence has a separate cohort and no invented split.
 Filename timelines remain heuristic, explicit video IDs remain authoritative,

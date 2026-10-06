@@ -2,6 +2,7 @@
 
 import json
 import shutil
+from copy import deepcopy
 from dataclasses import asdict, replace
 
 import numpy as np
@@ -20,6 +21,7 @@ from flir_pipeline.explorer.organization import (
     preview_media,
     scientific_tables,
     timelines,
+    write_payload,
 )
 from flir_pipeline.explorer.organization_contract import OrganizationExport, schema
 from flir_pipeline.explorer.organization_sources import (
@@ -378,16 +380,16 @@ def test_real_storage_linkage_and_manual_reviews_remain_external_evidence(
         review_source_map=source_map,
     )
     candidates = pd.read_parquet(paths.linkage / "content_candidates.parquet")
-    assert {r["linkage_group_id"] for r in result.groups} == set(
+    assert {r["candidate_id"] for r in result.candidate_pairs} == set(
         candidates.candidate_id
     )
-    assert all(r["kind"] == "candidate_pair" for r in result.groups)
+    assert not result.groups and not result.memberships
     assert len(result.reviews) == 3
     assert all(r["decision"]["manual_decision"] == "" for r in result.reviews)
     tables, raw = scientific_tables(manifest, [], {}, result)
     assert len(tables["records"]) == len(manifest) + 360
     assert len(tables["contents"]) < len(tables["records"])
-    assert all(g["member_count"] == 2 for g in tables["linkage_groups"])
+    assert not tables["linkage_groups"] and not tables["linkage_memberships"]
     assert len(tables["timelines"]) == 1
     assert tables["timelines"][0]["source_video_id"] is not None
     assert len(tables["timelines"][0]["points"]) == 360
@@ -473,6 +475,150 @@ def test_explicit_unknown_artifact_is_rejected(tmp_path):
     pd.DataFrame().to_parquet(manifest_path)
     with pytest.raises(ValueError, match="Unsupported evidence kind"):
         load_candidates([tmp_path], manifest_path, pd.DataFrame(), Sources())
+
+
+def test_candidate_pairs_preserve_all_fields_and_compact_bytes(linkage_export_args):
+    args, paths = linkage_export_args
+    export_organization(**args)
+    data = payload(args)
+    upstream = pd.read_parquet(paths.linkage / "content_candidates.parquet")
+    exported = pd.DataFrame(data["candidate_pairs"])
+    aid = read_json(paths.linkage / "metadata.json")["artifact_id"]
+    assert set(exported.evidence_artifact_id) == {aid}
+    assert set(exported.columns) == {*upstream.columns, "evidence_artifact_id"}
+    # Restore storage dtypes lost in JSON, including nullable integer ranks.
+    restored = exported[upstream.columns].astype(upstream.dtypes.to_dict())
+    pd.testing.assert_frame_equal(
+        restored.sort_values("candidate_id").reset_index(drop=True),
+        upstream.sort_values("candidate_id").reset_index(drop=True),
+        check_exact=True,
+    )
+    assert len(exported) == len(upstream) == data["manifest"]["candidate_pair_count"]
+    assert not exported.candidate_id.duplicated().any()
+    assert not data["linkage_groups"] and not data["linkage_memberships"]
+    contents = {c["content_id"]: c for c in data["contents"]}
+    records = {r["record_id"]: r for r in data["records"]}
+    for pair in data["candidate_pairs"]:
+        for endpoint in ("labeled_content_id", "video_content_id"):
+            content = contents[pair[endpoint]]
+            assert content["record_ids"]
+            assert all(
+                records[r]["content_id"] == pair[endpoint]
+                for r in content["record_ids"]
+            )
+    assert not any("No candidate" in s for s in data["manifest"]["limitations"])
+    assert data["manifest"]["schema_version"] == "organization-evidence-v2"
+    for path in args["output"].rglob("*.json"):
+        parsed = json.loads(path.read_bytes())
+        assert path.read_bytes() == (
+            json.dumps(
+                parsed,
+                ensure_ascii=False,
+                allow_nan=False,
+                sort_keys=True,
+                separators=(",", ":"),
+            )
+            + "\n"
+        ).encode("utf-8")
+    assert data["manifest"]["file_sha256"] == {
+        p.relative_to(args["output"]).as_posix(): file_sha256(p)
+        for p in args["output"].rglob("*.json")
+        if p.name != "manifest.json"
+    }
+    Draft202012Validator(schema()).validate(data)
+
+
+def test_candidate_pair_contract_fails_closed(linkage_export_args):
+    args, _ = linkage_export_args
+    export_organization(**args)
+    original = payload(args)
+    for failure in (
+        "duplicate_id",
+        "duplicate_endpoints",
+        "missing_pair",
+        "unknown_content",
+        "wrong_cohort",
+        "wrong_source",
+        "extra_field",
+        "nonfinite",
+        "rank_type",
+    ):
+        data = deepcopy(original)
+        pair = data["candidate_pairs"][0]
+        if failure.startswith("duplicate"):
+            duplicate = deepcopy(pair)
+            if failure == "duplicate_endpoints":
+                duplicate["candidate_id"] = "new-id"
+            data["candidate_pairs"].append(duplicate)
+            data["manifest"]["candidate_pair_count"] += 1
+        elif failure == "missing_pair":
+            data["candidate_pairs"].pop()
+        elif failure == "unknown_content":
+            pair["video_content_id"] = "missing"
+        elif failure == "wrong_cohort":
+            pair["video_content_id"] = pair["labeled_content_id"]
+        elif failure == "wrong_source":
+            pair["evidence_artifact_id"] = data["splits"][0]["artifact_id"]
+        elif failure == "extra_field":
+            pair["record_ids"] = []
+        elif failure == "nonfinite":
+            pair["clip_cosine"] = float("inf")
+        else:
+            pair["clip_rank"] = "1"
+        with pytest.raises(ValueError):
+            OrganizationExport.model_validate(data)
+    semantics = original["manifest"]["semantics"]["candidate_pairs"]
+    assert semantics == dict(
+        evidence_status="candidate_only",
+        ground_truth=False,
+        automatic_confirmation=False,
+        sequence_identity=False,
+        confirmed_dependency=False,
+        split_constraint=False,
+    )
+    for flag in semantics:
+        data = deepcopy(original)
+        data["manifest"]["semantics"]["candidate_pairs"][flag] = (
+            "confirmed" if flag == "evidence_status" else True
+        )
+        with pytest.raises(ValueError):
+            OrganizationExport.model_validate(data)
+        assert list(Draft202012Validator(schema()).iter_errors(data))
+
+
+def test_candidate_pair_staging_failure_preserves_publication(
+    linkage_export_args, monkeypatch
+):
+    from flir_pipeline.explorer import organization
+
+    args, _ = linkage_export_args
+    export_organization(**args)
+    before = snapshot(args["output"])
+    original = organization.write_payload
+
+    def fail(path, data):
+        if path.name == "candidate_pairs.json":
+            raise OSError("synthetic pair write failure")
+        original(path, data)
+
+    monkeypatch.setattr(organization, "write_payload", fail)
+    with pytest.raises(OSError, match="pair write failure"):
+        export_organization(**args)
+    assert snapshot(args["output"]) == before
+    assert not list(args["output"].parent.glob(".export-stage-*"))
+
+
+def test_compact_writer_is_local_deterministic_utf8(tmp_path):
+    from flir_pipeline.detection.final_report import write_payload as report_writer
+
+    path, other = tmp_path / "compact.json", tmp_path / "report.json"
+    write_payload(path, {"z": "café", "a": [1, None]})
+    first = path.read_bytes()
+    write_payload(path, {"a": [1, None], "z": "café"})
+    assert path.read_bytes() == first == '{"a":[1,null],"z":"café"}\n'.encode()
+    report_writer(other, {"z": "café", "a": [1, None]})
+    assert json.loads(other.read_bytes()) == json.loads(first)
+    assert len(other.read_bytes()) > len(first)
 
 
 def test_manual_review_requires_source_map(review_template):
