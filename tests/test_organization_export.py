@@ -20,8 +20,21 @@ from flir_pipeline.detection.final_report import write_payload
 from flir_pipeline.explorer import organization
 from flir_pipeline.explorer.discovery import read_json, sha256
 from flir_pipeline.explorer.organization_contract import OrganizationExport, schema
-from flir_pipeline.explorer.organization_sources import Sources
-from flir_pipeline.sequences.experiments.artifacts import binding, publish
+from flir_pipeline.explorer.organization_sources import (
+    CandidateEvidence,
+    Sources,
+    _occurrence_binding,
+    experimental_candidates,
+    load_candidates,
+)
+from flir_pipeline.sequences.experiments.artifacts import (
+    binding,
+    inspect,
+    publish,
+)
+from flir_pipeline.sequences.experiments.artifacts import (
+    tables as artifact_tables,
+)
 from flir_pipeline.similarity.storage import stable_id
 from flir_pipeline.splitting.base import SplitConfig, identity_payload, split_space_id
 
@@ -920,4 +933,216 @@ def test_frozen_contract_rejects_speculative_or_incomplete_evidence(
     else:
         config["full_clustering_artifact_available"] = True
     with pytest.raises(ValueError):
+        OrganizationExport.model_validate(data)
+
+
+@pytest.mark.parametrize("reserialized", [False, True])
+def test_sequence_manifest_reserialization_export_provenance_and_determinism(
+    evidence, reserialized
+):
+    args, manifest, _, structure, recurrence = evidence
+    historical = sha256(args["manifest_path"])
+    if reserialized:
+        manifest.to_parquet(args["manifest_path"], index=False, compression="gzip")
+    current = sha256(args["manifest_path"])
+    assert (historical != current) is reserialized
+    before = {
+        key: snapshot(args[key])
+        for key in ("plan_directory", "split_root", "clustering_root", "linkage_root")
+    }
+    manifest_before = (current, args["manifest_path"].stat().st_mtime_ns)
+    organization.export_organization(**args)
+    data = payload(args)
+    ids = {inspect(p)["artifact_id"] for p in (structure, recurrence)}
+    receipts = [
+        s for s in data["manifest"]["evidence_sources"] if s["artifact_id"] in ids
+    ]
+    assert len(receipts) == 2
+    for receipt in receipts:
+        assert receipt["labeled_manifest_binding"] == {
+            "historical_manifest_sha256": historical,
+            "current_manifest_sha256": current,
+            "exact_occurrence_binding_verified": True,
+            "source_manifest_reserialized": reserialized,
+        }
+        assert "occurrences.parquet" in receipt["output_checksums"]
+    assert (
+        any(
+            "sequence evidence sources recorded" in s
+            for s in data["manifest"]["limitations"]
+        )
+        is reserialized
+    )
+    Draft202012Validator(schema()).validate(data)
+    scientific = {
+        p.name: p.read_bytes()
+        for p in args["output"].glob("*.json")
+        if p.name != "manifest.json"
+    }
+    organization.export_organization(**args)
+    assert scientific == {
+        p.name: p.read_bytes()
+        for p in args["output"].glob("*.json")
+        if p.name != "manifest.json"
+    }
+    assert (
+        data["manifest"]["evidence_sources"]
+        == payload(args)["manifest"]["evidence_sources"]
+    )
+    assert before == {key: snapshot(args[key]) for key in before}
+    assert manifest_before == (
+        sha256(args["manifest_path"]),
+        args["manifest_path"].stat().st_mtime_ns,
+    )
+
+
+@pytest.mark.parametrize("reserialized", [False, True])
+def test_sequence_manifest_opt_in_preserves_default_and_global_checks(
+    evidence, reserialized
+):
+    args, manifest, _, structure, recurrence = evidence
+    if reserialized:
+        manifest.to_parquet(args["manifest_path"], index=False, compression="gzip")
+    digest = sha256(args["manifest_path"])
+    meta = inspect(structure)
+    frame = artifact_tables(structure)["occurrences"]
+    signature = meta["identity"]["sources"]["input"]
+    calls = [
+        lambda: _occurrence_binding(frame, manifest, signature, digest),
+        lambda: experimental_candidates(
+            structure,
+            manifest,
+            digest,
+            Sources(),
+            CandidateEvidence(),
+            [structure, recurrence],
+        ),
+        lambda: load_candidates(
+            [args["linkage_root"]], args["manifest_path"], manifest, Sources()
+        ),
+    ]
+    for call in calls:
+        if reserialized:
+            with pytest.raises(ValueError, match="different manifest"):
+                call()
+        else:
+            call()
+    result = load_candidates(
+        [args["linkage_root"]],
+        args["manifest_path"],
+        manifest,
+        Sources(),
+        allow_labeled_manifest_reserialization=True,
+    )
+    assert result.groups
+    # The scientific inspector still requires exact source signatures.
+    current_sources = copy.deepcopy(meta["identity"]["sources"])
+    current_sources["input"]["checksums"]["manifest_sha256"] = digest
+    if reserialized:
+        with pytest.raises(ValueError, match="not bound"):
+            inspect(structure, sources=current_sources)
+    else:
+        inspect(structure, sources=current_sources)
+
+
+@pytest.mark.parametrize("kind", ["structure", "recurrence"])
+@pytest.mark.parametrize(
+    "failure,message",
+    [
+        ("dataset", "different manifest"),
+        ("unknown_frame", "unknown/duplicate"),
+        ("content", "content mapping changed"),
+        ("timeline", "timeline differs"),
+        ("position", "positions differ"),
+        ("duplicate", "unknown/duplicate"),
+    ],
+)
+def test_sequence_reserialization_binding_mismatches_fail_closed(
+    evidence, kind, failure, message
+):
+    args, manifest, _, structure, recurrence = evidence
+    manifest.to_parquet(args["manifest_path"], index=False, compression="gzip")
+    original = structure if kind == "structure" else recurrence
+    meta = inspect(original)
+    tables = artifact_tables(original)
+    sources = copy.deepcopy(meta["identity"]["sources"])
+    frame = tables["occurrences"].copy()
+    if failure == "dataset":
+        sources["input"]["dataset_id"] = "different-dataset"
+    elif failure == "unknown_frame":
+        frame.loc[0, "frame_id"] = "unknown"
+    elif failure == "content":
+        frame.loc[0, "content_id"] = "different-content"
+    elif failure == "timeline":
+        frame.loc[0, "timeline_id"] = "different-timeline"
+    elif failure == "position":
+        frame.loc[0, "position"] += 1
+    else:
+        frame = pd.concat([frame, frame.iloc[:1]], ignore_index=True)
+    tables["occurrences"] = frame
+    # Fresh immutable synthetic publications pass inspection; failure must be
+    # the semantic binding, not an intentionally stale artifact checksum.
+    changed = publish(
+        args["output"].parent / "changed",
+        meta["artifact_kind"],
+        meta["identity"]["config"],
+        sources,
+        tables,
+        {},
+    )
+    inspect(changed)
+    roots = [changed] if kind == "structure" else [changed, structure]
+    with pytest.raises(ValueError, match=message):
+        load_candidates(
+            roots,
+            args["manifest_path"],
+            manifest,
+            Sources(),
+            allow_labeled_manifest_reserialization=True,
+        )
+
+
+@pytest.mark.parametrize("kind", ["structure", "recurrence"])
+@pytest.mark.parametrize("file", ["occurrences.parquet", "receipt.json"])
+def test_sequence_reserialization_never_bypasses_artifact_integrity(
+    evidence, kind, file
+):
+    args, manifest, _, structure, recurrence = evidence
+    manifest.to_parquet(args["manifest_path"], index=False, compression="gzip")
+    directory = structure if kind == "structure" else recurrence
+    if file == "receipt.json":
+        write_payload(directory / file, {"metadata_sha256": "0" * 64})
+    else:
+        with (directory / file).open("ab") as stream:
+            stream.write(b"corrupt")
+    with pytest.raises(ValueError, match="checksum|receipt|Modified artifact file"):
+        organization.export_organization(**args)
+
+
+def test_sequence_normalized_occurrences_do_not_claim_full_table_identity(evidence):
+    args, manifest, _, structure, _ = evidence
+    meta = inspect(structure)
+    tables = artifact_tables(structure)
+    tables["occurrences"] = tables["occurrences"][
+        ["frame_id", "content_id", "timeline_id", "position"]
+    ]
+    normalized = publish(
+        args["output"].parent / "normalized",
+        meta["artifact_kind"],
+        meta["identity"]["config"],
+        meta["identity"]["sources"],
+        tables,
+        {},
+    )
+    manifest.to_parquet(args["manifest_path"], index=False, compression="gzip")
+    organization.export_organization(**{**args, "linkage_root": normalized})
+    data = payload(args)
+    receipt = next(
+        s
+        for s in data["manifest"]["evidence_sources"]
+        if s["artifact_id"] == normalized.name
+    )
+    receipt["labeled_manifest_binding"].pop("exact_occurrence_binding_verified")
+    receipt["labeled_manifest_binding"]["exact_tabular_identity_verified"] = True
+    with pytest.raises(ValueError, match="verification scope"):
         OrganizationExport.model_validate(data)

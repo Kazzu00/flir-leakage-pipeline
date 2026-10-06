@@ -206,6 +206,14 @@ def test_reserialization_remains_opt_in_for_candidate_and_review_readers(
         load_candidate_context(paths.linkage, current, paths.sequence_set)
     with pytest.raises(ValueError, match="Labeled manifest differs"):
         load_linkage_context(replace(paths, labeled_manifest=current))
+    with pytest.raises(ValueError, match="Labeled manifest differs"):
+        load_candidates(
+            [paths.linkage],
+            current,
+            pd.read_parquet(current),
+            Sources(),
+            sequence_root=paths.sequence_set,
+        )
 
 
 @pytest.mark.parametrize(
@@ -255,6 +263,7 @@ def test_organization_reserialization_rejects_any_tabular_change(
             manifest,
             Sources(),
             sequence_root=paths.sequence_set,
+            allow_labeled_manifest_reserialization=True,
         )
 
 
@@ -306,7 +315,14 @@ def test_reserialization_keeps_publication_dataset_and_sequence_checks(
         with target.open("ab") as stream:
             stream.write(b"changed")
     with pytest.raises((ValueError, AssertionError)):
-        load_candidates([linkage], current, manifest, Sources(), sequence_root=sequence)
+        load_candidates(
+            [linkage],
+            current,
+            manifest,
+            Sources(),
+            sequence_root=sequence,
+            allow_labeled_manifest_reserialization=True,
+        )
 
 
 @pytest.mark.parametrize(

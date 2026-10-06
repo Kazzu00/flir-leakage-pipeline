@@ -701,6 +701,7 @@ def export_organization(
         sources,
         sequence_root=sequence_root,
         review_source_map=review_source_map,
+        allow_labeled_manifest_reserialization=True,
     )
     # Review source maps can add protected files outside the explicit CLI roots.
     destinations(output, media_output, [*protected, *sources.files], include_previews)

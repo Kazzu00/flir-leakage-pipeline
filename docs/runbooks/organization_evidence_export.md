@@ -12,8 +12,9 @@ la misma tabla. Para la presentación de candidatos etiquetado→video, organiza
 activa explícitamente `allow_labeled_manifest_reserialization=True` en
 `load_candidate_context()`. El valor por defecto es false: los lectores de
 linkage/revisión conservan su requisito de checksum original y sus firmas previas.
-La opción no se propaga a la verificación de revisiones manuales ni a otros
-adaptadores de evidencia.
+`load_candidates()` también conserva el valor por defecto false; únicamente
+`export_organization()` activa la opción, que se transmite a los lectores
+compatibles. No se propaga a la verificación de revisiones manuales.
 
 Un checksum distinto solo se acepta cuando la tabla actual completa, ordenada por
 `frame_id` y con índice reiniciado, pasa el `pd.testing.assert_frame_equal` existente
@@ -30,7 +31,8 @@ En `manifest.evidence_sources`, cada fuente `labeled_video_link_candidates` incl
 `current_manifest_sha256`, `exact_tabular_identity_verified=true` y
 `source_manifest_reserialized`. Esta última bandera es true exactamente cuando
 los dos hashes difieren; el hash actual debe coincidir con el manifest del export.
-Para otras fuentes el campo es null. Si se activa la compatibilidad, las
+Para secuencias experimentales se usa el alcance más limitado descrito abajo;
+para las demás fuentes el campo es null. Si se activa la compatibilidad, las
 limitaciones del export explican la diferencia de serialización y la igualdad
 tabular/del dataset verificada. No se cambia ni se recupera el dataset, no se
 reescribe metadata y no se genera un Parquet sustituto.
@@ -39,6 +41,33 @@ El responsable reportó igualdad tabular exacta en una comparación controlada e
 Hypatia. Ese resultado motiva esta compatibilidad, pero no sustituye las
 verificaciones durante cada export ni demuestra que el export real haya terminado.
 Los hashes y conteos de esa observación no forman parte de la implementación.
+
+## Manifest reserializado y evidencia experimental de secuencias
+
+El exportador de organización también puede aceptar un SHA de manifest distinto
+en `sequence_structure_review_v1` y `sequence_recurrence_v1`. Los lectores
+`load_candidates()`, `experimental_candidates()` y `_occurrence_binding()` son
+estrictos por defecto. La compatibilidad exige igualdad de dataset_id, inspección
+inmutable normal del artefacto (identidad, receipt, checksums e identidad lógica
+de tablas) y todas las verificaciones existentes de ocurrencias: frame_id único
+y conocido, content_id exacto, timeline de linaje de filename autoritativo y
+posición almacenada exacta. La única discrepancia tolerada es el SHA del manifest.
+Se conservan también la referencia exacta de recurrencia a estructura y las
+verificaciones de productores nativos cuando existen.
+
+Estas fuentes pueden almacenar solo una representación normalizada o un
+subconjunto de ocurrencias. Por ello, su `labeled_manifest_binding` declara
+`exact_occurrence_binding_verified=true`, ambos SHA y
+`source_manifest_reserialized` según su diferencia. **No** declara
+`exact_tabular_identity_verified`: ese alcance más fuerte corresponde a linkage.
+El contrato rechaza intercambiar los dos tipos de verificación. Una limitación
+explícita del export documenta el cambio de bytes de serialización y la igualdad
+verificada del dataset y de todos los vínculos de ocurrencia/contenido/tiempo.
+
+La inspección científica global de secuencias y sus firmas de fuentes permanecen
+estrictas respecto a bytes. No se cambia el pipeline experimental, no se reescribe
+ninguna fuente y no se genera un manifest sustituto. La validación real comunicada
+por el responsable en Hypatia no certifica el éxito del export de este cambio.
 
 ## Membresía congelada cuando falta la publicación original
 
@@ -298,6 +327,23 @@ bytes upstream y entorno, los JSON científicos son byte-estables salvo
 entorno Pillow. No se garantiza igualdad binaria entre versiones de codecs.
 
 ## Validación local
+
+Compatibilidad de secuencias experimentales (2026-10-05): **112 passed** en
+`tests/test_organization_export.py` y `tests/test_organization_linkage.py`
+(215.82 s), incluidas 21 pruebas nuevas de vinculación de ocurrencias;
+**74 passed** en `tests/test_sequence_experiments.py`,
+`tests/test_sequence_experiment_review.py` y `tests/test_native_sequence_evidence.py`
+(141.46 s). Cubren modo estricto/opt-in, ambos tipos de evidencia, procedencia con
+alcance preciso, cambios de dataset/frame/content/timeline/posición, duplicados,
+corrupción, determinismo y fuentes intactas. Ruff global y checks de diff pasan.
+Se usó `.venv-review` con las variables offline de los comandos siguientes.
+No se ejecutó el export real de Hypatia ni se modificaron sus fuentes.
+
+Suite completa de este cambio: **916 passed**, **40 warnings** preexistentes,
+1200.16 s. Se ejecutó `uv run --no-sync python -m pytest -q --basetemp $validationTemp`
+con `$validationTemp = 'C:/flir-seq-full-' + [guid]::NewGuid().ToString('N').Substring(0,8)`
+y las variables offline indicadas abajo. Los warnings proceden de
+`clustering/selection.py` y `detection/association.py`, sin modificaciones.
 
 Compatibilidad de reserialización (2026-10-05): **21 passed** en los tests nuevos
 focalizados; **91 passed** en organización/linkage (178.80 s); **97 passed** en

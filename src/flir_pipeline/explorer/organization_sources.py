@@ -305,10 +305,22 @@ class CandidateEvidence:
     limitations: list[str] = field(default_factory=list)
 
 
-def _occurrence_binding(frame, manifest, signature, manifest_digest):
-    if (
-        signature["dataset_id"] != dataset_id_from_manifest(manifest)
-        or signature["checksums"]["manifest_sha256"] != manifest_digest
+def _occurrence_binding(
+    frame,
+    manifest,
+    signature,
+    manifest_digest,
+    *,
+    allow_labeled_manifest_reserialization=False,
+):
+    """Bind every stored occurrence; presentation may tolerate only the file SHA.
+
+    This checks a normalized occurrence representation, not full manifest table
+    identity. Scientific callers retain the original byte-strict default.
+    """
+    if signature["dataset_id"] != dataset_id_from_manifest(manifest) or (
+        signature["checksums"]["manifest_sha256"] != manifest_digest
+        and not allow_labeled_manifest_reserialization
     ):
         raise ValueError("Candidate evidence belongs to a different manifest")
     if not frame.frame_id.is_unique or not set(frame.frame_id) <= set(
@@ -341,7 +353,14 @@ def _occurrence_binding(frame, manifest, signature, manifest_digest):
 
 
 def experimental_candidates(
-    directory, manifest, manifest_digest, sources, result, directories
+    directory,
+    manifest,
+    manifest_digest,
+    sources,
+    result,
+    directories,
+    *,
+    allow_labeled_manifest_reserialization=False,
 ):
     """Join stored component→core→content tables; never rebuild components."""
     from flir_pipeline.sequences.experiments.artifacts import inspect, tables
@@ -352,9 +371,30 @@ def experimental_candidates(
     data = tables(directory)
     aid = meta["artifact_id"]
     occurrence = data["occurrences"]
+    input_signature = meta["identity"]["sources"]["input"]
     _occurrence_binding(
-        occurrence, manifest, meta["identity"]["sources"]["input"], manifest_digest
+        occurrence,
+        manifest,
+        input_signature,
+        manifest_digest,
+        allow_labeled_manifest_reserialization=allow_labeled_manifest_reserialization,
     )
+    historical_digest = input_signature["checksums"]["manifest_sha256"]
+    sources.labeled_manifest_bindings[aid] = {
+        "historical_manifest_sha256": historical_digest,
+        "current_manifest_sha256": manifest_digest,
+        "exact_occurrence_binding_verified": True,
+        "source_manifest_reserialized": historical_digest != manifest_digest,
+    }
+    if historical_digest != manifest_digest:
+        limitation = (
+            "One or more sequence evidence sources recorded different serialized Parquet "
+            "bytes for the source manifest. Dataset identity and every stored occurrence, "
+            "content and temporal binding were verified against the current manifest. "
+            "This verifies exact occurrence binding, not full manifest table identity."
+        )
+        if limitation not in result.limitations:
+            result.limitations.append(limitation)
     if meta["artifact_kind"] == "sequence_structure_review_v1":
         native = meta["identity"]["sources"].get("native_producers", {})
         if native:
@@ -532,6 +572,7 @@ def load_candidates(
     *,
     sequence_root=None,
     review_source_map=None,
+    allow_labeled_manifest_reserialization=False,
 ):
     """Discover supported publications; unsupported completed evidence fails closed.
 
@@ -569,7 +610,13 @@ def load_candidates(
         seen.add(aid)
         if kind in {"sequence_recurrence_v1", "sequence_structure_review_v1"}:
             experimental_candidates(
-                directory, manifest, manifest_digest, sources, result, directories
+                directory,
+                manifest,
+                manifest_digest,
+                sources,
+                result,
+                directories,
+                allow_labeled_manifest_reserialization=allow_labeled_manifest_reserialization,
             )
         elif kind == ARTIFACT_KIND:
             if sequence_root is None:
@@ -591,9 +638,19 @@ def load_candidates(
                 directory,
                 manifest_path,
                 seq,
-                allow_labeled_manifest_reserialization=True,
+                allow_labeled_manifest_reserialization=allow_labeled_manifest_reserialization,
             )
-            binding = signature["labeled_manifest_binding"]
+            # A strict successful load also proves complete tabular identity;
+            # retain the shared loader's original signature in that mode.
+            historical_digest = meta["identity"]["sources"]["checksums"][
+                "labeled_manifest"
+            ]
+            binding = {
+                "historical_manifest_sha256": historical_digest,
+                "current_manifest_sha256": signature["labeled_manifest_sha256"],
+                "exact_tabular_identity_verified": True,
+                "source_manifest_reserialized": historical_digest != manifest_digest,
+            }
             sources.labeled_manifest_bindings[aid] = binding
             if binding["source_manifest_reserialized"]:
                 limitation = (

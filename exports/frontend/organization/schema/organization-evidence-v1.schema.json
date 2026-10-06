@@ -677,7 +677,7 @@
     "JsonValue": {},
     "LabeledManifestBinding": {
       "additionalProperties": false,
-      "description": "Distinguish serialization bytes from verified complete table identity.",
+      "description": "Linkage verifies the complete manifest table, including dtypes and values.",
       "properties": {
         "current_manifest_sha256": {
           "pattern": "^[0-9a-f]{64}$",
@@ -702,8 +702,8 @@
       "required": [
         "historical_manifest_sha256",
         "current_manifest_sha256",
-        "exact_tabular_identity_verified",
-        "source_manifest_reserialized"
+        "source_manifest_reserialized",
+        "exact_tabular_identity_verified"
       ],
       "title": "LabeledManifestBinding",
       "type": "object"
@@ -1531,6 +1531,39 @@
       "title": "Semantics",
       "type": "object"
     },
+    "SequenceManifestBinding": {
+      "additionalProperties": false,
+      "description": "Sequence evidence verifies its stored occurrence/content/temporal bindings.",
+      "properties": {
+        "current_manifest_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Current Manifest Sha256",
+          "type": "string"
+        },
+        "exact_occurrence_binding_verified": {
+          "const": true,
+          "title": "Exact Occurrence Binding Verified",
+          "type": "boolean"
+        },
+        "historical_manifest_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Historical Manifest Sha256",
+          "type": "string"
+        },
+        "source_manifest_reserialized": {
+          "title": "Source Manifest Reserialized",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "historical_manifest_sha256",
+        "current_manifest_sha256",
+        "source_manifest_reserialized",
+        "exact_occurrence_binding_verified"
+      ],
+      "title": "SequenceManifestBinding",
+      "type": "object"
+    },
     "Source": {
       "additionalProperties": false,
       "properties": {
@@ -1550,10 +1583,14 @@
               "$ref": "#/$defs/LabeledManifestBinding"
             },
             {
+              "$ref": "#/$defs/SequenceManifestBinding"
+            },
+            {
               "type": "null"
             }
           ],
-          "default": null
+          "default": null,
+          "title": "Labeled Manifest Binding"
         },
         "metadata_sha256": {
           "pattern": "^[0-9a-f]{64}$",
