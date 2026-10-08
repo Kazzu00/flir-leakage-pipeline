@@ -193,17 +193,25 @@ uv run --no-sync python -c "from flir_pipeline.cli import app; app()" `
   data video-variant-ingestion --help
 ```
 
-## Consumidores pendientes
+## Puente de features y consumidores pendientes
 
 `integrity_valid=true` no significa alineación verificada ni dataset listo para
 detector: `alignment_verified=false`, `labels_available=false`,
 `detector_ready=false`, `consumer_adapter_available=false` son explícitos.
 
-Los extractores y consumidores temporales actuales no se adaptaron. **No pasar
-este manifest a los comandos históricos de similarity, secuencias, clustering,
-splitting o detection**: no es `flir_video_samples_v1` ni grilla de muestreo
-verificada. El futuro puente de features debe resolver entradas por ledger,
-deduplicar solo por contenido y conservar cada ocurrencia.
+El lector multishard y el puente al motor existente de features están implementados
+y probados sintéticamente. `features extract --video-variant-ingestion` requiere
+el manifest original y un `--input-root` explícito. Verifica las fuentes antes
+de cargar el modelo, resuelve por ledger/ordinal, deduplica solo por contenido y
+conserva cada ocurrencia. Véanse los [comandos de smoke, resume y verificación](features.md#features-desde-publicaciones-multishard).
+La disponibilidad de este consumidor es estado del código; los flags, checksums
+y receipts de publicaciones de fases anteriores no se reescriben.
+
+Los consumidores temporales siguen pendientes. **No pasar este manifest a los
+comandos históricos de similarity, secuencias, clustering, splitting o detection**:
+no es `flir_video_samples_v1` ni grilla de muestreo verificada. La extracción real
+de embeddings de esta variante permanece pendiente; no se infiere eliminación
+completa del HUD a partir del nombre externo.
 
 Organización v2 tampoco incorpora automáticamente este kind mediante
 `--evidence-root`. Su extensión/versionado y el soporte multishard de previews

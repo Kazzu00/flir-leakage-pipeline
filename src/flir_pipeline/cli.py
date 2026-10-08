@@ -241,7 +241,9 @@ def _load_yaml_config(path: Path | None) -> dict:
         return {}
     import yaml
 
-    data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    data = yaml.safe_load(path.read_text(encoding="utf-8"))
+    if data is None:
+        return {}
     if not isinstance(data, dict):
         raise typer.BadParameter("Feature config must contain a YAML mapping.")
     return data
@@ -253,6 +255,8 @@ def _feature_extractor(
     from flir_pipeline.features.base import DeterministicFakeExtractor
 
     options = dict(config)
+    if not isinstance(name, str) or name not in {"fake", "dinov2", "clip"}:
+        raise typer.BadParameter("extractor must be fake, dinov2, or clip")
     options.pop("extractor", None)
     pooling_strategy = options.pop("pooling_strategy", None)
     feature_type = options.pop("feature_type", None)
@@ -269,6 +273,8 @@ def _feature_extractor(
         raise typer.BadParameter("CLIP currently supports pooling_strategy=projected_pooler_output")
     if device is not None:
         options["device"] = device
+    if options.get("device", "auto") not in ("cpu", "cuda", "auto"):
+        raise typer.BadParameter("device must be cpu, cuda, or auto")
     options["local_files_only"] = local_files_only
     if name == "fake":
         return DeterministicFakeExtractor(options.get("embedding_dimension", 8))
@@ -297,31 +303,61 @@ def features_extract(
     seed: int = typer.Option(0, help="Deterministic content sample seed."),
     local_files_only: bool = typer.Option(False, help="Do not access model downloads."),
     variant_spec: Path | None = typer.Option(None, help="Immutable dataset variant declaration; separate feature/cache namespace."),
+    video_variant_ingestion: Path | None = typer.Option(None, rich_help_panel="Video variant sources", help="Verified video_variant_ingestion_v1 publication; requires its original --manifest and explicit --input-root."),
+    input_root: Path | None = typer.Option(None, rich_help_panel="Video variant sources", help="Read-only original sources root for --video-variant-ingestion; no historical fallback."),
+    max_open_archives: int | None = typer.Option(None, min=1, rich_help_panel="Video variant sources", help="Maximum open ZIPs for --video-variant-ingestion (default: 8)."),
 ) -> None:
-    """Extract raw and L2 embeddings once per unique content_id."""
-    if images_archive is not None and images_root is not None:
-        raise typer.BadParameter("Use exactly one of --images-archive / --images-root.")
-    root = _default_root() if images_root is None and images_archive is None else None
+    """Extract raw and L2 embeddings once per unique content_id.
+
+    For multishard sources, use --video-variant-ingestion with --input-root.
+    """
+    if sum(source is not None for source in (images_archive, images_root, video_variant_ingestion)) > 1:
+        raise typer.BadParameter("Use exactly one of --images-archive / --images-root / --video-variant-ingestion.")
+    if video_variant_ingestion is None and (input_root is not None or max_open_archives is not None):
+        raise typer.BadParameter("--input-root and --max-open-archives require --video-variant-ingestion.")
+    if video_variant_ingestion is not None:
+        if not video_variant_ingestion.is_dir():
+            raise typer.BadParameter("--video-variant-ingestion must be an existing publication directory.")
+        if input_root is None or not input_root.is_dir():
+            raise typer.BadParameter("--video-variant-ingestion requires --input-root as an existing directory.")
+    root = _default_root() if images_root is None and images_archive is None and video_variant_ingestion is None else None
     resolved_archive = images_archive or (root / "Imagenes.zip" if root else None)
     if images_root is not None:
         if not images_root.is_dir():
             raise typer.BadParameter("--images-root must be an existing directory.")
-    elif resolved_archive is None or not resolved_archive.is_file():
+    elif video_variant_ingestion is None and (resolved_archive is None or not resolved_archive.is_file()):
         raise typer.BadParameter("Provide --images-archive, --images-root or set FLIR_DATA_ROOT.")
     if not manifest.is_file():
         raise typer.BadParameter("--manifest must be an existing Parquet file.")
-    settings = _load_yaml_config(config)
-    selected_name = settings.pop("extractor", extractor)
-    if batch_size is not None:
-        settings["batch_size"] = batch_size
-    selected_extractor = _feature_extractor(
-        selected_name, settings, device, local_files_only
-    )
-    if batch_size is None:
-        batch_size = int(settings.get("batch_size", 8))
+    import yaml
+
     from flir_pipeline.features.storage import extract_to_store
 
     try:
+        settings = _load_yaml_config(config)
+        selected_name = settings.pop("extractor", extractor)
+        if batch_size is not None:
+            settings["batch_size"] = batch_size
+        batch_size = settings.get("batch_size", 8)
+        if type(batch_size) is not int or batch_size < 1:
+            raise typer.BadParameter("batch_size in --config must be a positive integer.")
+
+        def build_extractor() -> "FeatureExtractor":
+            return _feature_extractor(selected_name, settings, device, local_files_only)
+
+        source_options = {}
+        if video_variant_ingestion is not None:
+            # Storage verifies publication/ZIPs before calling this factory, then
+            # retains the verified session through extraction and exception cleanup.
+            source_options = dict(
+                video_variant_ingestion=video_variant_ingestion,
+                input_root=input_root,
+                max_open_archives=max_open_archives if max_open_archives is not None else 8,
+                extractor_factory=build_extractor,
+            )
+            selected_extractor = None
+        else:
+            selected_extractor = build_extractor()
         feature_dir = extract_to_store(
             manifest,
             resolved_archive,
@@ -332,8 +368,9 @@ def features_extract(
             seed=seed,
             images_root=images_root,
             variant_spec=variant_spec,
+            **source_options,
         )
-    except (ValueError, OSError, RuntimeError) as error:
+    except (ValueError, OSError, RuntimeError, TypeError, KeyError, yaml.YAMLError) as error:
         typer.echo(f"Feature extraction failed: {error}", err=True)
         raise typer.Exit(1) from error
     typer.echo(f"Features written to {feature_dir}")

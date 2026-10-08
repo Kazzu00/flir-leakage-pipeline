@@ -8,9 +8,21 @@ variant declaration when possible → immutable `video_variant_ingestion_v1`.
 Candidate video/time rules and externally reported observations remain separate
 tables with no verified native index or timestamp. Standalone verification rebuilds
 the derived identities/QA; source-bound verification additionally replays input
-checksums and PNG inspection. Features and frontend consumer bridges remain
-pending; this branch creates no groups, partitions or detector metrics.
-See the [runbook](runbooks/video_variant_ingestion.md).
+checksums and PNG inspection.
+
+Verified publication + original scientific manifest + explicit input root →
+`VideoVariantImages` / `ImageSource.from_video_variant` → the existing feature
+engine, via CLI `features extract --video-variant-ingestion` → one raw/L2 row
+per content and all occurrence mappings → source-bound checkpoint/final cache.
+`video_variant_feature_source_v1` keeps artifact/receipt/source fingerprints
+separate from dataset and mathematical feature-space identity. Model construction
+is deferred until source validation succeeds, with one verified ZIP session.
+The CLI bridge is validated with synthetic CPU extractors. Earlier phases validated
+a bounded real read; real variant embeddings and downstream scientific experiments
+remain pending. No labels, capture timestamps, sequences, partitions or detector
+metrics are inferred. Frontend and further consumer bridges remain pending.
+See the [ingestion runbook](runbooks/video_variant_ingestion.md) and
+[multishard features](runbooks/features.md#features-desde-publicaciones-multishard).
 
 ## Frozen membership provenance (2026-10-05)
 

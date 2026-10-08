@@ -6,9 +6,13 @@
 image variants directly from ZIP shards with bounded reads and immutable evidence.
 Scientific occurrence IDs survive unambiguous repackaging; duplicate indices
 remain conflicts. Alignment is candidate-only and the historical labeled universe
-stays separate. Available with synthetic offline validation; real ingestion and
-downstream consumers remain pending. See the
-[variant ingestion runbook](docs/runbooks/video_variant_ingestion.md).
+stays separate. A real ingestion publication is available locally; bounded reads
+were validated in earlier phases. `features extract --video-variant-ingestion`
+now uses that ledger through the existing feature engine, with explicit
+`--input-root`, source-bound checkpoints and synthetic offline CLI validation.
+Real embeddings of this variant and subsequent scientific experiments remain
+pending. See the [variant ingestion runbook](docs/runbooks/video_variant_ingestion.md)
+and [multishard feature commands](docs/runbooks/features.md#features-desde-publicaciones-multishard).
 
 `flir-pipeline explorer export-organization` exports existing frozen M02
 record/content, split, clustering, candidate pairs and grouped evidence through

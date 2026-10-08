@@ -2,7 +2,8 @@
 
 ## Ingesta de variantes visuales externas (2026-10-08)
 
-**Infraestructura implementada; ingesta real y alineación exhaustiva pendientes.**
+**Ingesta real disponible localmente; puente de features implementado y validado
+con datos sintéticos; embeddings reales de la variante y alineación pendientes.**
 `data video-variant-ingestion build/verify/summary` publica
 `video_variant_ingestion_v1` mediante staging, checksum receipts y un escritor
 exclusivo. La lectura multishard acotada conserva cada entrada física, mientras
@@ -10,13 +11,34 @@ el manifest científico y las identidades existentes son independientes del
 empaquetado para observaciones atribuibles. Índices repetidos permanecen ambiguos
 y bloquean ese manifest, sin perder entradas ni inventar IDs.
 
-La evidencia temporal es exclusivamente candidata/reportada. No hay labels,
-alineación verificada, secuencias, splits, entrenamiento, modificación de
-extractores ni export nuevo. La variante real `hud_reduced` no fue ingerida.
-Validación: **60 passed** en pruebas nuevas y **60 passed** en regresión de datos
+Una publicación real local contiene 19.800 PNG repartidos entre seis ZIP.
+Las fases previas validaron una lectura puntual de tres ocurrencias en tres
+shards, sin verificar exhaustivamente todas las imágenes. El nombre externo
+`hud_reduced` no demuestra eliminación completa del HUD. No hay anotaciones YOLO
+ni correspondencia temporal exacta verificada; esta población sigue separada
+del universo histórico etiquetado.
+
+Las fases 1/2A/2B.1 añadieron lector multishard, factoría de fuentes y binding
+`video_variant_feature_source_v1` al motor existente. La fase 2B.2 añade opciones
+al mismo `features extract`, exige publicación/manifest original/input-root y
+difiere la construcción del modelo hasta verificar fuentes. Selección por contenido,
+mapping completo y procedencia física conservan las identidades científicas.
+La validación es offline/sintética con constructores simulados; no se ejecutaron
+modelos reales ni nuevos embeddings de esta variante. La fase 2B.1 pasó 255
+pruebas focalizadas. En 2B.2, **253 passed** (55 casos nuevos y 198 regresiones)
+en 247,76 s, más **1 passed** de regresión del consumidor CLI de configuración
+de similarity en 3,61 s. Ruff sobre los archivos Python modificados/nuevos,
+ayuda CLI y diff checks aprobaron. La suite global no se revalidó: los 34 fallos locales de
+organización y el incidente ambiental de DLL previos no se corrigieron aquí.
+Véanse [uso y límites de features](runbooks/features.md#features-desde-publicaciones-multishard).
+
+La evidencia temporal es exclusivamente candidata/reportada. No se crean labels,
+alineación verificada, secuencias, splits, entrenamiento ni exports nuevos, y los
+extractores matemáticos permanecen intactos.
+Validación inicial de ingesta: **60 passed** en pruebas nuevas y **60 passed** en regresión de datos
 relacionada (identidad, inventario, manifest histórico y muestreo mock), sin
-modelos ni datos reales. Ruff global, formato de archivos nuevos, ayuda CLI y
-`git diff --check` aprobados. No se ejecutó la suite completa. Véanse
+modelos ni datos reales. En esa fase aprobaron Ruff global, formato de archivos
+nuevos, ayuda CLI y `git diff --check`; no se ejecutó la suite completa. Véanse
 [contrato, límites y comandos](runbooks/video_variant_ingestion.md).
 
 ## Organización v2: pares normalizados (2026-10-05)

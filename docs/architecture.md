@@ -370,6 +370,28 @@ Neither this bridge nor the numerical feature adapters infer video sequences,
 create labels or define partitions. Existing ZIP-based diagnostics, image reports
 and explorers have not been extended to local video images.
 
+## External-variant multishard feature bridge
+
+The external-variant feature bridge additionally accepts
+`--video-variant-ingestion` with its original manifest and explicit `--input-root`.
+`ImageSource.from_video_variant` delegates occurrence lookup and bounded ordinal
+ZIP reads to `data/VideoVariantImages`. `features/source_binding.py` reuses ingestion
+inspection and the authoritative variant declaration; its versioned binding
+belongs to the cache/checkpoint signature, never the mathematical feature space.
+The existing storage engine preserves every scientific occurrence plus physical
+provenance, selecting one representative per content with a frame_id tie-break.
+Historical folder/ZIP selection and store format retain their existing behavior.
+
+An optional `extractor_factory` in `extract_to_store` lets the CLI defer model
+initialization until the existing backend has verified publication and originals.
+The verified ZIP session is retained through model construction and extraction;
+SHA256 is not repeated for each image or batch. ZIP/memmap resources close on
+errors. Internal store verification checks stored binding/index integrity; source
+verification occurs on extraction/resume/reuse. Repackaging changes the binding
+and rejects an existing checkpoint/cache without changing scientific or encoder
+space identity. This bridge has synthetic validation, not a real embedding run.
+See the [feature runbook](runbooks/features.md#features-desde-publicaciones-multishard).
+
 ## Video similarity and downstream boundary
 
 Video similarity uses `data/video_temporal.py` for an explicit grid audit and
