@@ -1,5 +1,24 @@
 # Project status
 
+## Ingesta de variantes visuales externas (2026-10-08)
+
+**Infraestructura implementada; ingesta real y alineación exhaustiva pendientes.**
+`data video-variant-ingestion build/verify/summary` publica
+`video_variant_ingestion_v1` mediante staging, checksum receipts y un escritor
+exclusivo. La lectura multishard acotada conserva cada entrada física, mientras
+el manifest científico y las identidades existentes son independientes del
+empaquetado para observaciones atribuibles. Índices repetidos permanecen ambiguos
+y bloquean ese manifest, sin perder entradas ni inventar IDs.
+
+La evidencia temporal es exclusivamente candidata/reportada. No hay labels,
+alineación verificada, secuencias, splits, entrenamiento, modificación de
+extractores ni export nuevo. La variante real `hud_reduced` no fue ingerida.
+Validación: **60 passed** en pruebas nuevas y **60 passed** en regresión de datos
+relacionada (identidad, inventario, manifest histórico y muestreo mock), sin
+modelos ni datos reales. Ruff global, formato de archivos nuevos, ayuda CLI y
+`git diff --check` aprobados. No se ejecutó la suite completa. Véanse
+[contrato, límites y comandos](runbooks/video_variant_ingestion.md).
+
 ## Organización v2: pares normalizados (2026-10-05)
 
 El responsable comunica un export v1 real completado en Hypatia; no se revalidó

@@ -1,5 +1,17 @@
 # Pipeline traceability
 
+## External visual variants (2026-10-08)
+
+Explicit YAML + read-only ZIP/video inputs → checksummed physical entry ledger →
+per-series observed-index audit → attributable scientific manifest and existing
+variant declaration when possible → immutable `video_variant_ingestion_v1`.
+Candidate video/time rules and externally reported observations remain separate
+tables with no verified native index or timestamp. Standalone verification rebuilds
+the derived identities/QA; source-bound verification additionally replays input
+checksums and PNG inspection. Features and frontend consumer bridges remain
+pending; this branch creates no groups, partitions or detector metrics.
+See the [runbook](runbooks/video_variant_ingestion.md).
+
 ## Frozen membership provenance (2026-10-05)
 
 Frozen plan → every selected verified split → checksum-bound `source_groups`

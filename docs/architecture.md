@@ -1,5 +1,23 @@
 # Architecture
 
+## External visual-variant ingestion (2026-10-08)
+
+`data/video_variant_contract.py` defines explicit logical collections/series,
+physical inputs, resource budgets and candidate-only temporal evidence.
+`zip_image_collection.py` reads exact ZipInfo entries without extracting archives;
+`video_variant_ingestion.py` preserves their full ledger and derives logical
+identities/index QA. `video_variant_storage.py` verifies staged immutable
+publications and optionally replays original sources; a small CLI registers under
+`data video-variant-ingestion`.
+
+The scientific manifest excludes storage references so unambiguous repackaging
+preserves its identities and checksum. Duplicate named observations are retained
+physically but cannot satisfy the existing unique/non-null frame contract; the
+whole scientific manifest/variant is withheld until identity is resolved.
+Existing dataset identity and `dataset_variant_v1` are reused unchanged.
+This preparation branch does not adapt features, temporal consumers, organization
+v2 or clustering contracts. See the [runbook](runbooks/video_variant_ingestion.md).
+
 ## Frozen organization membership evidence (2026-10-05)
 
 `ClusterEvidence` separates stored membership from an optional full `ClusterData`.

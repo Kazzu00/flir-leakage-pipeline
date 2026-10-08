@@ -1,5 +1,23 @@
 # Design decisions
 
+## 2026-10-08: scientific occurrence identity independent of ZIP packaging
+
+External processed-frame ingestion separates exact image SHA256, named logical
+observation, attributable scientific occurrence and physical ZIP-entry identity.
+The scientific ID includes collection/series/index and image bytes, never shard
+names/checksums/positions. The scientific manifest has no physical locators;
+repackaging changes the source-bound artifact but preserves the tested scientific
+manifest, dataset and variant identity. No native video-frame identity is inferred.
+
+Repeated indices cannot establish distinct scientific occurrences without an
+additional observation discriminator. Every physical entry survives; ambiguous
+frame IDs stay null and the existing unique/non-null manifest contract is not
+weakened. Such audits withhold the scientific manifest and `dataset_variant_v1`
+declaration rather than invent IDs or choose representatives. Corrupt but readable
+image bytes retain exact identity with failed decode QA. Candidate timing and
+reported manual observations never establish verified alignment or detector
+readiness. See the [identity recipes and limits](runbooks/video_variant_ingestion.md).
+
 ## 2026-10-05: normalized candidate edges in organization-evidence-v2
 
 A stored labeled/video candidate is an edge between exact content identities,

@@ -3,7 +3,11 @@
 `embeddings/*.yaml`, `similarity/*.yaml`, `reduction/*.yaml` and
 `clustering/*_research.yaml` and `splits/*.yaml` are executable configurations.
 `detection/yolo11n.yaml` configures the implemented detector protocol.
-Data preparation uses CLI options; no empty configuration boundary is advertised.
+Video sampling uses CLI options. External visual-variant ingestion uses
+[`data/video_variant_ingestion.example.yaml`](data/video_variant_ingestion.example.yaml)
+for explicit series/shards, transformation declarations, candidate timing and
+resource limits. It is a generic example, not a real-data execution record;
+see the [runbook](../docs/runbooks/video_variant_ingestion.md).
 
 | File | Purpose | Model | Device / batch |
 |---|---|---|---|
