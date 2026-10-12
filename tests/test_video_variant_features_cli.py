@@ -9,10 +9,13 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import pytest
+import typer.rich_utils
 import yaml
+from rich.text import Text
 from test_video_variant_images import assert_closed, frames, png, snapshot
 from test_video_variant_images import handles as handles
 from test_video_variant_images import publish as publish
+from typer.main import get_command
 from typer.testing import CliRunner
 
 import flir_pipeline.cli as cli
@@ -225,11 +228,23 @@ def test_configured_model_cli_matches_programmatic_engine_and_preserves_inputs(
     assert (snapshot(root), snapshot(publication)) == original
 
 
-def test_cli_help_documents_new_options_without_loading_models(simulated_models):
+def test_cli_help_documents_new_options_without_loading_models(
+    simulated_models, monkeypatch
+):
+    # Rich may force ANSI in CI despite color=False and truncate narrow tables.
+    monkeypatch.setenv("TERM", "xterm")
+    monkeypatch.setattr(typer.rich_utils, "MAX_WIDTH", 120)
     result = CliRunner().invoke(cli.app, ["features", "extract", "--help"], color=False)
-    assert result.exit_code == 0
+    assert result.exit_code == 0, result.output
+    help_text = Text.from_ansi(result.output).plain
+    command = get_command(cli.app).commands["features"].commands["extract"]
+    visible_options = {
+        opt for param in command.params if not param.hidden for opt in param.opts
+    }
     for name in ("video-variant-ingestion", "input-root", "max-open-archives"):
-        assert name in result.output
+        # A mention in prose alone must not mask a missing or hidden option.
+        assert f"--{name}" in visible_options
+        assert f"--{name}" in help_text
     assert not simulated_models["constructed"]
 
 
