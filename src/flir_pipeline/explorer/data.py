@@ -51,6 +51,8 @@ def load_split(run: Run, manifest: pd.DataFrame) -> SplitData:
     records = pd.read_parquet(checked_file(run, "record_split_assignments.parquet"))
     groups = pd.read_parquet(checked_file(run, "source_groups.parquet"))
     checked_file(run, "quality.json")
+    if not {"content_id", "group_id", "group_type", "cluster_id"} <= set(groups):
+        raise ValueError("Missing required source_groups column")
     if (not records.frame_id.is_unique or set(records.frame_id) != set(manifest.frame_id)
             or not records.new_split.isin(SPLITS).all() or not groups.content_id.is_unique
             or set(groups.content_id) != set(manifest.content_id) or groups.group_id.isna().any()):
@@ -86,19 +88,24 @@ def with_split(cluster: ClusterData, split: SplitData | None) -> tuple[pd.DataFr
         actual = split.groups.set_index("content_id").loc[contents.content_id, "cluster_id"]
         if not np.array_equal(actual.to_numpy(), contents.cluster_id.to_numpy()):
             raise ValueError("Source cluster memberships differ")
-        noise = split.groups.loc[split.groups.cluster_id.eq(-1)]
-        group_sizes = split.groups.groupby("group_id").size()
-        if (noise.group_id.duplicated().any() or not noise.group_type.eq("noise_singleton").all()
-                or noise.group_id.map(group_sizes).ne(1).any()):
-            raise ValueError("Noise must remain singleton without invented clusters")
-        memberships = split.records.merge(split.groups[["content_id", "cluster_id"]], on="content_id", validate="many_to_one")
-        if memberships.loc[memberships.cluster_id.ge(0)].groupby("cluster_id").new_split.nunique().gt(1).any():
-            raise ValueError("Cluster-aware split fractures a non-noise cluster")
+        validate_cluster_split(split)
     records = records.merge(split.records[["frame_id", "new_split"]], on="frame_id", validate="one_to_one")
     memberships = records.groupby("content_id").new_split.agg(lambda x: tuple(s for s in SPLITS if s in set(x)))
     contents["new_splits"] = contents.content_id.map(memberships)
     contents = contents.merge(split.groups[["content_id", "group_id", "group_type"]], on="content_id", validate="one_to_one")
     return contents, records
+
+
+def validate_cluster_split(split: SplitData) -> None:
+    """Check stored cluster indivisibility independently of upstream availability."""
+    noise = split.groups.loc[split.groups.cluster_id.eq(-1)]
+    group_sizes = split.groups.groupby("group_id").size()
+    if (noise.group_id.duplicated().any() or not noise.group_type.eq("noise_singleton").all()
+            or noise.group_id.map(group_sizes).ne(1).any()):
+        raise ValueError("Noise must remain singleton without invented clusters")
+    memberships = split.records.merge(split.groups[["content_id", "cluster_id"]], on="content_id", validate="many_to_one")
+    if memberships.loc[memberships.cluster_id.ge(0)].groupby("cluster_id").new_split.nunique().gt(1).any():
+        raise ValueError("Cluster-aware split fractures a non-noise cluster")
 
 
 def filter_split(contents: pd.DataFrame, split_name: str) -> pd.DataFrame:

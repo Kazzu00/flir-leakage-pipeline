@@ -1,0 +1,1638 @@
+{
+  "$defs": {
+    "Association": {
+      "additionalProperties": false,
+      "properties": {
+        "association_id": {
+          "title": "Association Id",
+          "type": "string"
+        },
+        "category": {
+          "title": "Category",
+          "type": "string"
+        },
+        "class_id": {
+          "enum": [
+            -1,
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "title": "Class Id",
+          "type": "integer"
+        },
+        "detector_metric": {
+          "enum": [
+            "map50_95",
+            "map50",
+            "precision",
+            "recall"
+          ],
+          "title": "Detector Metric",
+          "type": "string"
+        },
+        "global_pearson": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": -1,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Global Pearson"
+        },
+        "global_spearman": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": -1,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Global Spearman"
+        },
+        "interpretation": {
+          "$ref": "#/$defs/AssociationInterpretation"
+        },
+        "n_splits": {
+          "minimum": 0,
+          "title": "N Splits",
+          "type": "integer"
+        },
+        "n_valid_splits": {
+          "minimum": 0,
+          "title": "N Valid Splits",
+          "type": "integer"
+        },
+        "per_strategy": {
+          "items": {
+            "$ref": "#/$defs/StrategyCorrelation"
+          },
+          "title": "Per Strategy",
+          "type": "array"
+        },
+        "points": {
+          "items": {
+            "$ref": "#/$defs/Point"
+          },
+          "title": "Points",
+          "type": "array"
+        },
+        "population": {
+          "enum": [
+            "overall",
+            "class"
+          ],
+          "title": "Population",
+          "type": "string"
+        },
+        "prespecified": {
+          "const": true,
+          "title": "Prespecified",
+          "type": "boolean"
+        },
+        "residual_metric": {
+          "title": "Residual Metric",
+          "type": "string"
+        },
+        "within_strategy_centered_pearson": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": -1,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Within Strategy Centered Pearson"
+        }
+      },
+      "required": [
+        "n_splits",
+        "n_valid_splits",
+        "global_pearson",
+        "global_spearman",
+        "within_strategy_centered_pearson",
+        "association_id",
+        "category",
+        "prespecified",
+        "population",
+        "class_id",
+        "detector_metric",
+        "residual_metric",
+        "per_strategy",
+        "points",
+        "interpretation"
+      ],
+      "title": "Association",
+      "type": "object"
+    },
+    "AssociationInterpretation": {
+      "additionalProperties": false,
+      "properties": {
+        "absolute_r_reduction": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Absolute R Reduction"
+        },
+        "causal": {
+          "const": false,
+          "title": "Causal",
+          "type": "boolean"
+        },
+        "centering_reduces_absolute_r": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Centering Reduces Absolute R"
+        },
+        "global_vs_within": {
+          "title": "Global Vs Within",
+          "type": "string"
+        },
+        "undefined_correlation": {
+          "title": "Undefined Correlation",
+          "type": "string"
+        },
+        "unit_of_analysis": {
+          "const": "split_mean_across_detector_seeds",
+          "title": "Unit Of Analysis",
+          "type": "string"
+        }
+      },
+      "required": [
+        "causal",
+        "unit_of_analysis",
+        "global_vs_within",
+        "centering_reduces_absolute_r",
+        "absolute_r_reduction",
+        "undefined_correlation"
+      ],
+      "title": "AssociationInterpretation",
+      "type": "object"
+    },
+    "ClassSummary": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "n_splits": {
+                "const": 1
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "std_map50_95": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ],
+      "properties": {
+        "class_id": {
+          "enum": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "title": "Class Id",
+          "type": "integer"
+        },
+        "class_name": {
+          "title": "Class Name",
+          "type": "string"
+        },
+        "mean_map50": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Mean Map50"
+        },
+        "mean_map50_95": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Mean Map50 95"
+        },
+        "mean_precision": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Mean Precision"
+        },
+        "mean_recall": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Mean Recall"
+        },
+        "n_splits": {
+          "minimum": 1,
+          "title": "N Splits",
+          "type": "integer"
+        },
+        "std_map50_95": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Std Map50 95"
+        },
+        "strategy": {
+          "enum": [
+            "historical",
+            "random_content",
+            "C10",
+            "C12"
+          ],
+          "title": "Strategy",
+          "type": "string"
+        }
+      },
+      "required": [
+        "mean_map50_95",
+        "mean_map50",
+        "mean_precision",
+        "mean_recall",
+        "strategy",
+        "class_id",
+        "class_name",
+        "n_splits",
+        "std_map50_95"
+      ],
+      "title": "ClassSummary",
+      "type": "object"
+    },
+    "Correlations": {
+      "additionalProperties": false,
+      "properties": {
+        "global_pearson": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": -1,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Global Pearson"
+        },
+        "global_spearman": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": -1,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Global Spearman"
+        },
+        "n_splits": {
+          "minimum": 0,
+          "title": "N Splits",
+          "type": "integer"
+        },
+        "n_valid_splits": {
+          "minimum": 0,
+          "title": "N Valid Splits",
+          "type": "integer"
+        },
+        "within_strategy_centered_pearson": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": -1,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Within Strategy Centered Pearson"
+        }
+      },
+      "required": [
+        "n_splits",
+        "n_valid_splits",
+        "global_pearson",
+        "global_spearman",
+        "within_strategy_centered_pearson"
+      ],
+      "title": "Correlations",
+      "type": "object"
+    },
+    "Interval": {
+      "additionalProperties": false,
+      "properties": {
+        "class_id": {
+          "enum": [
+            -1,
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "title": "Class Id",
+          "type": "integer"
+        },
+        "detector_run_id": {
+          "title": "Detector Run Id",
+          "type": "string"
+        },
+        "lower": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Lower"
+        },
+        "metric": {
+          "enum": [
+            "map50_95",
+            "map50",
+            "precision",
+            "recall"
+          ],
+          "title": "Metric",
+          "type": "string"
+        },
+        "upper": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Upper"
+        },
+        "valid_resamples": {
+          "minimum": 0,
+          "title": "Valid Resamples",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "detector_run_id",
+        "class_id",
+        "metric",
+        "lower",
+        "upper",
+        "valid_resamples"
+      ],
+      "title": "Interval",
+      "type": "object"
+    },
+    "Manifest": {
+      "additionalProperties": false,
+      "properties": {
+        "completed_runs": {
+          "minimum": 1,
+          "title": "Completed Runs",
+          "type": "integer"
+        },
+        "detector_seed_count": {
+          "minimum": 1,
+          "title": "Detector Seed Count",
+          "type": "integer"
+        },
+        "excluded_small_pilots": {
+          "minimum": 0,
+          "title": "Excluded Small Pilots",
+          "type": "integer"
+        },
+        "expected_runs": {
+          "minimum": 1,
+          "title": "Expected Runs",
+          "type": "integer"
+        },
+        "file_sha256": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "File Sha256",
+          "type": "object"
+        },
+        "generated_at": {
+          "title": "Generated At",
+          "type": "string"
+        },
+        "generated_from_verified_artifacts": {
+          "const": true,
+          "title": "Generated From Verified Artifacts",
+          "type": "boolean"
+        },
+        "limitations": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Limitations",
+          "type": "array"
+        },
+        "model_config_id": {
+          "title": "Model Config Id",
+          "type": "string"
+        },
+        "plan_id": {
+          "title": "Plan Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "detection-export-v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "scientific_result": {
+          "const": true,
+          "title": "Scientific Result",
+          "type": "boolean"
+        },
+        "source_commit": {
+          "title": "Source Commit",
+          "type": "string"
+        },
+        "source_receipt_sha256": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Source Receipt Sha256",
+          "type": "object"
+        },
+        "source_worktree_dirty": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Source Worktree Dirty"
+        },
+        "split_count": {
+          "minimum": 1,
+          "title": "Split Count",
+          "type": "integer"
+        },
+        "state": {
+          "const": "COMPLETE_CONTROLLED_COMPARISON",
+          "title": "State",
+          "type": "string"
+        },
+        "strategy_count": {
+          "minimum": 1,
+          "title": "Strategy Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "schema_version",
+        "state",
+        "scientific_result",
+        "generated_from_verified_artifacts",
+        "plan_id",
+        "model_config_id",
+        "expected_runs",
+        "completed_runs",
+        "strategy_count",
+        "split_count",
+        "detector_seed_count",
+        "excluded_small_pilots",
+        "generated_at",
+        "source_commit",
+        "source_worktree_dirty",
+        "source_receipt_sha256",
+        "file_sha256",
+        "limitations"
+      ],
+      "title": "Manifest",
+      "type": "object"
+    },
+    "Point": {
+      "additionalProperties": false,
+      "properties": {
+        "split_seed": {
+          "title": "Split Seed",
+          "type": "integer"
+        },
+        "split_space_id": {
+          "title": "Split Space Id",
+          "type": "string"
+        },
+        "strategy": {
+          "enum": [
+            "historical",
+            "random_content",
+            "C10",
+            "C12"
+          ],
+          "title": "Strategy",
+          "type": "string"
+        },
+        "x": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "X"
+        },
+        "y": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Y"
+        }
+      },
+      "required": [
+        "strategy",
+        "split_seed",
+        "split_space_id",
+        "x",
+        "y"
+      ],
+      "title": "Point",
+      "type": "object"
+    },
+    "Protocol": {
+      "additionalProperties": false,
+      "properties": {
+        "batch": {
+          "minimum": 1,
+          "title": "Batch",
+          "type": "integer"
+        },
+        "bootstrap_method": {
+          "const": "image_percentile_bootstrap",
+          "title": "Bootstrap Method",
+          "type": "string"
+        },
+        "bootstrap_resamples": {
+          "minimum": 1,
+          "title": "Bootstrap Resamples",
+          "type": "integer"
+        },
+        "bootstrap_seed": {
+          "title": "Bootstrap Seed",
+          "type": "integer"
+        },
+        "confidence_level": {
+          "exclusiveMaximum": 1,
+          "exclusiveMinimum": 0,
+          "title": "Confidence Level",
+          "type": "number"
+        },
+        "detector_seeds": {
+          "items": {
+            "type": "integer"
+          },
+          "title": "Detector Seeds",
+          "type": "array"
+        },
+        "epochs": {
+          "minimum": 1,
+          "title": "Epochs",
+          "type": "integer"
+        },
+        "model": {
+          "title": "Model",
+          "type": "string"
+        },
+        "model_config_id": {
+          "title": "Model Config Id",
+          "type": "string"
+        },
+        "plan_id": {
+          "title": "Plan Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "plan_id",
+        "model_config_id",
+        "model",
+        "epochs",
+        "batch",
+        "detector_seeds",
+        "bootstrap_method",
+        "bootstrap_resamples",
+        "bootstrap_seed",
+        "confidence_level"
+      ],
+      "title": "Protocol",
+      "type": "object"
+    },
+    "Run": {
+      "additionalProperties": false,
+      "properties": {
+        "best_epoch": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Best Epoch"
+        },
+        "detector_run_id": {
+          "title": "Detector Run Id",
+          "type": "string"
+        },
+        "detector_seed": {
+          "title": "Detector Seed",
+          "type": "integer"
+        },
+        "map50": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Map50"
+        },
+        "map50_95": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Map50 95"
+        },
+        "peak_memory_bytes": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Peak Memory Bytes"
+        },
+        "precision": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Precision"
+        },
+        "recall": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Recall"
+        },
+        "split_seed": {
+          "title": "Split Seed",
+          "type": "integer"
+        },
+        "split_space_id": {
+          "title": "Split Space Id",
+          "type": "string"
+        },
+        "state": {
+          "const": "COMPLETE",
+          "title": "State",
+          "type": "string"
+        },
+        "strategy": {
+          "enum": [
+            "historical",
+            "random_content",
+            "C10",
+            "C12"
+          ],
+          "title": "Strategy",
+          "type": "string"
+        },
+        "training_seconds": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Training Seconds"
+        }
+      },
+      "required": [
+        "strategy",
+        "split_seed",
+        "split_space_id",
+        "detector_run_id",
+        "detector_seed",
+        "state",
+        "map50_95",
+        "map50",
+        "precision",
+        "recall",
+        "best_epoch",
+        "training_seconds",
+        "peak_memory_bytes"
+      ],
+      "title": "Run",
+      "type": "object"
+    },
+    "Semantics": {
+      "additionalProperties": false,
+      "properties": {
+        "causal": {
+          "const": false,
+          "title": "Causal",
+          "type": "boolean"
+        },
+        "clustering": {
+          "title": "Clustering",
+          "type": "string"
+        },
+        "comparison": {
+          "title": "Comparison",
+          "type": "string"
+        },
+        "missing_values": {
+          "title": "Missing Values",
+          "type": "string"
+        },
+        "temporal_at5": {
+          "title": "Temporal At5",
+          "type": "string"
+        },
+        "unit_of_analysis": {
+          "const": "split_mean_across_detector_seeds",
+          "title": "Unit Of Analysis",
+          "type": "string"
+        }
+      },
+      "required": [
+        "causal",
+        "unit_of_analysis",
+        "comparison",
+        "temporal_at5",
+        "clustering",
+        "missing_values"
+      ],
+      "title": "Semantics",
+      "type": "object"
+    },
+    "Split": {
+      "additionalProperties": false,
+      "properties": {
+        "class_deviation_pp": {
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Class Deviation Pp",
+          "type": "number"
+        },
+        "clip_nn_mean": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": -1,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Clip Nn Mean"
+        },
+        "clip_top001_pairs": {
+          "minimum": 0,
+          "title": "Clip Top001 Pairs",
+          "type": "integer"
+        },
+        "dinov2_nn_mean": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": -1,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Dinov2 Nn Mean"
+        },
+        "dinov2_top001_pairs": {
+          "minimum": 0,
+          "title": "Dinov2 Top001 Pairs",
+          "type": "integer"
+        },
+        "exact_duplicate_cross_split_count": {
+          "minimum": 0,
+          "title": "Exact Duplicate Cross Split Count",
+          "type": "integer"
+        },
+        "mean_map50": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Mean Map50"
+        },
+        "mean_map50_95": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Mean Map50 95"
+        },
+        "mean_precision": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Mean Precision"
+        },
+        "mean_recall": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Mean Recall"
+        },
+        "n_detector_runs": {
+          "minimum": 1,
+          "title": "N Detector Runs",
+          "type": "integer"
+        },
+        "split_seed": {
+          "title": "Split Seed",
+          "type": "integer"
+        },
+        "split_space_id": {
+          "title": "Split Space Id",
+          "type": "string"
+        },
+        "std_map50_95": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Std Map50 95"
+        },
+        "strategy": {
+          "enum": [
+            "historical",
+            "random_content",
+            "C10",
+            "C12"
+          ],
+          "title": "Strategy",
+          "type": "string"
+        },
+        "temporal_at5": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Temporal At5"
+        }
+      },
+      "required": [
+        "mean_map50_95",
+        "mean_map50",
+        "mean_precision",
+        "mean_recall",
+        "strategy",
+        "split_seed",
+        "split_space_id",
+        "n_detector_runs",
+        "std_map50_95",
+        "temporal_at5",
+        "dinov2_nn_mean",
+        "clip_nn_mean",
+        "dinov2_top001_pairs",
+        "clip_top001_pairs",
+        "exact_duplicate_cross_split_count",
+        "class_deviation_pp"
+      ],
+      "title": "Split",
+      "type": "object"
+    },
+    "Strategy": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "n_splits": {
+                "const": 1
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "std_between_splits": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ],
+      "properties": {
+        "display_name": {
+          "title": "Display Name",
+          "type": "string"
+        },
+        "max_map50_95": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Max Map50 95"
+        },
+        "mean_clip_nn_mean": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": -1,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Mean Clip Nn Mean"
+        },
+        "mean_dinov2_nn_mean": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": -1,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Mean Dinov2 Nn Mean"
+        },
+        "mean_map50": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Mean Map50"
+        },
+        "mean_map50_95": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Mean Map50 95"
+        },
+        "mean_precision": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Mean Precision"
+        },
+        "mean_recall": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Mean Recall"
+        },
+        "mean_temporal_at5": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Mean Temporal At5"
+        },
+        "median_map50_95": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Median Map50 95"
+        },
+        "min_map50_95": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Min Map50 95"
+        },
+        "n_detector_runs": {
+          "minimum": 1,
+          "title": "N Detector Runs",
+          "type": "integer"
+        },
+        "n_splits": {
+          "minimum": 1,
+          "title": "N Splits",
+          "type": "integer"
+        },
+        "std_between_splits": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Std Between Splits"
+        },
+        "strategy": {
+          "enum": [
+            "historical",
+            "random_content",
+            "C10",
+            "C12"
+          ],
+          "title": "Strategy",
+          "type": "string"
+        }
+      },
+      "required": [
+        "mean_map50_95",
+        "mean_map50",
+        "mean_precision",
+        "mean_recall",
+        "strategy",
+        "display_name",
+        "n_splits",
+        "n_detector_runs",
+        "std_between_splits",
+        "median_map50_95",
+        "min_map50_95",
+        "max_map50_95",
+        "mean_temporal_at5",
+        "mean_dinov2_nn_mean",
+        "mean_clip_nn_mean"
+      ],
+      "title": "Strategy",
+      "type": "object"
+    },
+    "StrategyCorrelation": {
+      "additionalProperties": false,
+      "properties": {
+        "n_valid_splits": {
+          "minimum": 0,
+          "title": "N Valid Splits",
+          "type": "integer"
+        },
+        "pearson": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": -1,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Pearson"
+        },
+        "spearman": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": -1,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Spearman"
+        },
+        "strategy": {
+          "enum": [
+            "historical",
+            "random_content",
+            "C10",
+            "C12"
+          ],
+          "title": "Strategy",
+          "type": "string"
+        }
+      },
+      "required": [
+        "strategy",
+        "n_valid_splits",
+        "pearson",
+        "spearman"
+      ],
+      "title": "StrategyCorrelation",
+      "type": "object"
+    },
+    "Summary": {
+      "additionalProperties": false,
+      "properties": {
+        "association_summary": {
+          "additionalProperties": {
+            "$ref": "#/$defs/Correlations"
+          },
+          "title": "Association Summary",
+          "type": "object"
+        },
+        "headline_metrics": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "maximum": 1,
+                "minimum": 0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "propertyNames": {
+            "enum": [
+              "historical",
+              "random_content",
+              "C10",
+              "C12"
+            ]
+          },
+          "title": "Headline Metrics",
+          "type": "object"
+        },
+        "interpretation": {
+          "$ref": "#/$defs/Semantics"
+        },
+        "limitations": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Limitations",
+          "type": "array"
+        },
+        "protocol": {
+          "$ref": "#/$defs/Protocol"
+        },
+        "scientific_result": {
+          "const": true,
+          "title": "Scientific Result",
+          "type": "boolean"
+        },
+        "state": {
+          "const": "COMPLETE_CONTROLLED_COMPARISON",
+          "title": "State",
+          "type": "string"
+        },
+        "strategies": {
+          "items": {
+            "$ref": "#/$defs/Strategy"
+          },
+          "title": "Strategies",
+          "type": "array"
+        },
+        "variance": {
+          "items": {
+            "$ref": "#/$defs/Variance"
+          },
+          "title": "Variance",
+          "type": "array"
+        }
+      },
+      "required": [
+        "state",
+        "scientific_result",
+        "protocol",
+        "headline_metrics",
+        "strategies",
+        "variance",
+        "association_summary",
+        "interpretation",
+        "limitations"
+      ],
+      "title": "Summary",
+      "type": "object"
+    },
+    "Support": {
+      "additionalProperties": false,
+      "properties": {
+        "class_id": {
+          "enum": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "title": "Class Id",
+          "type": "integer"
+        },
+        "class_name": {
+          "title": "Class Name",
+          "type": "string"
+        },
+        "split_seed": {
+          "title": "Split Seed",
+          "type": "integer"
+        },
+        "split_space_id": {
+          "title": "Split Space Id",
+          "type": "string"
+        },
+        "strategy": {
+          "enum": [
+            "historical",
+            "random_content",
+            "C10",
+            "C12"
+          ],
+          "title": "Strategy",
+          "type": "string"
+        },
+        "support": {
+          "minimum": 0,
+          "title": "Support",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "strategy",
+        "split_seed",
+        "split_space_id",
+        "class_id",
+        "class_name",
+        "support"
+      ],
+      "title": "Support",
+      "type": "object"
+    },
+    "Variance": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "n_splits": {
+                "const": 1
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "between_split_std": {
+                "type": "null"
+              },
+              "between_vs_within_ratio": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ],
+      "properties": {
+        "between_split_std": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Between Split Std"
+        },
+        "between_vs_within_ratio": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Between Vs Within Ratio"
+        },
+        "mean_within_split_detector_seed_std": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Mean Within Split Detector Seed Std"
+        },
+        "n_splits": {
+          "minimum": 1,
+          "title": "N Splits",
+          "type": "integer"
+        },
+        "strategy": {
+          "enum": [
+            "historical",
+            "random_content",
+            "C10",
+            "C12"
+          ],
+          "title": "Strategy",
+          "type": "string"
+        }
+      },
+      "required": [
+        "strategy",
+        "n_splits",
+        "mean_within_split_detector_seed_std",
+        "between_split_std",
+        "between_vs_within_ratio"
+      ],
+      "title": "Variance",
+      "type": "object"
+    }
+  },
+  "$id": "urn:flir:detection-export-v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Validate the bundle {filename stem: parsed JSON} for all ten payload files.",
+  "properties": {
+    "associations": {
+      "items": {
+        "$ref": "#/$defs/Association"
+      },
+      "title": "Associations",
+      "type": "array"
+    },
+    "bootstrap": {
+      "items": {
+        "$ref": "#/$defs/Interval"
+      },
+      "title": "Bootstrap",
+      "type": "array"
+    },
+    "classes": {
+      "items": {
+        "$ref": "#/$defs/ClassSummary"
+      },
+      "title": "Classes",
+      "type": "array"
+    },
+    "manifest": {
+      "$ref": "#/$defs/Manifest"
+    },
+    "runs": {
+      "items": {
+        "$ref": "#/$defs/Run"
+      },
+      "title": "Runs",
+      "type": "array"
+    },
+    "splits": {
+      "items": {
+        "$ref": "#/$defs/Split"
+      },
+      "title": "Splits",
+      "type": "array"
+    },
+    "strategies": {
+      "items": {
+        "$ref": "#/$defs/Strategy"
+      },
+      "title": "Strategies",
+      "type": "array"
+    },
+    "summary": {
+      "$ref": "#/$defs/Summary"
+    },
+    "support": {
+      "items": {
+        "$ref": "#/$defs/Support"
+      },
+      "title": "Support",
+      "type": "array"
+    },
+    "variance": {
+      "items": {
+        "$ref": "#/$defs/Variance"
+      },
+      "title": "Variance",
+      "type": "array"
+    }
+  },
+  "required": [
+    "manifest",
+    "summary",
+    "strategies",
+    "splits",
+    "runs",
+    "classes",
+    "support",
+    "variance",
+    "associations",
+    "bootstrap"
+  ],
+  "title": "DetectionExport",
+  "type": "object"
+}

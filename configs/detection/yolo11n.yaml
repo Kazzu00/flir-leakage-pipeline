@@ -3,12 +3,12 @@
 protocol: controlled_detector_v1
 model: yolo11n.pt
 ultralytics_version: 8.3.203
-torch_version: 2.8.0
+torch_version: 2.7.1
 training_seeds: [42, 43, 44]
 split_seeds: [0, 1, 2, 3, 4]
 compute:
   cpu_batch_candidates: [1, 2]
-  cuda_batch_candidates: [1, 2, 4, 8]
+  cuda_batch_candidates: [1, 2]
   small_pilot_epochs: 2
   small_pilot_train_images: 24
   small_pilot_val_images: 12

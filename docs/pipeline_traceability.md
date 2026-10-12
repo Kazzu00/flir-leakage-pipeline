@@ -1,5 +1,68 @@
 # Pipeline traceability
 
+## External visual variants (2026-10-08)
+
+Explicit YAML + read-only ZIP/video inputs → checksummed physical entry ledger →
+per-series observed-index audit → attributable scientific manifest and existing
+variant declaration when possible → immutable `video_variant_ingestion_v1`.
+Candidate video/time rules and externally reported observations remain separate
+tables with no verified native index or timestamp. Standalone verification rebuilds
+the derived identities/QA; source-bound verification additionally replays input
+checksums and PNG inspection.
+
+Verified publication + original scientific manifest + explicit input root →
+`VideoVariantImages` / `ImageSource.from_video_variant` → the existing feature
+engine, via CLI `features extract --video-variant-ingestion` → one raw/L2 row
+per content and all occurrence mappings → source-bound checkpoint/final cache.
+`video_variant_feature_source_v1` keeps artifact/receipt/source fingerprints
+separate from dataset and mathematical feature-space identity. Model construction
+is deferred until source validation succeeds, with one verified ZIP session.
+The CLI bridge is validated with synthetic CPU extractors. Earlier phases validated
+a bounded real read; real variant embeddings and downstream scientific experiments
+remain pending. No labels, capture timestamps, sequences, partitions or detector
+metrics are inferred. Frontend and further consumer bridges remain pending.
+See the [ingestion runbook](runbooks/video_variant_ingestion.md) and
+[multishard features](runbooks/features.md#features-desde-publicaciones-multishard).
+
+## Frozen membership provenance (2026-10-05)
+
+Frozen plan → every selected verified split → checksum-bound `source_groups`
+→ exact cross-seed equality → `ClusterEvidence` → organization memberships.
+This alternative applies only when the original clustering publication is absent.
+Split metadata receipts and per-split membership checksums remain exported;
+unavailable upstream scientific configuration/diagnostics remain null. The full
+clustering publication retains precedence. No reconstruction or fitting occurs.
+See the [fallback contract](runbooks/organization_evidence_export.md).
+
+## Organization presentation contract (2026-10-04)
+
+Frozen detector plan + existing split/clustering storage →
+`explorer/organization_sources.py` → normalized record/content memberships in
+`explorer/organization.py` → `organization_contract.py` / JSON Schema → local
+frontend ID joins. Candidate linkage reuses the review source reader; sequence
+experiment components join stored core/content/occurrence tables without new
+assignments. Native boundary intervals and external review semantics survive.
+Optional checksum-verified thumbnails use `FrameReader`/`ImageSource` and stay
+ignored. Publication verifies identities, checksums and relationships; it does
+not rerun scientific metrics or validate detector training completion. See the
+[source contracts and Hypatia runbook](runbooks/organization_evidence_export.md).
+
+## Final detector reporting (2026-10-03)
+
+The owner reports 48/48 scientific runs completed on Hypatia, with no remaining
+detector training. This local implementation does not reverify that evidence.
+`detection report` consumes an arbitrary complete frozen matrix through
+`association.load_evidence`, reuses `metrics.aggregate_runs`, and exports
+split-level descriptive associations from the YAML registry. Source artifacts
+remain immutable. Historical progress entries below describe the earlier local
+state, not the reported Hypatia completion.
+
+`final_report.py` → CSV/Parquet + Markdown + figures + receipt (ignored), and
+`export_contract.py` → `exports/frontend/detection/*.json` + JSON Schema
+(versionable). `final_report_plot.py` presents computed values without causal
+regression lines. Bootstrap intervals remain run-specific; the frontend never
+recalculates them. See the [execution and contract runbook](runbooks/detector_final_report.md).
+
 ## Sequence experiments: additional evidence path
 
 The [operational runbook](runbooks/sequence_operations.md) records the parallel

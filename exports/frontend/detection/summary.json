@@ -1,0 +1,198 @@
+{
+  "association_summary": {
+    "domain_clip": {
+      "global_pearson": 0.7664381599198551,
+      "global_spearman": 0.7122886402233649,
+      "n_splits": 16,
+      "n_valid_splits": 16,
+      "within_strategy_centered_pearson": -0.37472262320998084
+    },
+    "domain_dinov2": {
+      "global_pearson": 0.7876731831831841,
+      "global_spearman": 0.7078736279905753,
+      "n_splits": 16,
+      "n_valid_splits": 16,
+      "within_strategy_centered_pearson": -0.5148057919089866
+    },
+    "extreme_clip": {
+      "global_pearson": 0.8320087147619448,
+      "global_spearman": 0.5900863340643645,
+      "n_splits": 16,
+      "n_valid_splits": 16,
+      "within_strategy_centered_pearson": 0.26057931730139067
+    },
+    "extreme_dinov2": {
+      "global_pearson": 0.8356748480183636,
+      "global_spearman": 0.8002967235799942,
+      "n_splits": 16,
+      "n_valid_splits": 16,
+      "within_strategy_centered_pearson": 0.4418308731487538
+    },
+    "primary_clip": {
+      "global_pearson": 0.8973170186142334,
+      "global_spearman": 0.888235294117647,
+      "n_splits": 16,
+      "n_valid_splits": 16,
+      "within_strategy_centered_pearson": 0.05704739361175774
+    },
+    "primary_dinov2": {
+      "global_pearson": 0.8594807489313159,
+      "global_spearman": 0.888235294117647,
+      "n_splits": 16,
+      "n_valid_splits": 16,
+      "within_strategy_centered_pearson": -0.03728825745409976
+    },
+    "temporal_at5": {
+      "global_pearson": 0.8268963545344858,
+      "global_spearman": 0.8241356167873644,
+      "n_splits": 16,
+      "n_valid_splits": 16,
+      "within_strategy_centered_pearson": 0.04747138679422246
+    }
+  },
+  "headline_metrics": {
+    "C10": 0.16766140652731182,
+    "C12": 0.08612145932800165,
+    "historical": 0.1708769601483069,
+    "random_content": 0.25187287705403144
+  },
+  "interpretation": {
+    "causal": false,
+    "clustering": "Los clústeres no identifican secuencias ground truth ni acreditan eliminación de leakage.",
+    "comparison": "Comparación descriptiva controlada: dependencia residual, composición, dificultad visual y membresía de train/validation/test pueden variar conjuntamente. No estima inflación causal por leakage.",
+    "missing_values": "null significa no disponible o no definido; nunca se sustituye por cero.",
+    "temporal_at5": "Proxy de distancia de índices de frame/nombre Δ≤5; no son segundos ni ground truth.",
+    "unit_of_analysis": "split_mean_across_detector_seeds"
+  },
+  "limitations": [
+    "Las estrategias pueden tener distinta composición de test, distribución de clases y dificultad visual.",
+    "Las detector seeds de un split comparten contexto; no son observaciones independientes de split.",
+    "Puede permanecer dependencia residual entre frames.",
+    "El bootstrap por imagen supone independencia y puede subestimar incertidumbre con dependencia residual entre frames.",
+    "Proxy de distancia de índices de frame/nombre Δ≤5; no son segundos ni ground truth.",
+    "Los clústeres no identifican secuencias ground truth ni acreditan eliminación de leakage.",
+    "Comparación descriptiva controlada: dependencia residual, composición, dificultad visual y membresía de train/validation/test pueden variar conjuntamente. No estima inflación causal por leakage.",
+    "C10: 5 split(s); generalización limitada a estas particiones evaluadas.",
+    "C12: 5 split(s); generalización limitada a estas particiones evaluadas.",
+    "historical: 1 split(s); variación entre splits no definida.",
+    "random_content: 5 split(s); generalización limitada a estas particiones evaluadas."
+  ],
+  "protocol": {
+    "batch": 2,
+    "bootstrap_method": "image_percentile_bootstrap",
+    "bootstrap_resamples": 1000,
+    "bootstrap_seed": 20260916,
+    "confidence_level": 0.95,
+    "detector_seeds": [
+      42,
+      43,
+      44
+    ],
+    "epochs": 50,
+    "model": "yolo11n.pt",
+    "model_config_id": "73416cdcfc4cdff3",
+    "plan_id": "a05366b5c2d72834"
+  },
+  "scientific_result": true,
+  "state": "COMPLETE_CONTROLLED_COMPARISON",
+  "strategies": [
+    {
+      "display_name": "C10 — DINOv2 / PaCMAP / DBSCAN",
+      "max_map50_95": 0.18978225568702833,
+      "mean_clip_nn_mean": 0.9420393466949463,
+      "mean_dinov2_nn_mean": 0.7963093280792236,
+      "mean_map50": 0.4284760267977016,
+      "mean_map50_95": 0.16766140652731182,
+      "mean_precision": 0.45899234094032015,
+      "mean_recall": 0.469892021925423,
+      "mean_temporal_at5": 0.23726777482888667,
+      "median_map50_95": 0.1586608365791631,
+      "min_map50_95": 0.14877371680401444,
+      "n_detector_runs": 15,
+      "n_splits": 5,
+      "std_between_splits": 0.01797510440324638,
+      "strategy": "C10"
+    },
+    {
+      "display_name": "C12 — DINOv2 / t-SNE / HDBSCAN",
+      "max_map50_95": 0.10634387087974702,
+      "mean_clip_nn_mean": 0.9383188724517822,
+      "mean_dinov2_nn_mean": 0.7908647537231446,
+      "mean_map50": 0.22323514634775604,
+      "mean_map50_95": 0.08612145932800165,
+      "mean_precision": 0.251886115789275,
+      "mean_recall": 0.29684118402931836,
+      "mean_temporal_at5": 0.2124598407598826,
+      "median_map50_95": 0.08211911118508264,
+      "min_map50_95": 0.07691023604499916,
+      "n_detector_runs": 15,
+      "n_splits": 5,
+      "std_between_splits": 0.011717171186797907,
+      "strategy": "C12"
+    },
+    {
+      "display_name": "Historical",
+      "max_map50_95": 0.1708769601483069,
+      "mean_clip_nn_mean": 0.9485986232757568,
+      "mean_dinov2_nn_mean": 0.8410229682922363,
+      "mean_map50": 0.414371830549281,
+      "mean_map50_95": 0.1708769601483069,
+      "mean_precision": 0.4048035024388181,
+      "mean_recall": 0.4674851705129011,
+      "mean_temporal_at5": 0.1476463193183405,
+      "median_map50_95": 0.1708769601483069,
+      "min_map50_95": 0.1708769601483069,
+      "n_detector_runs": 3,
+      "n_splits": 1,
+      "std_between_splits": null,
+      "strategy": "historical"
+    },
+    {
+      "display_name": "Random content-level",
+      "max_map50_95": 0.2983196085080848,
+      "mean_clip_nn_mean": 0.9636122822761536,
+      "mean_dinov2_nn_mean": 0.8969958066940308,
+      "mean_map50": 0.5644125978248071,
+      "mean_map50_95": 0.25187287705403144,
+      "mean_precision": 0.4423550986835877,
+      "mean_recall": 0.6574072135225673,
+      "mean_temporal_at5": 0.4391674814918285,
+      "median_map50_95": 0.24696777427546165,
+      "min_map50_95": 0.2266202225801506,
+      "n_detector_runs": 15,
+      "n_splits": 5,
+      "std_between_splits": 0.027782066398596608,
+      "strategy": "random_content"
+    }
+  ],
+  "variance": [
+    {
+      "between_split_std": 0.01797510440324638,
+      "between_vs_within_ratio": 1.6434268169687218,
+      "mean_within_split_detector_seed_std": 0.010937575204231614,
+      "n_splits": 5,
+      "strategy": "C10"
+    },
+    {
+      "between_split_std": 0.011717171186797907,
+      "between_vs_within_ratio": 1.9293280864368834,
+      "mean_within_split_detector_seed_std": 0.006073187483854746,
+      "n_splits": 5,
+      "strategy": "C12"
+    },
+    {
+      "between_split_std": null,
+      "between_vs_within_ratio": null,
+      "mean_within_split_detector_seed_std": 0.01107971409428536,
+      "n_splits": 1,
+      "strategy": "historical"
+    },
+    {
+      "between_split_std": 0.027782066398596608,
+      "between_vs_within_ratio": 2.275964421925785,
+      "mean_within_split_detector_seed_std": 0.012206722623145877,
+      "n_splits": 5,
+      "strategy": "random_content"
+    }
+  ]
+}

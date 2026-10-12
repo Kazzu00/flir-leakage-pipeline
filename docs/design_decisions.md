@@ -1,5 +1,105 @@
 # Design decisions
 
+## 2026-10-08: scientific occurrence identity independent of ZIP packaging
+
+External processed-frame ingestion separates exact image SHA256, named logical
+observation, attributable scientific occurrence and physical ZIP-entry identity.
+The scientific ID includes collection/series/index and image bytes, never shard
+names/checksums/positions. The scientific manifest has no physical locators;
+repackaging changes the source-bound artifact but preserves the tested scientific
+manifest, dataset and variant identity. No native video-frame identity is inferred.
+
+Repeated indices cannot establish distinct scientific occurrences without an
+additional observation discriminator. Every physical entry survives; ambiguous
+frame IDs stay null and the existing unique/non-null manifest contract is not
+weakened. Such audits withhold the scientific manifest and `dataset_variant_v1`
+declaration rather than invent IDs or choose representatives. Corrupt but readable
+image bytes retain exact identity with failed decode QA. Candidate timing and
+reported manual observations never establish verified alignment or detector
+readiness. See the [identity recipes and limits](runbooks/video_variant_ingestion.md).
+
+## 2026-10-05: normalized candidate edges in organization-evidence-v2
+
+A stored labeled/video candidate is an edge between exact content identities,
+not a generic group with redundant query/candidate memberships. The v2 producer
+copies every authoritative candidate field into `candidate_pairs` once, preserving
+IDs, float values, nullable ranks, flags and upstream counts without fitting,
+filtering or clipping. Cores/components retain their existing membership semantics.
+Consumers join each endpoint through contents to records, timelines and media.
+Manifest-level literal semantics prohibit ground truth, automatic confirmation,
+sequence identity, confirmed dependency and split constraint interpretations.
+
+Only organization JSON serialization becomes deterministic compact UTF-8; checksum
+receipts bind those exact bytes. Detector reports and scientific publications are
+unchanged. This is an explicit schema version change, not a v1 semantic mutation;
+existing v1 destinations require separate v2 destinations. The owner reports a
+completed real v1 export on Hypatia; real v2 execution remains pending. See the
+[organization runbook](runbooks/organization_evidence_export.md).
+
+## 2026-10-05: occurrence-scoped compatibility for sequence presentation
+
+Only organization export opts into tolerating manifest serialization drift for
+stored structure/recurrence evidence. Dataset identity, immutable artifact
+inspection and every existing frame/content/timeline/position check remain
+mandatory. The default adapters and scientific sequence source checks remain
+byte-strict. Sequence provenance claims exact occurrence binding, never full
+manifest table equality; linkage retains its separate stronger table assertion.
+The export records both hashes and the verification scope without modifying
+scientific sources. See the [organization runbook](runbooks/organization_evidence_export.md).
+
+## 2026-10-05: explicit presentation compatibility for manifest serialization
+
+Organization export may opt into accepting different labeled-manifest Parquet
+bytes only when the existing exact full DataFrame comparison (including dtypes)
+against linkage's checksum-bound occurrence snapshot and the declared dataset
+identity both pass. The shared candidate loader remains byte-strict by default;
+manual review signatures and source verification remain unchanged. Organization
+source receipts distinguish historical/current hashes and declare exact tabular
+verification and reserialization explicitly. No source is rewritten and no
+replacement manifest is produced. See the [organization runbook](runbooks/organization_evidence_export.md).
+
+## 2026-10-05: preserved frozen membership is a separate evidence authority
+
+A missing clustering publication may be represented only by the exact stored
+membership of every selected split referencing its identity. Equality includes
+content, cluster, group and group type after ordering only. Existing split/freeze
+checks remain mandatory; a present invalid clustering publication fails closed.
+The original identity is retained without inventing a clustering receipt,
+configuration or diagnostics. Noise remains unassigned and singleton in splits.
+This is presentation provenance, not a new fit or a change to clustering semantics.
+
+## 2026-10-04: occurrence-preserving organization export
+
+The frozen detector plan is the selection authority for final M02 splits and
+their source clustering, rather than candidate display aliases or hardcoded
+counts. Normalized files preserve record-level historical cross-partition
+duplicates and unique-content clustering independently. Counts/ranges summarize
+saved memberships; no detector or clustering metric is recalculated.
+
+Existing top-k links retain candidate-pair IDs; existing diagnostic components
+join their stored core/content/occurrence evidence. No connected components,
+interval memberships or sequence instances are constructed during export.
+Filename-derived families are explicitly heuristic timelines with null verified
+video IDs. Ambiguous time/annotation consensus remains null. Media is a separate,
+optional ignored publication with one preview per content and graceful absence.
+Only code, tests, schema and documentation are versioned by this local change.
+
+## 2026-10-03: final-only detector contract and split association unit
+
+The final report extends the existing evidence gate and hierarchical aggregation;
+it does not replace the notebook's partial-progress report. Publication requires
+every cell in the supplied plan, not a hardcoded experiment identity or count.
+Detector seeds are averaged within split before correlations and strategy means.
+Single-split SD is undefined, and image-bootstrap intervals are retained per run
+rather than averaged. Correlations are descriptive and never leakage effect sizes.
+
+Pydantic models generate a stable JSON Schema and validate the producer bundle;
+independent JSON Schema validation is a dev test dependency. Only the lightweight
+contract is intended for versioning. Sources and detailed analysis remain ignored.
+Two staged destinations are validated before publication, with rollback for normal
+I/O failures and an explicit single-writer requirement. This local implementation
+does not certify the completed Hypatia experiment reported by the owner.
+
 ## 2026-09-28: operational scheduling preserves the experiment
 
 SLURM parallelizes encoders, individual representation configurations/seeds and

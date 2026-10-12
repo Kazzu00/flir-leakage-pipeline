@@ -7,6 +7,40 @@ import typer
 app = typer.Typer(help="Local, read-only visual inspection of existing artifacts.")
 
 
+@app.command("export-organization")
+def export_organization(
+    manifest: Path = typer.Option(Path("data/manifests/flir_canonical_candidate_v1.parquet")),
+    plan: Path = typer.Option(Path("artifacts/detection/protocol")),
+    split_root: Path = typer.Option(Path("artifacts/splitting/runs")),
+    clustering_root: Path = typer.Option(Path("artifacts/clustering")),
+    linkage_root: Path = typer.Option(Path("artifacts/linkage")),
+    evidence_root: list[Path] | None = typer.Option(None, help="Repeat for existing recurrence/structure/review publication roots."),
+    sequence_root: Path | None = typer.Option(None, help="Existing sequence sets required by labeled-to-video linkage."),
+    review_source_map: Path | None = typer.Option(None, help="Existing manual-review calibration source map."),
+    output: Path = typer.Option(Path("exports/frontend/organization")),
+    media_output: Path = typer.Option(Path("artifacts/frontend/organization-media")),
+    include_previews: bool = typer.Option(False),
+    data_root: Path | None = typer.Option(None, help="Read-only ZIP root; defaults to FLIR_DATA_ROOT/.env."),
+    video_images_root: Path | None = typer.Option(None, help="Read-only sampled images root, when video evidence is supplied."),
+):
+    """Export frozen M02 memberships; never fit, split or confirm sequences."""
+    from flir_pipeline.cli import _default_root
+    from flir_pipeline.explorer.organization import export_organization as export
+
+    try:
+        result = export(manifest_path=manifest, plan_directory=plan, split_root=split_root,
+            clustering_root=clustering_root, linkage_root=linkage_root, evidence_roots=evidence_root or (),
+            sequence_root=sequence_root, review_source_map=review_source_map, output=output,
+            media_output=media_output, include_previews=include_previews,
+            data_root=data_root or (_default_root() if include_previews else None), video_images_root=video_images_root)
+    except (OSError, ValueError, KeyError, TypeError, AssertionError) as error:
+        typer.echo(f"Organization export rejected: {error}", err=True)
+        raise typer.Exit(2) from error
+    typer.echo(f"Organization evidence exported: {result['split_count']} splits, "
+               f"{result['labeled_record_count']} labeled records / {result['labeled_unique_content_count']} contents. "
+               f"Output: {output}")
+
+
 @app.command("vikus-build")
 def vikus_build(
     manifest: Path = typer.Option(Path("data/manifests/flir_canonical_candidate_v1.parquet")),

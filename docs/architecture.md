@@ -1,5 +1,61 @@
 # Architecture
 
+## External visual-variant ingestion (2026-10-08)
+
+`data/video_variant_contract.py` defines explicit logical collections/series,
+physical inputs, resource budgets and candidate-only temporal evidence.
+`zip_image_collection.py` reads exact ZipInfo entries without extracting archives;
+`video_variant_ingestion.py` preserves their full ledger and derives logical
+identities/index QA. `video_variant_storage.py` verifies staged immutable
+publications and optionally replays original sources; a small CLI registers under
+`data video-variant-ingestion`.
+
+The scientific manifest excludes storage references so unambiguous repackaging
+preserves its identities and checksum. Duplicate named observations are retained
+physically but cannot satisfy the existing unique/non-null frame contract; the
+whole scientific manifest/variant is withheld until identity is resolved.
+Existing dataset identity and `dataset_variant_v1` are reused unchanged.
+This preparation branch does not adapt features, temporal consumers, organization
+v2 or clustering contracts. See the [runbook](runbooks/video_variant_ingestion.md).
+
+## Frozen organization membership evidence (2026-10-05)
+
+`ClusterEvidence` separates stored membership from an optional full `ClusterData`.
+Selected splits still use verified `load_split`; shared cluster/noise checks also
+apply without upstream clustering. Only an absent publication permits exact
+cross-seed comparison of frozen membership. Contract receipts bind every source
+split and membership checksum; unavailable configuration/diagnostics remain null.
+This read-only presentation path does not reconstruct a clustering experiment.
+
+## Organization evidence presentation (2026-10-04)
+
+`explorer/organization_sources.py` resolves frozen selections through existing
+storage readers; `organization.py` produces normalized presentation tables and
+optional unique-content previews. `organization_contract.py` defines typed
+cross-file invariants and generates `organization-evidence-v2` JSON Schema.
+Candidate edges have a dedicated table and join occurrences through contents;
+only cores/components retain linkage memberships. Organization JSON uses compact
+deterministic serialization with byte-bound checksums and unchanged source readers.
+The split unit remains the historical occurrence; clustering uses unique
+content. Additional video evidence has a separate cohort and no invented split.
+Filename timelines remain heuristic, explicit video IDs remain authoritative,
+and candidate components never become sequence instances. The exporter reuses
+the detector report's staged publication primitive without changing detector
+values or files. See the [contract runbook](runbooks/organization_evidence_export.md).
+
+## Final scientific presentation boundary (2026-10-03)
+
+Heavy immutable artifacts → existing verification and hierarchical aggregation
+→ final analysis → versioned lightweight export → `flir-pipeline-explorer`.
+`detection/final_report.py` orchestrates the final-only gate; the earlier progress
+report remains separate. `export_contract.py` owns typed presentation models and
+their JSON Schema. Scientific state, split means, correlations, bootstrap
+intervals and interpretation are computed/validated here; the frontend only
+presents them. Future final-stage exports should follow this boundary, with
+their own versioned contracts; other stages have not been exported by this change.
+
+See [publication, source bindings and environment boundaries](runbooks/detector_final_report.md).
+
 ## Sequence experiment evidence (2026-09-28)
 
 `sequences/experiments/` extends the sequence CLI without changing the v1
@@ -313,6 +369,28 @@ frame/content/embedding map. Join on `frame_id` to recover temporal fields.
 Neither this bridge nor the numerical feature adapters infer video sequences,
 create labels or define partitions. Existing ZIP-based diagnostics, image reports
 and explorers have not been extended to local video images.
+
+## External-variant multishard feature bridge
+
+The external-variant feature bridge additionally accepts
+`--video-variant-ingestion` with its original manifest and explicit `--input-root`.
+`ImageSource.from_video_variant` delegates occurrence lookup and bounded ordinal
+ZIP reads to `data/VideoVariantImages`. `features/source_binding.py` reuses ingestion
+inspection and the authoritative variant declaration; its versioned binding
+belongs to the cache/checkpoint signature, never the mathematical feature space.
+The existing storage engine preserves every scientific occurrence plus physical
+provenance, selecting one representative per content with a frame_id tie-break.
+Historical folder/ZIP selection and store format retain their existing behavior.
+
+An optional `extractor_factory` in `extract_to_store` lets the CLI defer model
+initialization until the existing backend has verified publication and originals.
+The verified ZIP session is retained through model construction and extraction;
+SHA256 is not repeated for each image or batch. ZIP/memmap resources close on
+errors. Internal store verification checks stored binding/index integrity; source
+verification occurs on extraction/resume/reuse. Repackaging changes the binding
+and rejects an existing checkpoint/cache without changing scientific or encoder
+space identity. This bridge has synthetic validation, not a real embedding run.
+See the [feature runbook](runbooks/features.md#features-desde-publicaciones-multishard).
 
 ## Video similarity and downstream boundary
 

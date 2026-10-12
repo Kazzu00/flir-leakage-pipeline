@@ -1,0 +1,59 @@
+# Generic declaration only. Real configurations and evidence remain private.
+schema_version: video_variant_ingestion_config_v1
+collection_id: example-collection
+variant_name: hud_reduced
+transformation:
+  description: External visual processing intended to reduce the HUD.
+  tool: null
+  tool_version: null
+  parameters: null
+  limitations:
+    - The upstream transformation has not been reproduced.
+    - HUD reduction does not establish complete HUD elimination.
+archives:
+  - archive_key: shard-a
+    path: frames/part-a.zip
+  - archive_key: shard-b
+    path: frames/part-b.zip
+series:
+  - series_id: series-a
+    archive_keys: [shard-a, shard-b]
+    member_pattern: '.*\.png'
+    index_pattern: 'frame_(?P<index>\d+)\.png'
+    expected_index_start: 1
+    expected_index_stop: 4
+    expected_index_step: 1
+    candidate_video_key: source-a
+    # Optional declared hypothesis. Omit candidate_time if the rule is unknown.
+    candidate_time:
+      fps: 7.5
+      index_origin: 1
+      offset_seconds: 0.0
+videos:
+  - video_key: source-a
+    path: videos/source-a.mp4
+    declared_metadata:
+      provenance: externally_reported
+observations:
+  - observation_id: reported-comparison-a
+    series_id: series-a
+    video_key: source-a
+    description: Example of a reported visual comparison, without exact PNG attribution.
+    observed_index: null
+    reported_timestamp_seconds: 1.2
+    evidence_status: externally_reported
+    verification_scope: none
+# Optional auxiliary CSV: checksum-bound reference, never inventory authority.
+# auxiliary_inventory:
+#   path: reference/inventory.csv
+#   expected_sha256: <actual SHA-256 of the CSV>
+image_extensions: [.png]
+expected_image_format: PNG
+limits:
+  max_member_bytes: 67108864
+  max_archive_uncompressed_bytes: 17179869184
+  max_archive_entries: 250000
+  max_compression_ratio: 1000.0
+  max_width: 8192
+  max_height: 8192
+  max_pixels: 40000000

@@ -17,6 +17,7 @@ pending work. Commands assume the repository root; real artifacts remain local.
 | Component | Analysis | Protocol | Runbook |
 |---|---|---|---|
 | Data | [Quality](analysis/data_quality.md), [class nomenclature](analysis/dataset_classes.md) | [Identity rules](data_model.md) | [Audit and canonicalization](runbooks/data.md) |
+| External visual variants | Synthetic/offline ingestion validation; real ingestion pending | [Scientific vs physical identities](runbooks/video_variant_ingestion.md#cuatro-identidades-independientes) | [Build, verify and summary](runbooks/video_variant_ingestion.md) |
 | Features | [Extraction evidence](analysis/features.md) | [Representation decisions](design_decisions.md) | [Extract, resume and report](runbooks/features.md) |
 | Similarity | [Cosine and temporal relations](analysis/similarity.md) | Rules in the analysis | [Compute and verify](runbooks/similarity.md) |
 | Sequences | Synthetic local validation; real sequences reported by owner, not reverified locally | [Sequence policy and manual review](runbooks/sequences.md) | [Detect/build/verify/summary](runbooks/sequences.md) |

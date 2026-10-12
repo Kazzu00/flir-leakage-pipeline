@@ -2,6 +2,32 @@
 
 ## Overview
 
+`flir-pipeline data video-variant-ingestion build/verify/summary` audits external
+image variants directly from ZIP shards with bounded reads and immutable evidence.
+Scientific occurrence IDs survive unambiguous repackaging; duplicate indices
+remain conflicts. Alignment is candidate-only and the historical labeled universe
+stays separate. A real ingestion publication is available locally; bounded reads
+were validated in earlier phases. `features extract --video-variant-ingestion`
+now uses that ledger through the existing feature engine, with explicit
+`--input-root`, source-bound checkpoints and synthetic offline CLI validation.
+Real embeddings of this variant and subsequent scientific experiments remain
+pending. See the [variant ingestion runbook](docs/runbooks/video_variant_ingestion.md)
+and [multishard feature commands](docs/runbooks/features.md#features-desde-publicaciones-multishard).
+
+`flir-pipeline explorer export-organization` exports existing frozen M02
+record/content, split, clustering, candidate pairs and grouped evidence through
+`organization-evidence-v2`. Timelines preserve provenance and optional previews
+remain local/ignored. Available with synthetic offline validation; final Hypatia
+memberships have not been exported locally. See the
+[organization contract and Hypatia runbook](docs/runbooks/organization_evidence_export.md).
+
+`flir-pipeline detection report` implements final evidence-gated detector analysis
+and the versioned `detection-export-v1` contract for `flir-pipeline-explorer`.
+The owner reports the completed 48-run experiment on Hypatia; those artifacts
+are absent from this local clone and have not been reverified here. The command
+derives identities from its inputs and refuses incomplete scientific exports.
+See the [two-environment reporting runbook](docs/runbooks/detector_final_report.md).
+
 The experimental `flir-pipeline sequences experiment` suite evaluates temporal
 boundary zones, visual recurrence and clustering with explicit review masks,
 coverage, stability and immutable evidence. It creates no final split or automatic
@@ -26,8 +52,9 @@ content identities and indivisible groups make those relationships auditable.
 
 The system compares historical, reproducible random and cluster-aware partitions
 using residual visual and inferred temporal relationships. Reduced correlation
-has been observed for selected candidates; improved detector generalization
-remains untested by a full controlled comparison.
+has been observed for selected candidates. The owner reports a complete detector
+comparison on Hypatia, pending verification by the final report command there;
+detector differences remain descriptive, not causal evidence of leakage inflation.
 
 ## Pipeline
 
@@ -206,7 +233,8 @@ Tests are synthetic and offline, with no FLIR data, model downloads or GPU.
 | Temporal interpretation | Experimental: filename-derived indices; no verified timing |
 | Streamlit / VIKUS | Available for local inspection |
 | Detector infrastructure | Available; four small CPU pilots validated |
-| Full detector comparison | Pending compute; no final comparative Precision/Recall/mAP results |
+| Full detector comparison | 48/48 complete on Hypatia reported by owner; final-report verification pending there, no local scientific export |
+| Detector report / frontend contract | Implemented; synthetic offline validation, final-only integrity gate and versioned JSON Schema |
 
 Detailed evidence, candidate roles and remaining limits are in [status](docs/status.md).
 

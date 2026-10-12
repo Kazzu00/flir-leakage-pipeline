@@ -84,10 +84,56 @@ min/max por detector seed dentro de split, y variabilidad entre medias de
 split seeds por separado. Se reportan diferencias descriptivas frente a
 historical, CIs por run y dispersión, sin pruebas indiscriminadas de p-values.
 
+## Enmienda operacional previa a resultados finales
+
+El 30 de septiembre de 2026, antes de ejecutar Stage A o cualquier celda de la
+matriz controlada final, se ajustó únicamente el entorno PyTorch del detector
+para hacerlo compatible con la infraestructura GPU disponible en Hypatia.
+
+El nodo disponible utiliza una NVIDIA Quadro RTX 6000 con 24 GB de VRAM,
+driver NVIDIA 520.61.05 y CUDA 11.8. PyTorch 2.8.0 no dispone de la build CUDA
+11.8 requerida por este entorno. Por ello se fija PyTorch 2.7.1 con CUDA 11.8
+y torchvision 0.22.1, manteniendo Ultralytics 8.3.203.
+
+No se modifican arquitectura, pesos iniciales, dataset, splits, seeds,
+hiperparámetros, augmentations, resolución, número de epochs, métricas,
+bootstrap ni criterios de selección. No se habían observado resultados de
+Stage A/B al realizar esta enmienda.
+
+
+### Ajuste de batch posterior al piloto operacional
+
+Antes de Stage A/B, el primer piloto pequeño con datos FLIR reales mostró que
+batch 8 no era operacionalmente seguro en la Quadro RTX 6000. Aunque el probe
+sintético de forward/backward había clasificado batch 8 como seguro, el piloto
+real produjo un CUDA OOM durante entrenamiento con las augmentations y
+anotaciones reales.
+
+El intento fallido se conserva como evidencia operacional y no constituye un
+resultado científico. No se había ejecutado ninguna celda de Stage A/B. Se
+restringe por tanto la búsqueda común de batch CUDA a [1, 2, 4] y se vuelve a
+ejecutar probe, freeze y piloto pequeño. El batch resultante será idéntico para
+todas las estrategias; no se realizará ajuste específico por estrategia.
+
+
+### Segundo ajuste de batch posterior al piloto operacional
+
+Con batch 4, los pilotos pequeños de C10 y C12 completaron entrenamiento y
+evaluación. El piloto histórico produjo un CUDA OOM durante la primera epoch,
+antes de completar entrenamiento. No se había ejecutado ninguna celda de
+Stage A/B y estos pilotos no constituyen resultados científicos.
+
+Dado que el protocolo exige una configuración común para todas las estrategias,
+batch 4 se considera operacionalmente no válido para la matriz controlada
+completa. Se restringe la búsqueda CUDA a [1, 2] y se repiten probe, freeze y
+los cuatro pilotos pequeños con una nueva identidad de configuración. Los
+pilotos completados previamente con batch 4 no se reutilizan como resultados
+del nuevo runtime.
+
 ## Configuración y hardware
 
 Fuente versionada: `configs/detection/yolo11n.yaml`. Ultralytics 8.3.203,
-PyTorch 2.8.0 y torchvision 0.23.0, en extra opcional `detection`. Pretrained
+PyTorch 2.7.1 y torchvision 0.22.1, en extra opcional `detection`. Pretrained
 YOLO11n del asset oficial, hash SHA256 registrado localmente. Cada run nuevo
 inicia desde esos mismos pesos, nunca desde otro split.
 
@@ -202,6 +248,23 @@ variación entre detector seeds y entre split seeds, sin elegir un ganador ni
 promediar silenciosamente puntos. La figura 09 reserva A–E para las cinco vistas
 macro y F para Heavy Machinery, con dos subpaneles por encoder. El reporte registra
 el SHA256 del registro utilizado; los CSV científicos solo existen al abrirse el gate.
+
+## Reporte final y frontera del frontend (2026-10-03)
+
+`detection report` extiende este protocolo con agregación por split y un contrato
+de presentación versionado. Usa el mismo gate de integridad; no cambia el plan,
+freeze, bootstrap o registro de asociaciones. El gráfico de progreso descrito
+arriba conserva puntos por run; las nuevas asociaciones finales promedian primero
+detector seeds y utilizan **un punto por split**. Pearson/Spearman globales y
+Pearson centrado por estrategia son resúmenes descriptivos, sin p-values ni
+conclusiones causales. SD entre splits con un único split permanece null.
+
+El responsable reporta la matriz 48/48 completa en Hypatia; esta implementación
+local no la revalida ni publica resultados desde los pilotos antiguos. El ciclo
+piloto pequeño → Stage A → matriz completa → reporte verificado → export se
+describe en el [runbook de cierre](../runbooks/detector_final_report.md), con el
+comando exacto y requisitos de fuentes. Los cálculos y la semántica residen aquí;
+`flir-pipeline-explorer` consume exclusivamente el contrato ligero validado.
 
 ## Fuentes de la integración
 

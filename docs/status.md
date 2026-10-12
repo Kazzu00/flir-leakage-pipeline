@@ -1,5 +1,116 @@
 # Project status
 
+## Ingesta de variantes visuales externas (2026-10-08)
+
+**Ingesta real disponible localmente; puente de features implementado y validado
+con datos sintéticos; embeddings reales de la variante y alineación pendientes.**
+`data video-variant-ingestion build/verify/summary` publica
+`video_variant_ingestion_v1` mediante staging, checksum receipts y un escritor
+exclusivo. La lectura multishard acotada conserva cada entrada física, mientras
+el manifest científico y las identidades existentes son independientes del
+empaquetado para observaciones atribuibles. Índices repetidos permanecen ambiguos
+y bloquean ese manifest, sin perder entradas ni inventar IDs.
+
+Una publicación real local contiene 19.800 PNG repartidos entre seis ZIP.
+Las fases previas validaron una lectura puntual de tres ocurrencias en tres
+shards, sin verificar exhaustivamente todas las imágenes. El nombre externo
+`hud_reduced` no demuestra eliminación completa del HUD. No hay anotaciones YOLO
+ni correspondencia temporal exacta verificada; esta población sigue separada
+del universo histórico etiquetado.
+
+Las fases 1/2A/2B.1 añadieron lector multishard, factoría de fuentes y binding
+`video_variant_feature_source_v1` al motor existente. La fase 2B.2 añade opciones
+al mismo `features extract`, exige publicación/manifest original/input-root y
+difiere la construcción del modelo hasta verificar fuentes. Selección por contenido,
+mapping completo y procedencia física conservan las identidades científicas.
+La validación es offline/sintética con constructores simulados; no se ejecutaron
+modelos reales ni nuevos embeddings de esta variante. La fase 2B.1 pasó 255
+pruebas focalizadas. En 2B.2, **253 passed** (55 casos nuevos y 198 regresiones)
+en 247,76 s, más **1 passed** de regresión del consumidor CLI de configuración
+de similarity en 3,61 s. Ruff sobre los archivos Python modificados/nuevos,
+ayuda CLI y diff checks aprobaron. La suite global no se revalidó: los 34 fallos locales de
+organización y el incidente ambiental de DLL previos no se corrigieron aquí.
+Véanse [uso y límites de features](runbooks/features.md#features-desde-publicaciones-multishard).
+
+La evidencia temporal es exclusivamente candidata/reportada. No se crean labels,
+alineación verificada, secuencias, splits, entrenamiento ni exports nuevos, y los
+extractores matemáticos permanecen intactos.
+Validación inicial de ingesta: **60 passed** en pruebas nuevas y **60 passed** en regresión de datos
+relacionada (identidad, inventario, manifest histórico y muestreo mock), sin
+modelos ni datos reales. En esa fase aprobaron Ruff global, formato de archivos
+nuevos, ayuda CLI y `git diff --check`; no se ejecutó la suite completa. Véanse
+[contrato, límites y comandos](runbooks/video_variant_ingestion.md).
+
+## Organización v2: pares normalizados (2026-10-05)
+
+El responsable comunica un export v1 real completado en Hypatia; no se revalidó
+localmente. El productor v2 separa todos los pares candidatos en `candidate_pairs`
+y conserva cores/componentes y sus membresías. Usa JSON compacto con checksums
+sobre bytes exactos. **Export real v2 pendiente**; la validación local es sintética.
+Los apartados previos conservados debajo documentan el estado histórico v1.
+Véase el [contrato vigente y migración](runbooks/organization_evidence_export.md).
+
+## Membresía congelada para organización (2026-10-05)
+
+Implementado fallback de presentación para publicaciones de clustering ausentes:
+consume exclusivamente membresías verificadas de todos los splits seleccionados,
+exige igualdad exacta entre seeds y conserva su procedencia por SHA256. Una
+publicación presente pero inválida no activa el fallback. Configuración y
+diagnósticos upstream no disponibles permanecen null; no se ejecuta clustering.
+La evidencia operacional comunicada por el responsable en Hypatia no fue
+revalidada localmente ni prueba que el export real haya terminado. Véase el
+[runbook](runbooks/organization_evidence_export.md) para validación sintética y
+el paso pendiente de export en Hypatia.
+
+Validación offline/sintética: **70 passed** en organización/linkage y **874 passed**
+en la suite completa, con 40 warnings preexistentes. Ruff global, ayuda CLI,
+schema independiente y checks de diff aprobados. No se publicaron datos reales.
+
+## Evidencia organizativa M02 para frontend (2026-10-04)
+
+**Infraestructura implementada; export real pendiente en Hypatia.**
+`explorer export-organization` consume el plan/freeze existente, resuelve sus
+splits y clustering seleccionado, y exporta ocurrencias, contenidos únicos,
+membresías, timelines y evidencia candidata/revisión existente. No regenera
+clustering/splits/linkage ni modifica el contrato del detector.
+
+El schema `organization-evidence-v1` valida relaciones y semántica conservadora;
+los previews son opcionales e ignorados por Git. Hay fixtures sintéticas para
+duplicados, particiones históricas, seeds, ruido, candidatos, zonas inclusivas,
+media y publicación con rollback. No se ejecutó un export científico real local.
+Véase el [runbook y alcance de validación](runbooks/organization_evidence_export.md).
+
+Regresión general sintética/offline: **838 passed**, con 40 FutureWarning de
+pandas en código preexistente de clustering/association. Ruff global, formato,
+ayuda CLI, siete notebooks fuente y checks de diff aprobados. Esta evidencia
+valida software, no las membresías reales del experimento final.
+Revisión final tras precisar diferencias de bytes de labels, sin afirmar
+conflictos semánticos: **34 passed** en el bloque de organización.
+
+## Reporte final del detector (2026-10-03)
+
+**Infraestructura de reporte implementada; ejecución científica en Hypatia
+pendiente de revalidación.** El responsable reporta 48/48 runs científicos
+completos en Hypatia y ningún entrenamiento pendiente. El clon local conserva
+un plan anterior y pilotos pequeños, sin esa matriz final; no se sustituye su
+freeze ni se publican resultados científicos ficticios.
+
+`detection report` verifica una matriz completa, agrega detector seeds antes de
+splits/asociaciones y produce reporte, tablas, seis figuras y contrato
+`detection-export-v1` para `flir-pipeline-explorer`. El estado COMPLETE solo se
+publica al pasar el gate de fuentes del entorno de ejecución. Los estados
+históricos del detector que aparecen debajo describen la evidencia local previa.
+Véase el [runbook](runbooks/detector_final_report.md).
+
+Validación local sintética/offline: **804 passed** en la suite completa;
+**52 passed** en el bloque detector y **24 passed** en la revisión final de los
+tests nuevos. Ruff global, formato de los cuatro archivos nuevos Python, siete
+notebooks fuente, ayuda CLI y chequeos de diff pasaron. El schema se contrastó
+con JSON Schema Draft 2020-12. Se usó un entorno de revisión compatible con las
+restricciones DLL de Windows y una ruta temporal corta para la suite; versiones
+y comandos están en el runbook. No hay type checker adicional configurado.
+Estas pruebas no verifican los 48 runs reales de Hypatia ni publican su export.
+
 ## Ingesta nativa de evidencia legacy (2026-09-29)
 
 **Adaptador implementado; ejecución real pendiente.** Los esquemas aportados por
