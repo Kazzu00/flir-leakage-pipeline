@@ -1,5 +1,20 @@
 # Pipeline traceability
 
+## Labeled candidate construction (2026-10-13)
+
+Accepted labeled audit → checksum/identity and original annotation-byte validation
+→ explicit historical/expanded population → occurrence statistics → exact content
+groups (S1/S2) or selected hypothetical relation components (S3) → existing random
+or MILP assignment → content-to-occurrence propagation → atomicity, class/empty
+balance, cohort and evidence-crossing metrics → new immutable candidate suite.
+
+Original historical membership remains a descriptive reference; ratios alone may
+guide targets. Adendo has no fabricated historical membership. S3 is a sensitivity
+experiment, not a replacement for the committed representation/reduction/clustering
+methodology. No features or detector training are performed. Zero imposed-edge
+crossings validate constraints, not general independence. See the
+[artifact/CLI contract](runbooks/labeled_candidates.md) and [execution status](status.md).
+
 ## Candidate labeled consolidation (2026-10-12)
 
 Explicit historical image/label ZIPs + supplement ZIP → read-only inventory and

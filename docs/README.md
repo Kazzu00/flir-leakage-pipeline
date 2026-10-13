@@ -26,6 +26,7 @@ pending work. Commands assume the repository root; real artifacts remain local.
 | Reduction | [t-SNE / PaCMAP](analysis/reduction.md) | [Reduction](protocols/reduction.md) | [Reduction](runbooks/reduction.md) |
 | Clustering | [Density and stability](analysis/clustering.md) | [Clustering](protocols/clustering.md) | [Clustering](runbooks/clustering.md) |
 | Splitting | [Baselines and residuals](analysis/splitting.md) | [Splitting](protocols/splitting.md) | [Splitting](runbooks/splitting.md) |
+| Labeled candidates | [Observed status](status.md) | [S1/S2/S3 and population scope](runbooks/labeled_candidates.md#políticas-y-poblaciones) | [Construction and verification](runbooks/labeled_candidates.md) |
 | Detection | [Candidate audit and pilots](analysis/detection.md) | [Detection](protocols/detection.md) | [Detection](runbooks/detection.md) |
 
 [Streamlit](visualization/streamlit.md) and [VIKUS](visualization/vikus.md) document

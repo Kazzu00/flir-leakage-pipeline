@@ -1,5 +1,10 @@
 # Configuration status
 
+`splits/labeled_candidates_v1.yaml` defines the separate labeled-audit candidate
+protocol: historical-only ratio inference, five seeds, bounded existing MILP and
+explicit S3 sensitivity states. It contains no private paths or dataset IDs.
+See [CLI, review conflict policy and limitations](../docs/runbooks/labeled_candidates.md).
+
 `embeddings/*.yaml`, `similarity/*.yaml`, `reduction/*.yaml` and
 `clustering/*_research.yaml` and `splits/*.yaml` are executable configurations.
 `detection/yolo11n.yaml` configures the implemented detector protocol.

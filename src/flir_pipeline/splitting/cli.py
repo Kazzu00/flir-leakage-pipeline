@@ -11,6 +11,57 @@ import typer
 app = typer.Typer(help="Atomic splits, seeded baselines and residual correlation in both encoders.")
 
 
+@app.command("labeled-candidates")
+def labeled_candidates(
+    audit: Path = typer.Option(...), config: Path = typer.Option(...),
+    output: Path = typer.Option(...), population: str = typer.Option("both"),
+    policy: str = typer.Option("all"), seeds: str | None = typer.Option(None),
+    expected_dataset_id: str | None = typer.Option(None),
+    expected_audit_id: str | None = typer.Option(None),
+    source_root: Path | None = typer.Option(None), evidence: Path | None = typer.Option(None),
+) -> None:
+    """Build fresh S1/S2/S3 candidates from a verified labeled audit, without models.
+
+    population: historical, expanded, both. policy: S1, S2, S3, all.
+    seeds: comma-separated nonnegative integers; otherwise use configuration.
+    source-root additionally rehashes original ZIPs and requires imported evidence.
+    """
+    import yaml
+
+    from flir_pipeline.splitting.labeled import LabeledConfig
+    from flir_pipeline.splitting.labeled_storage import build_labeled_candidates
+
+    try:
+        settings = LabeledConfig(**yaml.safe_load(config.read_text(encoding="utf-8")))
+        if seeds is not None:
+            settings = replace(settings, balance=replace(settings.balance, seeds=tuple(int(s.strip()) for s in seeds.split(","))))
+        if evidence is not None and source_root is None:
+            raise ValueError("--evidence requires --source-root")
+        result = build_labeled_candidates(
+            audit, output, settings,
+            populations=("historical", "expanded") if population == "both" else (population,),
+            policies=("S1", "S2", "S3") if policy == "all" else (policy,),
+            expected_dataset_id=expected_dataset_id, expected_audit_id=expected_audit_id,
+            source_root=source_root, evidence=evidence,
+        )
+    except (ValueError, OSError, KeyError, TypeError, AssertionError) as error:
+        raise typer.BadParameter(str(error)) from error
+    typer.echo(f"Verified {result['candidate_count']} candidates; receipt: {output / 'summary.json'}")
+
+
+@app.command("verify-labeled")
+def verify_labeled(directory: Path, audit: Path | None = typer.Option(None),
+                   replay: bool = typer.Option(False)) -> None:
+    """Recompute candidate checks/metrics; optionally replay seeded assignments."""
+    from flir_pipeline.splitting.labeled_storage import verify_labeled_candidates
+
+    try:
+        result = verify_labeled_candidates(directory, audit=audit, replay=replay)
+    except (ValueError, OSError, KeyError, TypeError, AssertionError) as error:
+        raise typer.BadParameter(str(error)) from error
+    typer.echo(json.dumps(result, indent=2))
+
+
 def _inputs(spec: Path, comparison: Path, labels: Path | None):
     from flir_pipeline.cli import _default_root
     from flir_pipeline.splitting.storage import load_inputs

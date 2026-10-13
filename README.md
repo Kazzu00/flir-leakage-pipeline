@@ -2,10 +2,19 @@
 
 ## Overview
 
+`flir-pipeline splitting labeled-candidates` builds S1 random exact-content,
+S2 balanced exact-content and S3 visual-candidate sensitivity splits from verified
+labeled audits, for historical or expanded populations. It reuses the existing
+assignment engine, preserves occurrence annotations and keeps Adendo historical
+membership null. `splitting verify-labeled` recomputes metrics and optionally
+replays assignments. See the [protocol and CLI](docs/runbooks/labeled_candidates.md)
+and [local execution evidence](docs/status.md). These are candidates for review,
+not evidence of detector improvement or verified temporal independence.
+
 `flir-pipeline data audit-adendo` consolidates the historical labeled population
 and Adendo into a versioned candidate audit, preserving original annotations and
 separating exact-byte identity from perceptual/review evidence. Implemented and
-executed locally on the three source ZIPs; new split adjudication remains pending.
+executed locally on the three source ZIPs; evidence adjudication remains pending.
 It creates no splits or training runs. See the [contract and CLI](docs/runbooks/adendo.md)
 and [observed audit results](docs/status.md).
 
