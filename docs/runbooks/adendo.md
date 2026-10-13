@@ -132,12 +132,17 @@ contenido. `label_ids → annotation_audit` permite calcular distribución de cl
 sin introducir etiquetas en embeddings. Los endpoints de relaciones permiten
 revisar posibles dependencias sin contaminar el clustering con `original_split`.
 
-Este contrato aún **no es entrada directa del splitter existente**: este exige
+Este contrato **no es entrada directa del splitter histórico**: este exige
 metadata histórica completa para sus targets. Hay que decidir explícitamente
 cómo incorporar Adendo, resolver conflictos de anotación y adjudicar relaciones,
 sin asignarle un split histórico ficticio. `split_ready` es siempre falso en esta
 fase; `annotation_qa_passed` solo resume lectura/validación del universo de imágenes
 y no resuelve conflictos entre anotaciones, huérfanos, ontología ni dependencia.
+
+El [adaptador de candidatos etiquetados](labeled_candidates.md), añadido después
+de esta auditoría, conserva esos controles históricos, los conflictos por
+ocurrencia y los nulos de Adendo. Permite evaluar restricciones hipotéticas de
+sensibilidad sin adjudicar relaciones ni modificar esta publicación original.
 
 El resumen distingue `exact_duplicate_groups`, todas las ocurrencias dentro de
 esos grupos, las ocurrencias adicionales respecto de un representante y las

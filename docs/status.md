@@ -1,5 +1,71 @@
 # Project status
 
+## Splits candidatos etiquetados v1 (2026-10-13)
+
+**Infraestructura implementada, piloto real de seis candidatos y matriz real de
+30 configuraciones ejecutados y verificados.** Son particiones candidatas para
+revisión; no se entrenó YOLO11n ni se ejecutaron DINOv2/CLIP sobre Adendo.
+La publicación aceptada pasó verificación de dataset/audit IDs, todos sus
+artefactos, los tres ZIP originales y la evidencia importada. El adaptador
+reconstruyó anotaciones por ocurrencia: 1.657 históricas + 49 Adendo, 1.508 contenidos
+consolidados; los ocho conflictos exactos y los diez huérfanos permanecen documentados.
+Adendo conserva `original_split=null`; ratios derivados solo de 1.657 históricos.
+
+Resultados **observados**, rangos entre semillas 0–4. Desviación de clases:
+promedio absoluto, en puntos porcentuales, de proporciones de instancias por clase
+frente a la población respectiva. Desviación de tamaño: máximo relativo por split.
+
+| Población | Política | Runs | Grupos | Desv. tamaño (%) | Desv. clases (pp) | Cruces candidatos |
+|---|---|---:|---:|---:|---:|---:|
+| Histórica | S1 | 5 | 1459 | 0–0,269 | 1,274–1,878 | No disponibles |
+| Histórica | S2 | 5 | 1459 | 0 | 0,040–0,058 | No disponibles |
+| Histórica | S3 | 5 | 1459 | 0 | 0,040–0,058 | No disponibles |
+| Ampliada | S1 | 5 | 1508 | 0,149–0,759 | 0,757–1,621 | 8–27 / 35 |
+| Ampliada | S2 | 5 | 1508 | 0,149 | 0,049–0,071 | 11–24 / 35 |
+| Ampliada | S3 | 5 | 1473 | 0,149 | 0,048–0,064 | 0 / 35 |
+
+En todos los candidatos: cero contenidos exactos entre splits, cero fracturas
+obligatorias y cobertura completa de ocurrencias. La referencia histórica
+original retiene sus 198 contenidos cruzados; no fue modificada.
+Las 41 evidencias candidatas describen 35 parejas por ocurrencia. No existen
+parejas visuales candidatas internas al histórico en esta publicación:
+S3 histórico equivale a S2 en membresía para las cinco semillas; no aporta
+evidencia independiente. Hay 25 membresías distintas entre las 30 configuraciones.
+Los seis runs piloto se reproducen dentro de la matriz por identidad y membresía
+(no son seis configuraciones adicionales). El replay de los **30/30** candidatos
+reprodujo las asignaciones con el código/versiones registrados; se verificó además
+la igualdad con la auditoría externa y se recalcularon todas las métricas.
+
+S1 histórico semilla 2 tiene cero instancias de Vehicles en validation. Los otros
+29 candidatos cubren las cinco clases en las tres particiones. Se conserva esta
+observación, sin cambiar la semilla ni reparar el baseline silenciosamente.
+Los 20 runs MILP tienen factibilidad primal comprobada: 12 reportan óptimo dentro
+de tolerancia y ocho estado 4 con solución factible; brecha máxima observada
+0,03305 (3,305 %). No se demuestra óptimo único. Los S2/S3 históricos tienen
+tamaños 1178/107/372; los ampliados 1213/110/383. Se conserva por run distribución
+de clases, vacíos, cohortes y tamaños de grupos. El balance global no garantiza
+balance por cohorte: S3 ampliado asigna entre 2 y 19 ocurrencias Adendo a test,
+según semilla; no se incorporó un objetivo adicional de balance por cohorte.
+
+S3 ampliado impone las relaciones seleccionadas como restricciones hipotéticas:
+el cero residual sobre esas aristas **no valida** procedencia ni independencia.
+No se calcularon nuevas similitudes coseno ni métricas temporales. Menor
+desviación descriptiva no prueba superioridad científica o mejora del detector.
+S2 histórico permite revisar una comparación en la misma población; S2/S3
+ampliados permiten revisar la sensibilidad a las relaciones candidatas. Antes
+de un entrenamiento posterior deben fijarse criterios de cobertura, tratamiento
+de conflictos y comparación entre poblaciones; no se selecciona un ganador aquí.
+
+Validación: **82 passed** en seis archivos de pruebas offline/sintéticas
+(29 pruebas nuevas y 53 regresiones), Ruff global aprobado y `git diff --check`
+aprobado. La suite global no se ejecutó en esta intervención. Los 48 runs
+históricos del detector no se consumieron, modificaron ni revalidaron.
+Un primer piloto incompleto se preservó sin recibo final: falló la comparación
+de nulos del CSV (None/NaN), luego corregida y cubierta por pruebas. La publicación
+válida usó otra salida. Los artefactos reales permanecen fuera de Git, bajo
+`labeled_splits_v1`, en directorios nuevos. No hubo commit, push, merge ni rebase.
+Véase el [contrato, CLI y verificación](runbooks/labeled_candidates.md).
+
 ## Consolidación etiquetada candidata (2026-10-12)
 
 **Auditoría implementada y ejecutada sobre los tres ZIP reales; consolidación

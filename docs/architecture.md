@@ -1,5 +1,18 @@
 # Architecture
 
+## Labeled candidate splits (2026-10-13)
+
+`splitting/labeled.py` adapts the immutable labeled audit into per-occurrence
+statistics and exact/sensitivity groups. It validates original annotation bytes,
+source identities, nullable Adendo history and induced-population relation scope.
+`splitting/labeled_storage.py` coordinates fresh candidate suites, original-source
+hash checks, audit snapshots, semantic verification and optional assignment replay.
+It reuses `record_statistics`, `make_groups`, `aggregate_groups`, `random_assignment`,
+`milp_assignment`, `propagate`, `verify_assignments` and `balance_metrics`.
+The historical storage/experiment contracts and similarity requirements remain
+unchanged. This separate artifact namespace requires no detector plan, features,
+frontend or historical runs. See the [contract](runbooks/labeled_candidates.md).
+
 ## Supplementary labeled audit (2026-10-12)
 
 `data/adendo.py` implements ZIP preflight, read-only member scanning, conservative

@@ -1,5 +1,25 @@
 # Design decisions
 
+## 2026-10-13: labeled candidate adapter and explicit sensitivity constraints
+
+Keep occurrence-level annotations, including exact-content annotation conflicts,
+and preserve `original_split=null` for Adendo. Infer target ratios from historical
+occurrences only unless configured explicitly. Reuse the existing atomic assignment
+engine through an audit adapter without weakening historical input validation.
+
+S1/S2 impose exact identity only; S3 adds explicitly selected relation states as
+hypothetical connected-component constraints. Restrict edges to the induced
+population; excluded Adendo endpoints cannot silently connect historical frames.
+Rejected reviews veto a pair, conflicting confirmed/rejected reviews fail by
+default, and transitive contradictions fail in S3. Never rewrite upstream review
+states or present these components as embedding clustering or temporal truth.
+
+Fresh external suites bind audit snapshots, occurrence memberships, seeds, solver
+limits and implementation fingerprints. Recompute metrics and solver objective;
+optional replay compares memberships. Balance objectives remain soft and feasible
+incumbents are not relabeled optimal. Historical detector plans/results are neither
+inputs nor outputs. See the [protocol and rationale](runbooks/labeled_candidates.md).
+
 ## 2026-10-12: separate labeled audit from split adjudication
 
 The supplementary audit reuses historical identity, normalized split/basename
