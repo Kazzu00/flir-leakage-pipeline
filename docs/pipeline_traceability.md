@@ -1,5 +1,19 @@
 # Pipeline traceability
 
+## Common-test protocol planning (2026-10-13)
+
+Verified labeled audit + complete candidate suite + source-bound acceptance review
++ checksum/contract-validated aggregate detector export → reconstructed population
+and membership aliases → shared historical anchors → full expanded dependency
+closure → protected/quarantine/development tables → support and necessary
+feasibility conditions → proposed protocol with explicit blockers.
+
+No new train/validation assignments, detector evaluation or approval are inferred.
+Legacy aggregate evidence remains distinct from unavailable original per-image
+predictions. Candidate relations are hypothetical restrictions and filename-derived
+time is not ground truth. See the [protocol](protocols/detector_common_test_v1.md)
+and [source/publication contract](runbooks/common_test.md).
+
 ## Labeled candidate construction (2026-10-13)
 
 Accepted labeled audit → checksum/identity and original annotation-byte validation

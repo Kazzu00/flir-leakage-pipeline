@@ -7,6 +7,64 @@ import typer
 app = typer.Typer(help="Frozen historical/random/cluster detector comparison.")
 
 
+def _common_proposal(audit, splits, review, export, reference, output, config,
+                     source_root, evidence, legacy_artifacts, purpose):
+    import yaml
+
+    from flir_pipeline.detection.common_test import CommonTestConfig
+    from flir_pipeline.detection.common_test_storage import build_common_test
+
+    try:
+        settings = CommonTestConfig(**yaml.safe_load(config.read_text(encoding="utf-8")))
+        proposal = build_common_test(audit, splits, review, export, reference, output, settings,
+                                    purpose=purpose, source_root=source_root, evidence_file=evidence,
+                                    legacy_artifacts=legacy_artifacts)
+    except (ValueError, OSError, KeyError, TypeError, AssertionError) as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    typer.echo(f"{proposal['readiness']['state']}: {proposal['plan_id']}; READY_FOR_TRAINING=false")
+
+
+@app.command("plan-common-test")
+def plan_common_test_command(
+    audit: Path = typer.Option(...), splits: Path = typer.Option(...), review: Path = typer.Option(...),
+    output: Path = typer.Option(...), config: Path = typer.Option(Path("configs/detection/common_test_v1.yaml")),
+    export: Path = typer.Option(Path("exports/frontend/detection")),
+    reference: Path = typer.Option(Path("configs/detection/yolo11n.yaml")),
+    source_root: Path | None = typer.Option(None), evidence: Path | None = typer.Option(None),
+    legacy_artifacts: Path | None = typer.Option(None),
+) -> None:
+    """Publish a candidate common test and development pools; never approve or train."""
+    _common_proposal(audit, splits, review, export, reference, output, config,
+                     source_root, evidence, legacy_artifacts, "plan")
+
+
+@app.command("audit-readiness")
+def audit_readiness_command(
+    audit: Path = typer.Option(...), splits: Path = typer.Option(...), review: Path = typer.Option(...),
+    output: Path = typer.Option(...), config: Path = typer.Option(Path("configs/detection/common_test_v1.yaml")),
+    export: Path = typer.Option(Path("exports/frontend/detection")),
+    reference: Path = typer.Option(Path("configs/detection/yolo11n.yaml")),
+    source_root: Path | None = typer.Option(None), evidence: Path | None = typer.Option(None),
+    legacy_artifacts: Path | None = typer.Option(None),
+) -> None:
+    """Audit source evidence, test support and blockers in a fresh external output."""
+    _common_proposal(audit, splits, review, export, reference, output, config,
+                     source_root, evidence, legacy_artifacts, "readiness")
+
+
+@app.command("verify-common-test")
+def verify_common_test_command(directory: Path) -> None:
+    import json
+
+    from flir_pipeline.detection.common_test_storage import verify_common_test
+
+    try:
+        result = verify_common_test(directory)
+    except (ValueError, OSError, KeyError, TypeError, AssertionError) as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    typer.echo(json.dumps(result, indent=2))
+
+
 @app.command("report")
 def report_command(
     plan: Path = Path("artifacts/detection/protocol"),

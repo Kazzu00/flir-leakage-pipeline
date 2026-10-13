@@ -130,6 +130,8 @@ def audit_and_plan(comparison: Path, config_path: Path, output: Path) -> dict:
 
 def verify_plan(directory: Path) -> dict:
     plan = read_json(directory/"plan.json")
+    if plan.get("schema_version") == "detector_common_test_proposal_v1":
+        raise ValueError("Common-test proposals require an approved protocol and verified training adapter")
     if stable_id(plan["identity"]) != plan["plan_id"]:
         raise ValueError("Plan identity mismatch")
     return plan
