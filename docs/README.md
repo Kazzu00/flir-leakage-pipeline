@@ -28,6 +28,7 @@ pending work. Commands assume the repository root; real artifacts remain local.
 | Splitting | [Baselines and residuals](analysis/splitting.md) | [Splitting](protocols/splitting.md) | [Splitting](runbooks/splitting.md) |
 | Labeled candidates | [Observed status](status.md) | [S1/S2/S3 and population scope](runbooks/labeled_candidates.md#políticas-y-poblaciones) | [Construction and verification](runbooks/labeled_candidates.md) |
 | Detection | [Candidate audit and pilots](analysis/detection.md) | [Detection](protocols/detection.md) | [Detection](runbooks/detection.md) |
+| Common-test proposal | [Verified planning status](status.md) | [Proposed protocol, not frozen](protocols/detector_common_test_v1.md) | [Readiness, planning and verification](runbooks/common_test.md) |
 
 [Streamlit](visualization/streamlit.md) and [VIKUS](visualization/vikus.md) document
 installation, launch, privacy, source joins and display limitations.

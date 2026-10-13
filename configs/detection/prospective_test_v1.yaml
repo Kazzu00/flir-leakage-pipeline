@@ -1,0 +1,7 @@
+# Records lack verified independent prospective provenance at present.
+protocol: detector_common_test_proposal_v1
+option: prospective
+anchor_rule: none
+protection_states: [confirmed_provenance, visual_candidate, unresolved]
+split_seeds: [0, 1, 2, 3, 4]
+detector_seeds: [42, 43, 44]

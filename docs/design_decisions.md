@@ -1,5 +1,22 @@
 # Design decisions
 
+## 2026-10-13: candidate test scoring subset versus protected reservation
+
+Use original historical test occurrences as an explicitly retrospective candidate
+scoring set shared by historical/expanded arms. Compute protection over the entire
+expanded graph first; quarantine all additional occurrences in its connected
+closure, including exact copies and supplemental candidate neighbors. A component
+cannot cross reserve/development even when only historical anchors will be scored.
+Preserve annotation conflicts and block freeze; do not choose a replacement label.
+
+Do not reinterpret 30 existing candidate assignments as a common-test experiment.
+Publish pools/groups, necessary feasibility conditions and explicit NOT_SOLVED
+train/validation state. Future two-way assignment must extend the existing motor
+explicitly instead of inventing a third destination. The prospective option is
+UNAVAILABLE without independent annotated sources. Approval/freeze/runtime adapter
+are absent and mandatory; no new command can return READY_FOR_TRAINING.
+See the [draft protocol](protocols/detector_common_test_v1.md).
+
 ## 2026-10-13: labeled candidate adapter and explicit sensitivity constraints
 
 Keep occurrence-level annotations, including exact-content annotation conflicts,

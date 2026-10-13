@@ -1,5 +1,10 @@
 # Configuration status
 
+`detection/common_test_v1.yaml` and `detection/prospective_test_v1.yaml` configure
+planning only: an internal protected holdout proposal and an unavailable
+prospective-test contract. Neither authorizes training or replaces the historical
+`yolo11n.yaml` configuration. See the [planning runbook](../docs/runbooks/common_test.md).
+
 `splits/labeled_candidates_v1.yaml` defines the separate labeled-audit candidate
 protocol: historical-only ratio inference, five seeds, bounded existing MILP and
 explicit S3 sensitivity states. It contains no private paths or dataset IDs.

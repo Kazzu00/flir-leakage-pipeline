@@ -2,6 +2,14 @@
 
 ## Overview
 
+`flir-pipeline detection audit-readiness`, `plan-common-test` and
+`verify-common-test` prepare a separately versioned common-test proposal from
+verified audits, splits and review receipts. Internal anchors, protected closure,
+quarantine and development pools remain distinct; prospective data is unavailable
+until independently audited. Proposals cannot train or freeze the detector.
+See the [new draft protocol](docs/protocols/detector_common_test_v1.md) and
+[planning commands](docs/runbooks/common_test.md).
+
 `flir-pipeline splitting labeled-candidates` builds S1 random exact-content,
 S2 balanced exact-content and S3 visual-candidate sensitivity splits from verified
 labeled audits, for historical or expanded populations. It reuses the existing

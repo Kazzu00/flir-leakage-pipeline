@@ -1,5 +1,18 @@
 # Architecture
 
+## Common-test pre-training proposals (2026-10-13)
+
+`detection/common_test.py` reuses labeled occurrence statistics, atomic groups and
+relation review gates to derive a candidate common test, a globally protected
+closure, quarantine and population-specific development pools. It reports necessary
+feasibility conditions, not solved train/validation assignments. The independent
+handoff verifier checks full future memberships without authorizing training.
+`common_test_storage.py` binds the audit, candidate suite, acceptance review and
+historical public export by checksum, snapshots them, and verifies all derived
+proposal tables. `proposal.json` is incompatible with legacy `plan.json`; the
+legacy verifier explicitly rejects this schema. Runtime, original protocol,
+materializers, historical freezes and frontend exports remain separate.
+
 ## Labeled candidate splits (2026-10-13)
 
 `splitting/labeled.py` adapts the immutable labeled audit into per-occurrence

@@ -1,5 +1,74 @@
 # Project status
 
+## Propuesta de evaluación del detector con test común (2026-10-13)
+
+**Infraestructura de planificación/verificación implementada y ejecutada sobre
+las publicaciones reales. LISTO PARA REVISIÓN DEL PROTOCOLO; no listo para entrenar.**
+Se verificaron recibos, snapshots, identidades y checksums de la auditoría
+etiquetada, matriz de splits y revisión de aceptación. Se conservaron las fuentes
+y, para la propuesta interna, se revalidaron los ZIP originales y la evidencia
+importada. No se generaron nuevas asignaciones train/val ni métricas del detector.
+
+La matriz previa contiene 30 configuraciones, 25 membresías y **25 tests distintos**,
+con intersección común vacía; cinco aliases S2/S3 históricos no constituyen réplicas
+independientes. Hay 24 membresías con cobertura completa de las cinco clases.
+
+La propuesta interna conserva como anclas las 372 ocurrencias/contenidos del test
+histórico. El cierre conservador común a todos los brazos protege 373 contenidos
+y 514 ocurrencias; 142 ocurrencias quedan en cuarentena fuera de train/val y del
+test evaluado (141 copias históricas y una ocurrencia Adendo candidata). Se
+confirmaron 141 contenidos del antiguo test presentes en entrenamiento histórico
+y ocho grupos exactos protegidos con conflictos de anotación. Las relaciones
+perceptuales permanecen hipótesis, no procedencia confirmada.
+
+| Clase YOLO | Instancias en test | Imágenes / contenidos en test |
+|---|---:|---:|
+| 0 | 12 | 12 |
+| 1 | 589 | 193 |
+| 2 | 270 | 175 |
+| 3 | 93 | 76 |
+| 4 | 19 | 18 |
+
+Quedan 1.144 ocurrencias / 1.087 contenidos de desarrollo históricos y 1.192 /
+1.135 ampliados. Los 30 brazos diseñados comparten exactamente test y protección.
+Cumplen las condiciones necesarias de soporte por grupos, pero su factibilidad
+de asignación train/val es **NOT_SOLVED**. El protocolo describe la extensión
+bidireccional del motor existente; no reutiliza las 30 asignaciones anteriores.
+
+Publicaciones nuevas fuera del repositorio, bajo `detector_evaluation_protocol_v1`:
+`internal-proposal-20261013-b` (ID `a31a24468674f045`, **PROPOSED**, verificación CLI
+independiente aprobada) y `prospective-readiness-20261013-a` (ID
+`9e83d40ba65459fd`, **UNAVAILABLE**, sin población prospectiva admitida).
+Ambas conservan revisión pendiente, ausencia de aprobación/freeze y
+`ready_for_training=false`. La salida interna inicial `-a` se conserva incompleta,
+sin recibo final: una comparación de índices pandas tras serialización Parquet
+falló y se corrigió antes de publicar en otro directorio.
+La revisión de aceptación posterior reprodujo y corrigió un defecto del gate de
+fuentes: una revisión previa con dictamen rechazado y checksums recalculados
+pasaba la comprobación de conteos. Ahora se exige `verdict=APROBADO`; este
+dictamen previo no equivale a aprobar el nuevo protocolo del detector. La
+regresión focalizada posterior a la corrección pasó **23/23** pruebas.
+
+Los exports agregados verifican 48 runs / 16 splits históricos. Los bytes del
+checkout tenían diferencias CRLF/LF frente a sus checksums publicados: se creó
+una copia externa de los blobs exactos de Git, verificados contra el manifest,
+con recibo de transporte. No se modificaron los exports ni se flexibilizó su
+verificador. Esto no valida pesos, predicciones ni errores por imagen; esos
+artefactos no están disponibles en la raíz local inspeccionada y siguen pendientes.
+
+Faltan revisión de calidad de conflictos, decisión sobre suficiencia del soporte,
+aprobación explícita y freeze, reconstrucción/verificación de train/val, adaptador
+de entrenamiento validado, checksum del checkpoint inicial y batch/entorno
+definitivos. El test interno no demuestra independencia retrospectiva. El contrato
+prospectivo está diseñado; su ingesta/admisión aún no está implementada.
+Validación: **126 passed** en pruebas sintéticas/offline de test común, detector,
+splitting, candidatos etiquetados, reporte final y asociación; Ruff global y
+`git diff --check` aprobados. No se ejecutó la suite global en esta intervención.
+No se entrenaron modelos, eligieron ganadores, modificaron frontend, splitter
+histórico, configuración/freeze originales ni resultados previos. No hubo
+commit, push ni merge. Véanse el [protocolo](protocols/detector_common_test_v1.md)
+y la [CLI y artefactos](runbooks/common_test.md).
+
 ## Splits candidatos etiquetados v1 (2026-10-13)
 
 **Infraestructura implementada, piloto real de seis candidatos y matriz real de
