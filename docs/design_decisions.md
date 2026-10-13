@@ -1,5 +1,22 @@
 # Design decisions
 
+## 2026-10-12: separate labeled audit from split adjudication
+
+The supplementary audit reuses historical identity, normalized split/basename
+matching, YOLO validation and the existing pHash implementation. Unlike the legacy
+manifest's single-value label lookup, ambiguous keys preserve all label links and
+block annotation readiness; no label wins by archive order. Unreadable/unsafe or
+duplicate-path ZIPs fail explicitly before publication. No legacy consumer changes.
+
+Adendo has null historical split. All occurrences and original annotation bytes
+survive, including orphan labels outside the image population. Dataset identity
+uses the existing versioned recipe; audit identity also binds complete archives,
+imported evidence, implementation hashes and screening configuration. Perceptual
+edges are candidate evidence; imported provenance confirmations require attributed
+additional review evidence and remain distinct from byte-level identity. No edge
+automatically assigns a split. The consolidated candidate is not a drop-in input
+for the existing splitter. See the [limits and future joins](runbooks/adendo.md).
+
 ## 2026-10-08: scientific occurrence identity independent of ZIP packaging
 
 External processed-frame ingestion separates exact image SHA256, named logical

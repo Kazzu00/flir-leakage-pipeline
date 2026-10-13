@@ -1,5 +1,17 @@
 # Pipeline traceability
 
+## Candidate labeled consolidation (2026-10-12)
+
+Explicit historical image/label ZIPs + supplement ZIP → read-only inventory and
+existing YOLO validation → historical-compatible occurrence/content identities →
+versioned candidate manifest + complete annotation ledger → exact-byte relations
+and pHash/imported review evidence. ZIP and implementation checksums bind the
+audit; artifact checksums bind the publication. Six owner-reported links remain
+candidates, even where the current screening also finds them. No correspondence,
+scene identity, group constraint or new split is inferred. Real local audit and
+synthetic regressions were executed; downstream adjudication remains pending.
+See the [contract and evidence states](runbooks/adendo.md).
+
 ## External visual variants (2026-10-08)
 
 Explicit YAML + read-only ZIP/video inputs → checksummed physical entry ledger →

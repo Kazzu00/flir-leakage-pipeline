@@ -1,5 +1,36 @@
 # Project status
 
+## Consolidación etiquetada candidata (2026-10-12)
+
+**Auditoría implementada y ejecutada sobre los tres ZIP reales; consolidación
+candidata, sin nuevos splits ni entrenamientos.** `data audit-adendo` conserva
+ocurrencias, contenido exacto, etiquetas originales y evidencia revisable.
+La ejecución local observó 1.706 imágenes / 1.508 contenidos únicos: 1.657 imágenes
+históricas y 49 de Adendo. Confirmó 10 etiquetas huérfanas históricas, 292 labels
+vacíos válidos, 4.168 objetos históricos emparejados y 215 de Adendo (clases
+0/1/4: 84/115/16). No hubo errores sintácticos/geometría ni identidades exactas
+compartidas entre las dos cohortes. Se conservaron 198 grupos duplicados exactos
+históricos (396 ocurrencias, 198 adicionales respecto de contenidos únicos),
+ocho con conflictos de anotación; los cruces son 57 train–val y
+141 train–test.
+
+Con pHash Hamming ≤8 se generaron 35 parejas candidatas que involucran seis imágenes
+Adendo. Las seis relaciones aportadas por el responsable se importaron además
+como evidencia candidata, sin revisión visual nueva: 41 registros de evidencia
+candidata sobre 35 parejas, no 41 correspondencias independientes. Las seis
+presentan anotaciones diferentes. No encontrar candidatos para las otras 43
+imágenes no demuestra independencia. `split_ready` sigue falso.
+
+Validación de aceptación: **53 passed** en pruebas sintéticas de auditoría, manifest, inventario,
+identidad y splitting; Ruff global aprobado. Verificados checksums de los outputs,
+identidades de huérfanos y conflictos de los seis vínculos importados. Una ejecución
+global no fue válida en el entorno core/dev: 550 passed, 137 skipped, 288 failed y
+219 errors, con fallos observados por la barrera `safe_output` al usar un basetemp
+dentro del repositorio y por extras experimentales ausentes como scikit-learn.
+No se revalidaron los 48 experimentos de Hypatia. Los artefactos y
+la evidencia importada permanecen fuera del repositorio. Véase el
+[contrato y ejecución](runbooks/adendo.md).
+
 ## Ingesta de variantes visuales externas (2026-10-08)
 
 **Ingesta real disponible localmente; puente de features implementado y validado

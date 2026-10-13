@@ -1,5 +1,16 @@
 # Architecture
 
+## Supplementary labeled audit (2026-10-12)
+
+`data/adendo.py` implements ZIP preflight, read-only member scanning, conservative
+image/label association, imported evidence validation and relation generation.
+It reuses `inventory`, `manifest`, `identity`, `yolo_labels`, and the diagnostic
+pHash; `cli.py` exposes `data audit-adendo` with explicit paths. Candidate manifest,
+annotation ledger and evidence edges join through occurrence/content/label IDs.
+`summary.json`, written last, binds input and output checksums. This independent
+candidate publication does not mutate historical data, splits or detector runs.
+See the [schema, identity and failure contract](runbooks/adendo.md).
+
 ## External visual-variant ingestion (2026-10-08)
 
 `data/video_variant_contract.py` defines explicit logical collections/series,

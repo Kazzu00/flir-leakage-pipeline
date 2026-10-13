@@ -47,6 +47,29 @@ def _default_root() -> Path | None:
     return Path(value) if value else None
 
 
+@data_app.command("audit-adendo")
+def audit_adendo_command(
+    images_zip: Path = typer.Option(..., exists=True, dir_okay=False),
+    labels_zip: Path = typer.Option(..., exists=True, dir_okay=False),
+    adendo_zip: Path = typer.Option(..., exists=True, dir_okay=False),
+    output: Path = typer.Option(..., help="Fresh audit directory outside source ZIPs."),
+    evidence: Path | None = typer.Option(None, exists=True, dir_okay=False),
+    phash_threshold: int = typer.Option(8, min=0, max=64),
+) -> None:
+    """Audit a candidate labeled consolidation; never construct splits or train."""
+    import zipfile
+
+    from flir_pipeline.data.adendo import audit_adendo
+
+    try:
+        summary = audit_adendo(images_zip, labels_zip, adendo_zip, output,
+                               evidence=evidence, phash_threshold=phash_threshold)
+    except (OSError, ValueError, RuntimeError, zipfile.BadZipFile) as error:
+        typer.echo(f"Adendo audit failed: {error}", err=True)
+        raise typer.Exit(1) from error
+    typer.echo(json.dumps(summary, indent=2))
+
+
 @data_app.command("inventory")
 def inventory(
     root: Path | None = typer.Option(None, help="External FLIR_DATA_ROOT."),

@@ -2,6 +2,13 @@
 
 ## Overview
 
+`flir-pipeline data audit-adendo` consolidates the historical labeled population
+and Adendo into a versioned candidate audit, preserving original annotations and
+separating exact-byte identity from perceptual/review evidence. Implemented and
+executed locally on the three source ZIPs; new split adjudication remains pending.
+It creates no splits or training runs. See the [contract and CLI](docs/runbooks/adendo.md)
+and [observed audit results](docs/status.md).
+
 `flir-pipeline data video-variant-ingestion build/verify/summary` audits external
 image variants directly from ZIP shards with bounded reads and immutable evidence.
 Scientific occurrence IDs survive unambiguous repackaging; duplicate indices
