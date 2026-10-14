@@ -1,5 +1,14 @@
 # Architecture
 
+## Protected annotation review (2026-10-13)
+
+`detection/annotation_review.py` consumes verified common-test proposals and the
+labeled audit, reads immutable original ZIP members, and publishes external visual
+evidence with separate pending decision templates. Multiset differences preserve
+source precision and leave ambiguous object correspondence unresolved. Replay checks
+all package bytes. No dependency on detector runtime and no adjudication writer or
+approval transition exists. See the [contract](runbooks/protected_annotation_review.md).
+
 ## Common-test pre-training proposals (2026-10-13)
 
 `detection/common_test.py` reuses labeled occurrence statistics, atomic groups and

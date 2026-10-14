@@ -1,5 +1,16 @@
 # Design decisions
 
+## Protected conflicts: evidence before adjudication (2026-10-13)
+
+Annotation comparison retains original byte strings and parsed box precision.
+Exact multiset subtraction avoids dropping repeated boxes. Class differences are
+paired only at unique identical geometry; a sole same-class residual pair permits
+descriptive coordinate deltas without asserting object identity. Ambiguous residuals
+remain unpaired; no IoU threshold silently decides annotation truth. Pending human
+forms are copied outside the immutable evidence package. No label application or
+protocol approval is implemented; future changes require a separate adjudicated
+layer, new test identity and renewed protocol verification.
+
 ## 2026-10-13: candidate test scoring subset versus protected reservation
 
 Use original historical test occurrences as an explicitly retrospective candidate
