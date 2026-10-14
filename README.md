@@ -2,6 +2,12 @@
 
 ## Overview
 
+`flir-pipeline splitting fixed-test-train-val` builds a six-arm pilot followed by
+thirty provisional train/validation configurations with an unchanged proposed test.
+`verify-fixed-test-train-val --replay` checks protection, coverage, solver evidence
+and actual membership aliases. It never admits training. See the
+[fixed-test workflow](docs/runbooks/fixed_test_train_val.md).
+
 `flir-pipeline detection protected-annotation-review` produces external visual
 evidence and pending human decision forms for the eight protected annotation
 conflicts. `verify-annotation-review` replays original sources; decision validation

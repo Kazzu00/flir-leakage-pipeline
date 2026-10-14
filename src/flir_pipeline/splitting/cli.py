@@ -11,6 +11,44 @@ import typer
 app = typer.Typer(help="Atomic splits, seeded baselines and residual correlation in both encoders.")
 
 
+@app.command("fixed-test-train-val")
+def fixed_test_train_val(
+    audit: Path = typer.Option(...), previous: Path = typer.Option(...),
+    proposal: Path = typer.Option(...), review: Path = typer.Option(...),
+    output: Path = typer.Option(...), config: Path = typer.Option(Path("configs/splits/fixed_test_train_val_v1.yaml")),
+    full: bool = typer.Option(False), pilot: Path | None = typer.Option(None),
+) -> None:
+    """Build six pilot or thirty provisional arms; preserve proposed test and quarantine."""
+    import yaml
+
+    from flir_pipeline.splitting.fixed_test import FixedTestConfig
+    from flir_pipeline.splitting.fixed_test_storage import build_fixed_test
+
+    try:
+        settings = FixedTestConfig(**yaml.safe_load(config.read_text(encoding="utf-8")))
+        settings = replace(settings, seeds=tuple(range(5)) if full else (0,))
+        result = build_fixed_test(audit, previous, proposal, review, output, settings, pilot=pilot)
+    except (ValueError, OSError, KeyError, TypeError, AssertionError) as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    typer.echo(f"{result['verdict']}: {result['verified_candidates']}/{result['configurations']}; READY_FOR_TRAINING=false")
+    if result["failed_configurations"]:
+        raise typer.Exit(2)
+
+
+@app.command("verify-fixed-test-train-val")
+def verify_fixed_test_train_val(directory: Path, replay: bool = typer.Option(False)) -> None:
+    """Recompute protection, assignments, balances, aliases and optional solver replay."""
+    from flir_pipeline.splitting.fixed_test_storage import verify_fixed_test
+
+    try:
+        result = verify_fixed_test(directory, replay=replay)
+    except (ValueError, OSError, KeyError, TypeError, AssertionError) as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    typer.echo(json.dumps({k: v for k, v in result.items() if k not in {"runs", "membership_groups"}}, indent=2, ensure_ascii=False))
+    if result["failed_configurations"]:
+        raise typer.Exit(2)
+
+
 @app.command("labeled-candidates")
 def labeled_candidates(
     audit: Path = typer.Option(...), config: Path = typer.Option(...),

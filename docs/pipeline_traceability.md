@@ -1,5 +1,15 @@
 # Pipeline traceability
 
+## Provisional fixed-test assignments (2026-10-13)
+
+Verified labeled audit + historical candidate evidence + reconstructed common-test
+proposal + pending annotation review → global protected closure → development-only
+atomic groups → historical train/val counts renormalized → two-way S1/S2/S3
+assignments → full occurrence conservation and unchanged test/quarantine → explicit
+coverage/solver outcomes → measured membership equivalences → provisional review.
+Passing these checks does not adjudicate annotations or approve training. S3 remains
+a dependency sensitivity, not newly executed representation-based clustering.
+
 ## Protected annotation evidence (2026-10-13)
 
 Verified proposal + source-bound acceptance inventory → exact conflicting content

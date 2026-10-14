@@ -1,5 +1,16 @@
 # Design decisions
 
+## Two destinations without redefining the proposed test (2026-10-13)
+
+The existing random and profile-MILP engines accept explicit destinations while
+retaining historical three-way defaults. New MILP arms impose positive class
+coverage as a hard constraint; random S1 is not repaired when it misses coverage.
+The objective normalization uses the actual number of destinations. Historical
+train/validation proportions are renormalized and applied to development only.
+Test and quarantine never enter optimization. Failed configurations remain in
+the experimental record; the full matrix requires the same verified pilot sources
+and settings. Membership equivalences are measured anew rather than inherited.
+
 ## Protected conflicts: evidence before adjudication (2026-10-13)
 
 Annotation comparison retains original byte strings and parsed box precision.

@@ -1,5 +1,113 @@
 # Project status
 
+## Revisión independiente de fixed-test train/validation (2026-10-14)
+
+La auditoría externa `fixed_test_train_val_v1/acceptance-review-20261014-a`
+reconstruyó los 30 mappings desde el manifest, bytes YOLO y relaciones originales,
+sin utilizar los helpers de agrupación o métricas del producto. Confirmó 25
+membresías diferentes, las cinco equivalencias históricas S2/S3 y los mismos 372
+registros, imágenes y etiquetas de test. El replay de producción reprodujo las
+30 asignaciones y permitió comprobar los vectores primales de los 20 MILP.
+Los diez ampliados siguen siendo incumbentes factibles sin optimalidad demostrada.
+
+La única ocurrencia de Adendo en la reserva global explica la conservación:
+1.657 − (514 − 1) = 1.144 registros históricos de desarrollo. El cierre mantiene
+514 ocurrencias / 373 contenidos / 142 ocurrencias de cuarentena. Se verificó
+atomicidad y el grafo inducido de desarrollo S3; esto no acredita ausencia general
+de leakage. S1 histórico semillas 3 y 4 tiene una sola imagen positiva de vehículos
+en validation. Cobertura mínima no acredita suficiencia ni habilita checkpoints.
+
+Dictamen: **APROBADO PARA INTEGRACIÓN**, exclusivamente de infraestructura
+provisional. Regresiones focalizadas: **97 passed**; suite global: **1268 passed**,
+sin skips, en 28 min 38 s. Ruff global, `git diff --check` y revisión de fuentes
+de notebooks pasaron. El intento global inicial se interrumpió al diagnosticar
+la ausencia del extra `reduction`; la suite completa pasó tras preparar el
+entorno bloqueado de CI. El informe externo contiene tablas por clase de los 30
+brazos, auditoría de los 20 MILP y recibo de checksums de la evidencia.
+No se encontró un defecto del motor durante la reconstrucción;
+no se alteraron asignaciones, etiquetas, ZIP ni publicaciones anteriores.
+El test sigue **PROPOSED**, `ready_for_training=false`, con adjudicación,
+suficiencia, dependencias y aprobación/freeze pendientes. No hubo entrenamiento,
+selección de ganador, commit, push ni merge.
+
+## Train/validation con test común fijo v1 (2026-10-13)
+
+**Infraestructura implementada; piloto de seis brazos y matriz de 30 construidos
+y verificados semánticamente. Candidatos provisionales, no aprobados para entrenar.**
+Publicaciones externas bajo `fixed_test_train_val_v1`: `pilot-20261013-a` y
+`five-seeds-20261013-a`. La matriz exigió replay válido del piloto antes de construir
+las demás semillas. Conserva ambas poblaciones, S1/S2/S3 y todas las semillas 0–4;
+ningún brazo falló cobertura ni se descartó o reparó una semilla.
+
+Se mantuvieron exactamente las 372 ocurrencias/anotaciones de test. La protección
+común comprende 514 ocurrencias/373 contenidos; el brazo histórico contiene 513
+reservadas (141 cuarentena), y el ampliado 514 (142 cuarentena). Desarrollo:
+1.144 ocurrencias/1.087 contenidos históricos y 1.192/1.135 ampliados. Los grupos
+atómicos son 1.087 en los brazos históricos, 1.135 en S1/S2 ampliados y 1.113 en S3
+ampliado. La reconstrucción del cierre transitivo, conservación, atomicidad, ausencia
+de reserva en desarrollo e igualdad completa del test pasaron para los 30 brazos.
+Cero contenidos exactos cruzan train/val/test; cuarentena no es un test independiente.
+
+La proporción aplicada a desarrollo fue 1178/1285 train y 107/1285 validation,
+derivada de historia verificada, idéntica para ambas poblaciones. Todos los brazos
+históricos tienen 1.049 train / 95 validation. Los ampliados tienen 1.093/99, excepto
+S1 semilla 2 con 1.092/100. Las cinco clases tienen soporte positivo en train/val;
+esto no acredita suficiencia: algunos S1 históricos tienen solo una imagen para
+una clase en validation.
+
+Resultados **observados**, rangos entre semillas. Desviación de clases: promedio
+absoluto, en puntos porcentuales, frente a la distribución de instancias del pool
+de desarrollo de cada población. No mide rendimiento de detector.
+
+| Población | Política | Desv. clases (pp) | Máx. desv. relativa de registros (%) | Objetivo MILP | Brecha MILP (%) |
+|---|---|---:|---:|---:|---:|
+| Histórica | S1 | 0,4702–3,1470 | 0,2720 | No aplica | No aplica |
+| Histórica | S2 | 0,0854 | 0,2720 | 0,04642945 | 0 |
+| Histórica | S3 | 0,0854 | 0,2720 | 0,04642945 | 0 |
+| Ampliada | S1 | 0,7300–2,7412 | 0,2580–0,7495 | No aplica | No aplica |
+| Ampliada | S2 | 0,0337 | 0,2580 | 0,02051943 | 6,1768–7,9260 |
+| Ampliada | S3 | 0,0337 | 0,2580 | 0,02051943 | 7,9260 |
+
+Los 20 MILP tienen factibilidad primal comprobada. Los diez históricos alcanzan
+status 0/brecha cero; los diez ampliados agotan 32 nodos con status SciPy 4,
+mensaje HiGHS 16 `Solution limit reached`, incumbente válido y optimalidad no
+demostrada. No se modificaron presupuesto, pesos ni restricciones tras observarlos.
+Las brechas proceden de objetivo y cota dual verificadas, no de apariencia del balance.
+
+Hay **25 membresías distintas** (10 históricas, 15 ampliadas). Las cinco parejas
+S2/S3 históricas por semilla vuelven a coincidir por medición nueva; no se asumió
+esa equivalencia. Ninguna pareja ampliada coincide. Igualdad de balances no implica
+igualdad de membresías. Comparar poblaciones cambia el conjunto de desarrollo.
+
+Cruces de parejas candidatas dentro de train/val ampliados: S1 0–6, S2 0–9, S3 0.
+No hay evidencia de procedencia confirmada en las fuentes actuales; su ausencia
+no resuelve la política metodológica pendiente. Los candidatos siguen siendo
+hipótesis, y cero cruces impuestos no demuestra independencia temporal.
+
+La revisión de anotaciones tenía un `cases.zip` agregado después de su recibo.
+La primera invocación real se detuvo antes de publicar. Se verificaron sus 32
+miembros contra los casos originales: todos idénticos; ahora se declara y vincula
+como transporte redundante, sin cambiar fuente/recibo ni agregar anotaciones.
+La propuesta permanece `PROPOSED`; los ocho conflictos humanos siguen pendientes.
+
+Validación de software: **149 passed** en las pruebas focalizadas de construcción
+fija, splitting, candidatos etiquetados, test común, revisión de anotaciones,
+detector, reporte final y asociaciones. Incluyen diez pruebas nuevas de esta etapa.
+Ruff global y `git diff --check` pasaron. No se ejecutó la suite global. El piloto
+y la matriz se construyeron mediante la nueva CLI; los comandos y parámetros están
+documentados en el runbook y en `suite.json` de cada publicación.
+La CLI independiente `verify-fixed-test-train-val --replay` reprodujo las membresías
+y evidencia del solver de los **30/30 brazos**, con cero fallos y 25 membresías.
+La comprobación final confirmó que las cuatro fuentes originales no cambiaron.
+Dictamen: **APROBADO PARA REVISIÓN DE PARTICIONES**, siempre
+`ready_for_training=false`.
+
+No hubo entrenamiento, materialización, nuevas features/clustering, aprobación ni
+freeze, commit, push o merge. No se cambiaron experimentos históricos, exports ni
+frontend. Continúan bloqueando entrenamiento la adjudicación, suficiencia por clase,
+dependencias, aprobación/freeze del test, adaptador validado y configuración/entorno
+del detector. Véanse [CLI y contrato](runbooks/fixed_test_train_val.md).
+
 ## Revisión protegida de anotaciones v1 (2026-10-13)
 
 **Infraestructura implementada; paquete real generado y reproducido desde fuentes;

@@ -65,28 +65,47 @@ def aggregate_groups(records: pd.DataFrame, groups: pd.DataFrame) -> pd.DataFram
     return totals.reset_index()
 
 
-def random_assignment(units: pd.DataFrame, ratios: np.ndarray, seed: int) -> tuple[dict, dict]:
+def _destinations(ratios, destinations):
+    if (tuple(destinations) not in (SPLITS, ("train", "val"))
+            or len(ratios) != len(destinations) or not np.isfinite(ratios).all()
+            or min(ratios) <= 0 or not np.isclose(sum(ratios), 1, atol=1e-12, rtol=0)):
+        raise ValueError("Invalid explicit destinations/ratios")
+    return len(destinations)
+
+
+class AssignmentFailure(ValueError):
+    """A scientific failure with solver evidence, never a request for a fallback."""
+
+    def __init__(self, message, evidence):
+        super().__init__(message)
+        self.evidence = evidence
+
+
+def random_assignment(units: pd.DataFrame, ratios: np.ndarray, seed: int,
+                      *, destinations=SPLITS) -> tuple[dict, dict]:
     """Permute contents and cut near cumulative record targets; classes are unused."""
-    if len(units) < 3 or not units.content_count.eq(1).all():
-        raise ValueError("Random baseline needs at least three singleton contents")
+    n = _destinations(ratios, destinations)
+    if len(units) < n or not units.content_count.eq(1).all():
+        raise ValueError("Random baseline needs enough singleton contents")
     rng = np.random.default_rng(seed)
     ordered = units.sort_values("group_id").iloc[rng.permutation(len(units))]
-    split_order = rng.permutation(3)
+    split_order = rng.permutation(n)
     cumulative = ordered.record_count.cumsum().to_numpy()
     boundaries, start = [], 0
-    for j in range(2):
-        options = np.arange(start + 1, len(units) - (2-j) + 1)
+    for j in range(n - 1):
+        options = np.arange(start + 1, len(units) - (n-1-j) + 1)
         target = cumulative[-1] * ratios[split_order[:j+1]].sum()
         boundary = int(options[np.argmin(abs(cumulative[options-1] - target))])
         boundaries.append(boundary)
         start = boundary
     assignments = {}
     for k, indices in enumerate(np.split(np.arange(len(units)), boundaries)):
-        assignments.update({g: SPLITS[split_order[k]] for g in ordered.iloc[indices].group_id})
+        assignments.update({g: destinations[split_order[k]] for g in ordered.iloc[indices].group_id})
     return assignments, {"method": "seeded_content_permutation_record_cuts", "seed": seed, "class_balancing": False}
 
 
-def milp_assignment(units: pd.DataFrame, ratios: np.ndarray, seed: int, config: SplitConfig) -> tuple[dict, dict]:
+def milp_assignment(units: pd.DataFrame, ratios: np.ndarray, seed: int, config: SplitConfig,
+                    *, destinations=SPLITS, require_class_coverage=False) -> tuple[dict, dict]:
     """Integer counts of exchangeable groups per split, with normalized L1 slack.
 
     Aggregating identical balance vectors is lossless: their coefficients are equal
@@ -94,8 +113,15 @@ def milp_assignment(units: pd.DataFrame, ratios: np.ndarray, seed: int, config: 
     sequence and historical membership never enter the solver. The node budget is
     deterministic, unlike wall-time stopping. Incumbents retain gap/status explicitly.
     """
-    if len(units) < 3:
-        raise ValueError("At least three atomic groups are needed for nonempty splits")
+    n = _destinations(ratios, destinations)
+    if len(units) < n:
+        message = ("At least three atomic groups are needed for nonempty splits" if n == 3
+                   else "At least two atomic groups are needed for nonempty splits")
+        raise AssignmentFailure(message,
+                                {"failure": "INFEASIBLE_GROUP_SUPPORT", "primal_feasibility_verified": False})
+    if require_class_coverage and (units[list(CLASS_COLUMNS)].gt(0).sum() < n).any():
+        raise AssignmentFailure("Not enough atomic class support",
+                                {"failure": "INFEASIBLE_CLASS_SUPPORT", "primal_feasibility_verified": False})
     ordered = units.sort_values("group_id").reset_index(drop=True)
     vectors = ordered[list(BALANCE_COLUMNS)].to_numpy(dtype=float)
     profiles, inverse, counts = np.unique(vectors, axis=0, return_inverse=True, return_counts=True)
@@ -104,54 +130,63 @@ def milp_assignment(units: pd.DataFrame, ratios: np.ndarray, seed: int, config: 
     profiles, counts = profiles[permutation], counts[permutation]
     inverse = np.argsort(permutation)[inverse]
     p, d = profiles.shape
-    nx, nd = p*3, 3*d
+    nx, nd = p*n, n*d
     nvars = nx + 2*nd
     targets = ratios[:, None] * vectors.sum(axis=0)[None, :]
     family_weights = np.array([config.record_weight, *([config.class_weight/5]*5), config.empty_weight])
-    weights = (family_weights[None, :] / (3*np.maximum(targets, 1))).ravel()
+    weights = (family_weights[None, :] / (n*np.maximum(targets, 1))).ravel()
     objective = np.r_[np.zeros(nx), weights, weights]
-    a = lil_matrix((p+nd+3, nvars), dtype=float)
-    lower = np.zeros(p+nd+3)
-    upper = np.zeros(p+nd+3)
+    nc = n * len(CLASS_COLUMNS) if require_class_coverage else 0
+    a = lil_matrix((p+nd+n+nc, nvars), dtype=float)
+    lower = np.zeros(p+nd+n+nc)
+    upper = np.zeros(p+nd+n+nc)
     for i in range(p):
-        a[i, i*3:i*3+3] = 1
+        a[i, i*n:i*n+n] = 1
         lower[i] = upper[i] = counts[i]
-    for s in range(3):
+    for s in range(n):
         for k in range(d):
             row, slack = p+s*d+k, s*d+k
-            a[row, np.arange(p)*3+s] = profiles[:, k]
+            a[row, np.arange(p)*n+s] = profiles[:, k]
             a[row, nx+slack] = -1
             a[row, nx+nd+slack] = 1
             lower[row] = upper[row] = targets[s, k]
-        a[p+nd+s, np.arange(p)*3+s] = 1
+        a[p+nd+s, np.arange(p)*n+s] = 1
         lower[p+nd+s], upper[p+nd+s] = 1, np.inf
+        if require_class_coverage:
+            for k in range(len(CLASS_COLUMNS)):
+                row = p + nd + n + s * len(CLASS_COLUMNS) + k
+                a[row, np.arange(p)*n+s] = profiles[:, 1+k]
+                lower[row], upper[row] = 1, np.inf
     started = time.perf_counter()
     result = milp(objective, integrality=np.r_[np.ones(nx), np.zeros(2*nd)],
-                  bounds=Bounds(np.zeros(nvars), np.r_[np.repeat(counts, 3), np.full(2*nd, np.inf)]),
+                  bounds=Bounds(np.zeros(nvars), np.r_[np.repeat(counts, n), np.full(2*nd, np.inf)]),
                   constraints=LinearConstraint(a.tocsc(), lower, upper),
                   options={"node_limit": config.node_limit, "mip_rel_gap": config.mip_rel_gap, "presolve": True})
     elapsed = time.perf_counter()-started
     if result.x is None:
-        raise ValueError(f"MILP has no incumbent (status {result.status}: {result.message}); no heuristic substituted")
+        raise AssignmentFailure(f"MILP has no incumbent (status {result.status}: {result.message}); no heuristic substituted",
+                                {"failure": "NO_INCUMBENT", "status": int(result.status),
+                                 "message": result.message, "seed": seed,
+                                 "primal_feasibility_verified": False})
     # SciPy may map newer HiGHS stopping codes (e.g. Solution limit reached)
     # to status=4 despite returning a feasible incumbent. Validate the actual
     # primal solution rather than interpreting a status label as feasibility.
     primal = np.asarray(result.x)
     activity = a.tocsc() @ primal
-    upper_bounds = np.r_[np.repeat(counts, 3), np.full(2*nd, np.inf)]
+    upper_bounds = np.r_[np.repeat(counts, n), np.full(2*nd, np.inf)]
     if (not np.isfinite(primal).all() or (primal < -1e-6).any() or (primal > upper_bounds+1e-6).any()
             or (activity < lower-1e-6).any() or (activity > upper+1e-6).any()):
         raise ValueError("MILP incumbent fails direct primal feasibility checks")
     if not np.allclose(result.x[:nx], np.rint(result.x[:nx]), atol=1e-5, rtol=0):
         raise ValueError("MILP incumbent violates integrality")
-    allocation = np.rint(result.x[:nx]).astype(int).reshape(p, 3)
+    allocation = np.rint(result.x[:nx]).astype(int).reshape(p, n)
     if (allocation < 0).any() or not np.array_equal(allocation.sum(axis=1), counts) or (allocation.sum(axis=0) == 0).any():
         raise ValueError("MILP incumbent violates group conservation")
     assignments = {}
     for i, row in enumerate(allocation):
         members = ordered.loc[inverse == i, "group_id"].to_numpy()
         members = members[rng.permutation(len(members))]
-        for s, subset in zip(SPLITS, np.split(members, np.cumsum(row)[:-1]), strict=True):
+        for s, subset in zip(destinations, np.split(members, np.cumsum(row)[:-1]), strict=True):
             assignments.update({g: s for g in subset})
     return assignments, {"method": "scipy.optimize.milp/HiGHS", "seed": seed, "profile_count": p,
                          "atomic_group_count": len(units), "status": int(result.status), "message": result.message,
