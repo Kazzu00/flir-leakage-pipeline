@@ -1,5 +1,15 @@
 # Architecture
 
+## Fixed-test train/validation construction (2026-10-13)
+
+`splitting/fixed_test.py` adapts verified development pools to explicit two-way
+destinations in the existing random/MILP engine, adding hard MILP class coverage.
+`fixed_test_storage.py` binds source snapshots, requires a verified six-arm pilot
+before the full matrix, records scientific failures, reconstructs invariants and
+optionally replays assignments/solver evidence. Historical three-way defaults remain
+unchanged. No detector/materialization runtime is connected. See the
+[provisional contract](runbooks/fixed_test_train_val.md).
+
 ## Protected annotation review (2026-10-13)
 
 `detection/annotation_review.py` consumes verified common-test proposals and the

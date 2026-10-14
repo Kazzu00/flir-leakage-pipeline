@@ -72,16 +72,23 @@ recibos de ejecución. Un cierre hipotético no convierte relaciones perceptuale
 en procedencia confirmada. La disponibilidad de clases no acredita potencia
 estadística ni representatividad de secuencias.
 
-## Reconstrucción futura de train/validation
+## Reconstrucción de train/validation en publicación separada
 
-Esta versión publica pools y grupos; **no publica asignaciones train/val** ni
+La extensión `fixed_test_train_val_v1` implementa ahora la construcción provisional
+y verificación/replay sobre estos pools, con dos destinos explícitos, cobertura
+MILP obligatoria y fallos S1 conservados. Véase su
+[contrato de publicación](../runbooks/fixed_test_train_val.md). No cambia los bytes
+de las propuestas anteriores ni convierte sus campos `NOT_BUILT` en asignaciones:
+los resultados nuevos viven en otro namespace y conservan el test `PROPOSED`.
+
+La versión de propuesta publica pools y grupos; **no publica asignaciones train/val** ni
 simula que el MILP histórico de tres vías resuelve un problema de dos vías.
 Las condiciones necesarias verificadas son al menos dos grupos atómicos y al
 menos dos grupos con soporte de cada clase. Si fallan, la combinación se marca
 inviable para cobertura positiva en train y validation. Si pasan, la factibilidad
 completa permanece `NOT_SOLVED`; requiere construir y comprobar asignaciones.
 
-La adaptación futura reutilizará `aggregate_groups`, los vectores por ocurrencia,
+La adaptación implementada reutiliza `aggregate_groups`, los vectores por ocurrencia,
 el objetivo normalizado de `milp_assignment` y `propagate`, introduciendo una
 extensión explícita de dos destinos o restricciones fijas de reserva. El test
 no se reoptimiza. Nunca se inventa un tercer split para satisfacer una API.

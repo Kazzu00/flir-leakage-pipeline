@@ -82,12 +82,12 @@ def verify_assignments(contents: pd.DataFrame, records: pd.DataFrame,
 
 
 def balance_metrics(records: pd.DataFrame, statistics: pd.DataFrame,
-                    ratios: np.ndarray) -> tuple[dict, pd.DataFrame]:
+                    ratios: np.ndarray, *, destinations=SPLITS) -> tuple[dict, pd.DataFrame]:
     data = records[["frame_id", "new_split"]].merge(statistics, on="frame_id", validate="one_to_one")
     global_instances = statistics[list(CLASS_COLUMNS)].sum().to_numpy(dtype=float)
     global_proportions = global_instances / max(global_instances.sum(), 1)
     rows, sizes = [], []
-    for i, split in enumerate(SPLITS):
+    for i, split in enumerate(destinations):
         group = data.loc[data.new_split == split]
         counts = group[list(CLASS_COLUMNS)].sum().to_numpy(dtype=int)
         total = int(counts.sum())
@@ -110,7 +110,7 @@ def balance_metrics(records: pd.DataFrame, statistics: pd.DataFrame,
     summary = {"sizes": sizes, "max_relative_record_deviation": max(v["relative_record_deviation"] for v in sizes),
                "mean_absolute_class_distribution_deviation_pp": float(table.absolute_percentage_point_deviation.mean()),
                "all_classes_covered": bool((table.instances > 0).all()),
-               "heavy_machinery_counts": {s: int(table.loc[(table.split == s) & (table.class_id == 4), "instances"].iloc[0]) for s in SPLITS},
+               "heavy_machinery_counts": {s: int(table.loc[(table.split == s) & (table.class_id == 4), "instances"].iloc[0]) for s in destinations},
                "background_is_class": False}
     return summary, table
 
