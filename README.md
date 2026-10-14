@@ -2,6 +2,11 @@
 
 ## Overview
 
+`flir-pipeline detection protected-annotation-review` produces external visual
+evidence and pending human decision forms for the eight protected annotation
+conflicts. `verify-annotation-review` replays original sources; decision validation
+never applies labels or approves training. See the [review workflow](docs/runbooks/protected_annotation_review.md).
+
 `flir-pipeline detection audit-readiness`, `plan-common-test` and
 `verify-common-test` prepare a separately versioned common-test proposal from
 verified audits, splits and review receipts. Internal anchors, protected closure,

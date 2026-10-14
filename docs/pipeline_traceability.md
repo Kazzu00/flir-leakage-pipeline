@@ -1,5 +1,14 @@
 # Pipeline traceability
 
+## Protected annotation evidence (2026-10-13)
+
+Verified proposal + source-bound acceptance inventory → exact conflicting content
+→ test/quarantine occurrences → original image/YOLO bytes and checksums → native
+box projections and conservative differences → pending attributed human decisions.
+Future adjudicated annotations must remain a separate provenance layer with a new
+test identity and protocol verification. Evidence generation or completed forms
+never establish annotation truth, protocol approval or training eligibility.
+
 ## Common-test protocol planning (2026-10-13)
 
 Verified labeled audit + complete candidate suite + source-bound acceptance review

@@ -1,5 +1,42 @@
 # Project status
 
+## Revisión protegida de anotaciones v1 (2026-10-13)
+
+**Infraestructura implementada; paquete real generado y reproducido desde fuentes;
+adjudicación humana pendiente en los ocho casos.** Se publicaron ocho comparaciones
+de tres paneles, imágenes originales, bytes YOLO intactos, tabla de diferencias,
+localizadores/checksums y formulario pendiente bajo
+`protected_annotation_review_v1/review-20261013-a`, fuera del repositorio.
+Se verificaron los ZIP utilizados antes/después, los miembros originales y las
+publicaciones de auditoría/propuesta/aceptación. La CLI de verificación reprodujo
+todos los archivos byte a byte y confirmó ocho pendientes, cero propuestas completas,
+sin aprobación, aplicación de etiquetas ni elegibilidad para entrenamiento.
+
+Observado: `video_11min_546` tiene una caja clase 0 exclusiva de cuarentena; en
+`547–553`, una caja clase 0 de test contrasta con dos de cuarentena, con geometrías
+diferentes y correspondencia ambigua. No se identificaron cambios de clase
+inequívocos. Todas las cajas restantes coinciden exactamente entre versiones.
+Las ocho comparaciones se inspeccionaron para QA del render, **sin elegir etiquetas**.
+Los ocho casos requieren contexto de vídeo para decidir presencia/inclusión;
+no se recuperó ni inspeccionó ese contexto. El nombre temporal sigue siendo heurístico.
+
+El CSV de aceptación tiene BOM UTF-8: el lector lo admite sin modificar la fuente;
+la fixture de regresión reproduce ese formato. Las primeras invocaciones reales
+fallaron antes de publicar por ese detalle; la publicación final tiene recibo completo.
+Las 12 pruebas nuevas pasaron también tras la corrección de BOM.
+La regresión focalizada de revisión, test común, Adendo, candidatos etiquetados,
+detector, splitting, reporte final y asociaciones terminó con **159 passed**.
+`uv run --no-sync ruff check .` y `git diff --check` pasaron. Se ejecutaron las
+tres CLI nuevas: generación, reproducción y validación de la plantilla pendiente.
+No se ejecutó la suite global ni se evaluaron modelos.
+Véase el [flujo y comandos](runbooks/protected_annotation_review.md).
+
+La propuesta permanece `PROPOSED`; no se modificaron etiquetas, splits ni resultados
+previos. No hubo entrenamiento, aprobación, freeze, commit, push ni merge. La futura
+capa adjudicada aún no está implementada: exige conservar procedencia, nueva identidad
+del test y reverificación. Suficiencia por clase, dependencias y aprobación metodológica
+siguen pendientes independientemente de las decisiones sobre estos ocho casos.
+
 ## Propuesta de evaluación del detector con test común (2026-10-13)
 
 **Infraestructura de planificación/verificación implementada y ejecutada sobre

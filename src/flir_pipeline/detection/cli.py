@@ -7,6 +7,56 @@ import typer
 app = typer.Typer(help="Frozen historical/random/cluster detector comparison.")
 
 
+@app.command("protected-annotation-review")
+def protected_annotation_review_command(
+    audit: Path = typer.Option(...), proposal: Path = typer.Option(...),
+    acceptance: Path = typer.Option(...), source_root: Path = typer.Option(...),
+    output: Path = typer.Option(...),
+) -> None:
+    """Generate eight pending human reviews outside the repo; never adjudicate."""
+    from flir_pipeline.detection.annotation_review import build_review
+
+    try:
+        result = build_review(audit, proposal, acceptance, source_root, output)
+    except (ValueError, OSError, KeyError, TypeError, AssertionError) as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    typer.echo(f"{result['state']}: {len(result['cases'])} cases; {output / 'index.html'}")
+
+
+@app.command("verify-annotation-review")
+def verify_annotation_review_command(
+    directory: Path, audit: Path = typer.Option(...), proposal: Path = typer.Option(...),
+    acceptance: Path = typer.Option(...), source_root: Path = typer.Option(...),
+) -> None:
+    """Reproduce evidence from original sources, without applying human decisions."""
+    import json
+
+    from flir_pipeline.detection.annotation_review import verify_review
+
+    try:
+        result = verify_review(directory, audit, proposal, acceptance, source_root)
+    except (ValueError, OSError, KeyError, TypeError, AssertionError) as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    typer.echo(json.dumps(result, indent=2))
+
+
+@app.command("validate-annotation-decisions")
+def validate_annotation_decisions_command(directory: Path, decisions: Path) -> None:
+    """Check attributed decision proposals; grants no approval and changes no labels."""
+    import json
+
+    from flir_pipeline.detection.annotation_review import validate_decisions
+    from flir_pipeline.detection.common_test_storage import verify_receipt
+    from flir_pipeline.similarity.storage import read_json
+
+    try:
+        verify_receipt(directory, "receipt.json", "artifacts")
+        result = validate_decisions(read_json(decisions), read_json(directory / "manifest.json"))
+    except (ValueError, OSError, KeyError, TypeError, AssertionError) as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    typer.echo(json.dumps(result, indent=2))
+
+
 def _common_proposal(audit, splits, review, export, reference, output, config,
                      source_root, evidence, legacy_artifacts, purpose):
     import yaml
