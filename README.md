@@ -2,6 +2,12 @@
 
 ## Overview
 
+`flir-pipeline detection ground-truth-quality` audits the original proposed test
+and support in existing train/validation arms, producing external static galleries,
+descriptive sensitivity tables and pending human forms. `verify-ground-truth-quality`
+reproduces the evidence without applying labels or admitting training. See the
+[quality and sufficiency workflow](docs/runbooks/ground_truth_quality.md).
+
 `flir-pipeline splitting fixed-test-train-val` builds a six-arm pilot followed by
 thirty provisional train/validation configurations with an unchanged proposed test.
 `verify-fixed-test-train-val --replay` checks protection, coverage, solver evidence

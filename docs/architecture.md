@@ -1,5 +1,11 @@
 # Architecture
 
+Ground-truth evidence lives in `detection/ground_truth_quality.py` (descriptive
+metrics and human-form contract), `ground_truth_gallery.py` (static native-raster
+views) and `ground_truth_quality_storage.py` (source binding, receipts and replay).
+It reuses YOLO validation, original ZIP recovery, fixed-test verification and
+candidate-component contracts. Outputs remain external and cannot train or freeze.
+
 ## Fixed-test train/validation construction (2026-10-13)
 
 `splitting/fixed_test.py` adapts verified development pools to explicit two-way
