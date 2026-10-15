@@ -1,5 +1,34 @@
 # Project status
 
+## Ground-truth quality y suficiencia v1 (cierre 2026-10-15)
+
+Infraestructura implementada para auditar el test propuesto y los train/validation
+existentes, sin modificar etiquetas ni construir particiones. Reutiliza recibos,
+parser YOLO, recuperación ZIP y componentes candidatos. Incluye galerías nativas,
+soporte por clase, concentración y sensibilidad descriptiva a grupos y anotaciones
+A/B; ninguna sensibilidad aplica cambios ni estima independencia estadística.
+La matriz humana permite dejar todos los casos pendientes. La observación
+preliminar aportada sobre B se mantiene atribuida y separada de adjudicaciones.
+
+Pruebas específicas: **15 passed**, incluyendo checksums, evidencia original
+obligatoria, orientación de galerías, estados bloqueados y reproducción del paquete.
+La ejecución real generó 372 galerías y las 305 filas de soporte se reconstruyeron
+independientemente desde YOLO y membresías. Test: 47 etiquetas vacías; vehículos
+12 instancias/12 imágenes; maquinaria 19/18; 141 contenidos expuestos al train
+histórico. Los 418 pares pHash internos producen hipótesis diagnósticas, no nuevas
+restricciones de split: un componente concentra 8/12 instancias de vehículos.
+Los 372 formularios y ocho conflictos permanecen pendientes. La reproducción real
+pasó con igualdad de todos los hashes del paquete; también se reconstruyeron de
+forma independiente los pares y componentes pHash del test. Suite global:
+**1283 passed**, sin skips; Ruff, `git diff --check` y fuentes de notebooks pasan.
+El intento con una ruta temporal larga falló por el límite de rutas de Windows;
+se reprodujo el problema y toda la suite pasó usando una ruta temporal corta,
+sin alterar código científico. Los logs conservan ambos intentos.
+Dictamen: **APROBADO PARA REVISIÓN HUMANA**. Los resultados y el replay se
+registran en la publicación externa `ground_truth_quality_v1`. No se habilita
+entrenamiento ni selección de checkpoints; test **PROPOSED**.
+Véase el [flujo de auditoría](runbooks/ground_truth_quality.md).
+
 ## Revisión independiente de fixed-test train/validation (2026-10-14)
 
 La auditoría externa `fixed_test_train_val_v1/acceptance-review-20261014-a`

@@ -1,5 +1,14 @@
 # Design decisions
 
+## Ground-truth audit is evidence, not adjudication (2026-10-14)
+
+Count instances, positive images, exact contents and hypothetical candidate groups
+separately. No arbitrary sufficiency cutoff, independence assumption, automatic
+omission diagnosis or checkpoint admission follows from these counts. Arithmetic
+leave-one-group-out support and original A/B annotation alternatives are descriptive
+scenarios only. Prior review bytes and current proposed labels remain immutable;
+future adjudication requires attributed provenance and a new protocol identity.
+
 ## Two destinations without redefining the proposed test (2026-10-13)
 
 The existing random and profile-MILP engines accept explicit destinations while

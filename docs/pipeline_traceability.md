@@ -1,5 +1,14 @@
 # Pipeline traceability
 
+## Ground-truth quality and sufficiency (2026-10-14)
+
+Verified source publications and original ZIP/member SHA-256 → unchanged test
+images/YOLO → native unannotated/annotated galleries → per-class support in test
+and existing train/validation → exact/candidate concentration and descriptive
+group/annotation sensitivity → pending attributed human review. Automatic geometry
+facts, user-reported visual observations and adjudications remain distinct. No
+class-coverage rule establishes statistical sufficiency or checkpoint eligibility.
+
 ## Provisional fixed-test assignments (2026-10-13)
 
 Verified labeled audit + historical candidate evidence + reconstructed common-test

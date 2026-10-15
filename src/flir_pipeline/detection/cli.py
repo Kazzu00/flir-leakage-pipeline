@@ -7,6 +7,67 @@ import typer
 app = typer.Typer(help="Frozen historical/random/cluster detector comparison.")
 
 
+@app.command("ground-truth-quality")
+def ground_truth_quality_command(
+    audit: Path = typer.Option(...), proposal: Path = typer.Option(...),
+    review: Path = typer.Option(...), partitions: Path = typer.Option(...),
+    source_root: Path = typer.Option(...), output: Path = typer.Option(...),
+    observations: Path | None = typer.Option(None),
+    evidence: Path | None = typer.Option(None),
+) -> None:
+    """Audit 372 proposed test images and 30 existing train/val arms; never approve."""
+    from flir_pipeline.detection.ground_truth_quality_storage import build_quality
+
+    try:
+        result = build_quality(audit, proposal, review, partitions, source_root, output,
+                               observations=observations, evidence=evidence)
+    except (ValueError, OSError, KeyError, TypeError, AssertionError) as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    typer.echo(f"{result['verdict']}; READY_FOR_TRAINING=false; {output / 'index.html'}")
+
+
+@app.command("verify-ground-truth-quality")
+def verify_ground_truth_quality_command(
+    directory: Path, audit: Path = typer.Option(...), proposal: Path = typer.Option(...),
+    review: Path = typer.Option(...), partitions: Path = typer.Option(...),
+    source_root: Path = typer.Option(...),
+    evidence: Path | None = typer.Option(None),
+) -> None:
+    """Reproduce tables and visual evidence from original sources; no adjudication."""
+    import json
+
+    from flir_pipeline.detection.ground_truth_quality_storage import verify_quality
+
+    try:
+        result = verify_quality(directory, audit, proposal, review, partitions, source_root, evidence=evidence)
+    except (ValueError, OSError, KeyError, TypeError, AssertionError) as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    typer.echo(json.dumps(result, indent=2))
+
+
+@app.command("validate-ground-truth-review")
+def validate_ground_truth_review_command(directory: Path, decisions: Path) -> None:
+    """Validate attributed observations in a separate form; never apply labels."""
+    import json
+
+    from flir_pipeline.detection.common_test_storage import signatures
+    from flir_pipeline.detection.ground_truth_quality import validate_human_review
+    from flir_pipeline.similarity.storage import read_json
+
+    try:
+        receipt = read_json(directory / "receipt.json")
+        actual = signatures(directory)
+        actual.pop("receipt.json", None)
+        if actual != receipt["artifacts"]:
+            raise ValueError("Quality evidence checksum mismatch")
+        manifest = read_json(directory / "manifest.json")
+        frames = [r["frame_id"] for r in read_json(directory / "test_inventory.json")["records"]]
+        result = validate_human_review(read_json(decisions), manifest["audit_id"], frames)
+    except (ValueError, OSError, KeyError, TypeError, AssertionError) as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    typer.echo(json.dumps(result, indent=2))
+
+
 @app.command("protected-annotation-review")
 def protected_annotation_review_command(
     audit: Path = typer.Option(...), proposal: Path = typer.Option(...),
