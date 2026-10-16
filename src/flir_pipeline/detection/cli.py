@@ -5,6 +5,79 @@ from pathlib import Path
 import typer
 
 app = typer.Typer(help="Frozen historical/random/cluster detector comparison.")
+common_executor_app = typer.Typer(help="Provisional YOLO11m common-test operations; real training blocked.")
+app.add_typer(common_executor_app, name="common-executor")
+
+
+@common_executor_app.command("dry-run")
+def common_executor_plan(publication: Path, output: Path,
+                         config: Path = Path("configs/detection/common_test_yolo11m_v2.yaml"),
+                         checkpoint_sha256: str | None = None) -> None:
+    import json
+
+    from flir_pipeline.detection.common_executor import dry_run
+    typer.echo(json.dumps(dry_run(publication, config, output, checkpoint_sha256), indent=2))
+
+
+@common_executor_app.command("prepare")
+def common_executor_prepare(publication: Path, source_root: Path, output: Path,
+                            evidence: Path | None = None) -> None:
+    from flir_pipeline.detection.common_executor import prepare
+    result = prepare(publication, source_root, output, evidence)
+    typer.echo(f"Prepared {len(result['views'])} development views; training blocked")
+
+
+@common_executor_app.command("verify")
+def common_executor_verify(directory: Path, kind: str = "plan") -> None:
+    from flir_pipeline.detection.common_executor import (
+        verify_executor_plan,
+        verify_preparation,
+    )
+    from flir_pipeline.detection.common_runtime import verify_operation
+    checks = {"plan": verify_executor_plan, "preparation": verify_preparation, "operation": verify_operation}
+    if kind not in checks:
+        raise typer.BadParameter("kind must be plan, preparation or operation")
+    result = checks[kind](directory)
+    typer.echo(f"Verified {kind}: {result.get('state', result.get('plan_id', 'technical_only'))}")
+
+
+@common_executor_app.command("preflight")
+def common_executor_preflight(output: Path, cpu: bool = False,
+                              config: Path = Path("configs/detection/common_test_yolo11m_v2.yaml")) -> None:
+    from flir_pipeline.detection.common_runtime import preflight
+    typer.echo(preflight(config, output, cpu))
+
+
+@common_executor_app.command("synthetic-smoke")
+def common_executor_smoke(output: Path, batch: int = 1, cpu: bool = False,
+                          config: Path = Path("configs/detection/common_test_yolo11m_v2.yaml")) -> None:
+    from flir_pipeline.detection.common_runtime import synthetic_smoke
+    typer.echo(synthetic_smoke(config, output, batch, cpu))
+
+
+@common_executor_app.command("probe")
+def common_executor_probe(output: Path,
+                          config: Path = Path("configs/detection/common_test_yolo11m_v2.yaml")) -> None:
+    from flir_pipeline.detection.common_runtime import probe
+    typer.echo(probe(config, output))
+
+
+@common_executor_app.command("train")
+def common_executor_train(plan: Path, output: Path, index: int = 0, resume: bool = False) -> None:
+    from flir_pipeline.detection.common_executor import train
+    try:
+        train(plan, output, index, resume)
+    except ValueError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(1) from exc
+
+
+@common_executor_app.command("status")
+def common_executor_status(plan: Path) -> None:
+    from flir_pipeline.detection.common_executor import verify_executor_plan
+    checked = verify_executor_plan(plan)
+    for index, run in enumerate(checked["runs"]):
+        typer.echo(f"{index}\t{run['run_id']}\t{run['state']}\t{';'.join(run['blockers'])}")
 
 
 @app.command("ground-truth-quality")
