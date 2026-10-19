@@ -8,6 +8,11 @@ app = typer.Typer(help="Frozen historical/random/cluster detector comparison.")
 common_executor_app = typer.Typer(help="Provisional YOLO11m common-test operations; real training blocked.")
 app.add_typer(common_executor_app, name="common-executor")
 
+def _prime_cuda_import_order() -> None:
+    """Load GPU dependencies before the detection runtime."""
+    import torch  # noqa: F401
+    from ultralytics import settings  # noqa: F401
+
 
 @common_executor_app.command("dry-run")
 def common_executor_plan(publication: Path, output: Path,
@@ -44,6 +49,7 @@ def common_executor_verify(directory: Path, kind: str = "plan") -> None:
 @common_executor_app.command("preflight")
 def common_executor_preflight(output: Path, cpu: bool = False,
                               config: Path = Path("configs/detection/common_test_yolo11m_v2.yaml")) -> None:
+    _prime_cuda_import_order()
     from flir_pipeline.detection.common_runtime import preflight
     typer.echo(preflight(config, output, cpu))
 
@@ -51,6 +57,7 @@ def common_executor_preflight(output: Path, cpu: bool = False,
 @common_executor_app.command("synthetic-smoke")
 def common_executor_smoke(output: Path, batch: int = 1, cpu: bool = False,
                           config: Path = Path("configs/detection/common_test_yolo11m_v2.yaml")) -> None:
+    _prime_cuda_import_order()
     from flir_pipeline.detection.common_runtime import synthetic_smoke
     typer.echo(synthetic_smoke(config, output, batch, cpu))
 
@@ -58,6 +65,7 @@ def common_executor_smoke(output: Path, batch: int = 1, cpu: bool = False,
 @common_executor_app.command("probe")
 def common_executor_probe(output: Path,
                           config: Path = Path("configs/detection/common_test_yolo11m_v2.yaml")) -> None:
+    _prime_cuda_import_order()
     from flir_pipeline.detection.common_runtime import probe
     typer.echo(probe(config, output))
 
