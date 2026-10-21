@@ -1,4 +1,9 @@
 import { test, expect } from '@playwright/test'
+
+// Local evidence is large; await observable readiness, never a fixed sleep.
+test.use({ actionTimeout: 20000 })
+test.setTimeout(120000)
+const evidenceExpect = expect.configure({ timeout: 20000 })
 import AxeBuilder from '@axe-core/playwright'
 import { researchFixture } from '../src/test/research-fixture'
 test('runtime V2 overview, exported temporal evidence, linkage and keyboard disclosure', async ({
@@ -14,17 +19,21 @@ test('runtime V2 overview, exported temporal evidence, linkage and keyboard disc
     route.fulfill({ json: researchFixture() }),
   )
   await page.goto('/organization')
-  await expect(page.getByText('MIXED', { exact: true })).toBeVisible()
-  await expect(
+  await evidenceExpect(
+    page.getByText('EXPORTED EVIDENCE', { exact: true }),
+  ).toBeVisible()
+  await evidenceExpect(
     page
       .getByRole('navigation', { name: 'Organization stages' })
       .getByRole('link'),
   ).toHaveCount(4)
-  await expect(page.getByRole('dialog')).toHaveCount(0)
-  const details = page.getByRole('button', { name: 'View technical details' })
+  await evidenceExpect(page.getByRole('dialog')).toHaveCount(0)
+  const details = page.getByRole('button', {
+    name: 'Organization export provenance',
+  })
   await details.focus()
   await page.keyboard.press('Enter')
-  await expect(page.getByRole('dialog')).toBeVisible()
+  await evidenceExpect(page.getByRole('dialog')).toBeVisible()
   expect(
     (
       await new AxeBuilder({ page })
@@ -33,11 +42,11 @@ test('runtime V2 overview, exported temporal evidence, linkage and keyboard disc
     ).violations,
   ).toEqual([])
   await page.keyboard.press('Escape')
-  await expect(details).toBeFocused()
+  await evidenceExpect(details).toBeFocused()
   await page
     .getByRole('link', { name: 'Sequences & linkage', exact: true })
     .click()
-  await expect(
+  await evidenceExpect(
     page.getByRole('heading', {
       name: 'Temporal structure and boundary evidence',
       exact: true,
@@ -58,29 +67,29 @@ test('runtime V2 overview, exported temporal evidence, linkage and keyboard disc
     await timeline.selectOption(id)
   }
   const boundary = boundaryZones.last()
-  await expect(boundary).toBeVisible()
+  await evidenceExpect(boundary).toBeVisible()
   const label = await boundary.getAttribute('aria-label')
   const match = /^boundary zone (.+): (\d+)–(\d+), (.+)$/.exec(label ?? '')
   expect(match).not.toBeNull()
   const [, evidenceId, start, end, decision] = match!
   await boundary.click()
-  await expect(boundary).toHaveAttribute('aria-pressed', 'true')
+  await evidenceExpect(boundary).toHaveAttribute('aria-pressed', 'true')
   const selectedBoundary = page.locator('section.panel').filter({
     has: page.getByRole('heading', {
       name: 'Selected boundary evidence',
       exact: true,
     }),
   })
-  await expect(
+  await evidenceExpect(
     selectedBoundary.getByText(evidenceId, { exact: true }),
   ).toBeVisible()
-  await expect(
+  await evidenceExpect(
     selectedBoundary.getByText(`${start}–${end}`, { exact: true }),
   ).toBeVisible()
-  await expect(
+  await evidenceExpect(
     selectedBoundary.getByText(decision, { exact: true }),
   ).toBeVisible()
-  await expect(
+  await evidenceExpect(
     page.getByText(
       /Boundary zones are inclusive uncertainty intervals, not exact cuts\./,
     ),
@@ -92,7 +101,7 @@ test('runtime V2 overview, exported temporal evidence, linkage and keyboard disc
   await boundaryDetails.focus()
   await page.keyboard.press('Enter')
   const boundaryDialog = page.getByRole('dialog')
-  await expect(boundaryDialog).toBeVisible()
+  await evidenceExpect(boundaryDialog).toBeVisible()
   const boundaryEvidence = JSON.parse(
     await boundaryDialog.locator('pre').innerText(),
   )
@@ -106,8 +115,8 @@ test('runtime V2 overview, exported temporal evidence, linkage and keyboard disc
     await timeline.inputValue(),
   )
   await page.keyboard.press('Escape')
-  await expect(boundaryDetails).toBeFocused()
-  await expect(
+  await evidenceExpect(boundaryDetails).toBeFocused()
+  await evidenceExpect(
     selectedBoundary
       .locator('.metric-summary > div')
       .filter({
@@ -129,7 +138,7 @@ test('runtime V2 overview, exported temporal evidence, linkage and keyboard disc
   await page
     .getByRole('button', { name: 'Evidence and provenance', exact: true })
     .click()
-  await expect(
+  await evidenceExpect(
     page
       .getByRole('dialog')
       .getByText(/Timeline ≠ sequence\. Boundary zone ≠ exact cut\./),
@@ -138,7 +147,7 @@ test('runtime V2 overview, exported temporal evidence, linkage and keyboard disc
   await page
     .getByRole('button', { name: 'Cross-dataset linkage', exact: true })
     .click()
-  await expect(
+  await evidenceExpect(
     page.getByText(
       /A candidate is not a confirmed match, sequence identity, ground truth, dependency or split constraint\./,
     ),
@@ -146,9 +155,9 @@ test('runtime V2 overview, exported temporal evidence, linkage and keyboard disc
   const candidate = page
     .getByRole('button', { name: /LABELED CONTENT .*candidate.*VIDEO CONTENT/ })
     .first()
-  await expect(candidate).toBeVisible()
+  await evidenceExpect(candidate).toBeVisible()
   await candidate.click()
-  await expect(candidate).toHaveAttribute('aria-pressed', 'true')
+  await evidenceExpect(candidate).toHaveAttribute('aria-pressed', 'true')
   const selectedCandidate = page.locator('section.panel').filter({
     has: page.getByRole('heading', { name: 'Selected candidate', exact: true }),
   })
@@ -159,18 +168,18 @@ test('runtime V2 overview, exported temporal evidence, linkage and keyboard disc
   await candidateDetails.focus()
   await page.keyboard.press('Enter')
   const candidateDialog = page.getByRole('dialog')
-  await expect(candidateDialog).toBeVisible()
+  await evidenceExpect(candidateDialog).toBeVisible()
   const candidateEvidence = JSON.parse(
     await candidateDialog.locator('pre').innerText(),
   )
   await page.keyboard.press('Escape')
-  await expect(candidateDetails).toBeFocused()
-  await expect(
+  await evidenceExpect(candidateDetails).toBeFocused()
+  await evidenceExpect(
     selectedCandidate
       .locator('code')
       .filter({ hasText: candidateEvidence.labeled_content_id }),
   ).toHaveText(candidateEvidence.labeled_content_id)
-  await expect(
+  await evidenceExpect(
     selectedCandidate
       .locator('code')
       .filter({ hasText: candidateEvidence.video_content_id }),
@@ -182,7 +191,7 @@ test('runtime V2 overview, exported temporal evidence, linkage and keyboard disc
     const row = selectedCandidate.locator('.metric-summary > div').filter({
       has: page.locator('dt', { hasText: new RegExp(`^${metric}$`) }),
     })
-    await expect(row.locator('dd')).toHaveText(
+    await evidenceExpect(row.locator('dd')).toHaveText(
       score === null ? 'unavailable' : score.toFixed(4),
     )
   }
@@ -208,22 +217,24 @@ test('legacy redirects and active exported temporal evidence', async ({
     detector: '/organization/evaluation?view=detector',
   })) {
     await page.goto(`/organization/${old}`)
-    await expect(page).toHaveURL(
+    await evidenceExpect(page).toHaveURL(
       new RegExp(destination.replace('?', '\\?') + '$'),
     )
   }
   await page.goto('/organization/sequences')
-  await expect(
+  await evidenceExpect(
     page.getByRole('heading', {
       name: 'Temporal structure and boundary evidence',
       exact: true,
     }),
   ).toBeVisible()
-  await expect(
+  await evidenceExpect(
     page.getByRole('button', { name: 'Temporal evidence', exact: true }),
   ).toHaveAttribute('aria-pressed', 'true')
-  await expect(page.getByLabel('Timeline', { exact: true })).toBeVisible()
-  await expect(
+  await evidenceExpect(
+    page.getByLabel('Timeline', { exact: true }),
+  ).toBeVisible()
+  await evidenceExpect(
     page.getByRole('heading', {
       name: 'Temporal evidence timeline',
       exact: true,

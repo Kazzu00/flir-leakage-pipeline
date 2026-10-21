@@ -2360,3 +2360,38 @@ tr:last-child td {
     grid-column: 1;
   }
 }
+
+/* Bounded real-membership views; runtime previews never become build assets. */
+.split-comparison-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+.split-member-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.65rem;
+}
+.split-member {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+  padding: 0.5rem;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+.split-member img {
+  width: 100%;
+  height: 110px;
+  object-fit: contain;
+}
+.split-comparison-grid > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 1000px) {
+  .split-comparison-grid {
+    grid-template-columns: 1fr;
+  }
+}

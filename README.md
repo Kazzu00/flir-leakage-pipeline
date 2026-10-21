@@ -1,8 +1,10 @@
 # FLIR Pipeline Explorer
 
-Interfaz de investigación para explorar tres pipelines independientes de visión por computador sobre video aéreo de la Amazonía colombiana. **DEMO por defecto en el workspace; la evaluación del detector M02 utiliza el contrato REAL / VERIFIED de Hypatia. M02 también admite snapshots locales. No ejecuta procesamiento científico.**
+Interfaz de investigación para explorar tres pipelines independientes de visión por computador sobre video aéreo de la Amazonía colombiana. **M02 utiliza exclusivamente contratos reales; los recursos ausentes quedan explícitos. M01/M03 conservan sus modos DEMO. No ejecuta procesamiento científico.**
 
 ## Estado
+
+- **Aceptación local M02: ACCEPTED_WITH_LIMITATIONS.** Explorador de 16 splits históricos y 30 particiones candidatas S1/S2/S3, filtros, miniaturas existentes y comparación lateral. El test nuevo permanece PROPOSED y no hay resultados YOLO11m. Antecedentes y variantes se distinguen por disponibilidad y procedencia. [Pruebas, evidencia y pendientes](docs/M02_ACCEPTANCE.md).
 
 - **Detector conectado:** `/organization/evaluation` presenta el contrato público `detection-export-v1`, publicación upstream `0a4ea1f`: 48/48 runs, 16 splits, cuatro estrategias y siete asociaciones preespecificadas. Finalización y verificación reportadas upstream; validación de integridad aquí. Comparación descriptiva, no causal. [Contrato, procedencia y actualización](docs/DETECTION_CONTRACT.md).
 

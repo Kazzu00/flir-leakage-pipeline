@@ -4,6 +4,8 @@ export function isDetectionRoute(pathname: string, search: string) {
   return (
     pathname === '/organization/detector' ||
     (pathname === '/organization/evaluation' &&
-      new URLSearchParams(search).get('view') !== 'splits')
+      !['splits', 'reference'].includes(
+        new URLSearchParams(search).get('view') ?? 'detector',
+      ))
   )
 }

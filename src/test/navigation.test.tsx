@@ -83,90 +83,22 @@ describe('Research exploration flows', () => {
     expect(screen.queryByRole('button', { name: 'AFTER SPLIT' })).toBeNull()
   })
 
-  it('renders exported splits without synthesizing pre-split groups', async () => {
-    const splits = [
-      {
-        strategy: 'C10',
-        split_seed: 0,
-        split_space_id: 'split-test-c10-seed-0',
-        artifact_id: 'artifact-test-split',
-        source_strategy: 'cluster_aware' as const,
-        cluster_run_id: 'cluster-test',
-        partitions: {
-          train: {
-            n_records: 80,
-            n_unique_contents: 70,
-          },
-          val: {
-            n_records: 10,
-            n_unique_contents: 9,
-          },
-          test: {
-            n_records: 20,
-            n_unique_contents: 18,
-          },
-        },
-        class_support: [],
-      },
-    ]
-
-    const memberships = [
-      {
-        strategy: 'C10',
-        split_seed: 0,
-        split_space_id: 'split-test-c10-seed-0',
-        partition: 'train' as const,
-        record_id: 'record-000001',
-        content_id: 'content-000001',
-      },
-    ]
-
+  it('rejects incomplete real split evidence without substituting demo groups', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn<typeof fetch>(async (input) => {
-        const url = String(input)
-
-        if (url.endsWith('/splits.json')) {
-          return new Response(JSON.stringify(splits), {
-            status: 200,
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          })
-        }
-
-        if (url.endsWith('/split_memberships.json')) {
-          return new Response(JSON.stringify(memberships), {
-            status: 200,
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          })
-        }
-
-        return new Response('', { status: 404 })
-      }),
+      vi.fn<typeof fetch>(async () => new Response('', { status: 404 })),
     )
-
     open('/organization/splits')
-
-    await screen.findByText('Available partition artifacts')
-
-    expect(screen.getByLabelText('Partition strategy / seed')).toBeVisible()
-
-    expect(screen.getByText('REAL / VERIFIED EXPORT')).toBeVisible()
-
-    await userEvent.click(
-      screen.getByRole('button', {
-        name: 'BEFORE SPLIT',
-      }),
-    )
-
-    expect(screen.getByText('Grouping context before assignment')).toBeVisible()
-
+    await screen.findByText('Visual inspection of real split memberships')
     expect(
-      screen.getByText(/No DEMO groups are substituted here/),
+      await screen.findByText(
+        /UNAVAILABLE: this split family/,
+        {},
+        { timeout: 5000 },
+      ),
     ).toBeVisible()
+    expect(screen.queryByRole('button', { name: 'BEFORE SPLIT' })).toBeNull()
+    expect(screen.queryByLabelText('Data mode', { exact: true })).toBeNull()
   })
 
   it('filters experiments and exposes run metadata', async () => {

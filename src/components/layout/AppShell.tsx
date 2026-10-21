@@ -33,7 +33,7 @@ export function AppShell() {
     location.search,
   )
   const organizationEvidence =
-    location.pathname === '/organization/sequences' || clustering
+    !detector && /^\/organization(?:\/|$)/.test(location.pathname)
   const { data } = useSnapshot(!detector && !organizationEvidence)
   const mixed = !!data?.leakage
   const detection = useDetectionSnapshot(detector)
@@ -109,7 +109,7 @@ export function AppShell() {
               {clustering
                 ? 'organization-evidence-v2 · stored cluster evidence.'
                 : organizationEvidence
-                  ? 'organization-evidence-v2 · verified local export.'
+                  ? 'organization-evidence-v2 · stored evidence; see resource status.'
                   : detector
                     ? 'Other modules retain their own data modes.'
                     : mixed
@@ -162,9 +162,9 @@ export function AppShell() {
             <span className="local-status">
               <span />
               {clustering
-                ? 'organization-evidence-v2 · stored export'
+                ? 'M02 real contracts - presentation only'
                 : organizationEvidence
-                  ? 'organization-evidence-v2 · verified export'
+                  ? 'M02 real contracts - presentation only'
                   : detector
                     ? 'Detector export · presentation only'
                     : mixed
@@ -188,7 +188,7 @@ export function AppShell() {
             {clustering
               ? 'EXPORTED EVIDENCE'
               : organizationEvidence
-                ? 'REAL / VERIFIED'
+                ? 'EXPORTED EVIDENCE'
                 : detector
                   ? detectorMode
                   : mixed
@@ -198,7 +198,7 @@ export function AppShell() {
           {clustering
             ? 'Module 02 clustering uses organization-evidence-v2. Export and membership checks do not establish sequence identity or ground truth.'
             : organizationEvidence
-              ? 'Module 02 sequence and linkage evidence comes from organization-evidence-v2. Stored artifacts are presented without scientific recomputation in the frontend.'
+              ? 'Module 02 uses real exports only. Missing resources remain unavailable. Candidate evidence is not ground truth; other modules retain their own modes.'
               : detector
                 ? 'Detector contract only. Scientific computation and verification upstream. Modules 01 and 03 remain DEMO.'
                 : mixed

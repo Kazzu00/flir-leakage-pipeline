@@ -3,7 +3,7 @@ import AxeBuilder from '@axe-core/playwright'
 import fixture from '../src/test/fixtures/leakage-synthetic.json' with { type: 'json' }
 import { largeSyntheticSnapshot } from '../src/test/artifact-fixtures'
 
-test('synthetic artifact flow: MIXED, persisted coordinates, both encoders and missing stages', async ({
+test('synthetic artifact contract flow: persisted coordinates, both encoders and missing stages', async ({
   page,
 }) => {
   const errors: string[] = []
@@ -12,8 +12,9 @@ test('synthetic artifact flow: MIXED, persisted coordinates, both encoders and m
     route.fulfill({ json: fixture }),
   )
   await page.goto('/organization/reduction')
-  await page.getByLabel('Data mode', { exact: true }).selectOption('real')
-  await expect(page.getByText('MIXED', { exact: true })).toBeVisible()
+  await expect(
+    page.getByText('EXPORTED EVIDENCE', { exact: true }),
+  ).toBeVisible()
   await expect(
     page.getByRole('img', {
       name: 'Artifact scatter: 3 persisted coordinates',
@@ -46,11 +47,12 @@ test('synthetic artifact flow: MIXED, persisted coordinates, both encoders and m
   ).toBeVisible()
   await expect(page.getByLabel('Encoder', { exact: true })).toHaveCount(0)
   await nav.getByRole('link', { name: 'Evaluation', exact: true }).click()
-  // Evaluation now opens the independent detector contract; the sampled-video
-  // grouping view still preserves its own pending state without synthetic fallback.
+  // Evaluation and split membership use independent real contracts.
   await page.getByLabel('Evaluation evidence').selectOption('splits')
   await expect(
-    page.getByRole('heading', { name: 'splits: pending' }),
+    page.getByRole('heading', {
+      name: 'Visual inspection of real split memberships',
+    }),
   ).toBeVisible()
   await expect(page.getByRole('button', { name: 'AFTER SPLIT' })).toHaveCount(0)
   await nav
@@ -61,8 +63,7 @@ test('synthetic artifact flow: MIXED, persisted coordinates, both encoders and m
   expect(await page.locator('body').innerText()).not.toMatch(
     /private_person|private-drone|C:\\Users|demo-content/,
   )
-  await page.getByLabel('Data mode', { exact: true }).selectOption('demo')
-  await expect(page.locator('.demo-bar')).toContainText('DEMO')
+  await expect(page.locator('.demo-bar')).toContainText('EXPORTED EVIDENCE')
   expect(errors).toEqual([])
 })
 
@@ -92,7 +93,6 @@ test('9000 persisted points use canvas and a bounded content table', async ({
     route.fulfill({ json: largeSyntheticSnapshot() }),
   )
   await page.goto('/organization/reduction')
-  await page.getByLabel('Data mode', { exact: true }).selectOption('real')
   await expect(
     page.getByRole('img', {
       name: 'Artifact scatter: 9000 persisted coordinates',
@@ -124,7 +124,6 @@ test('organization clustering is independent of legacy snapshots and workspace m
   const runId = await configuration.inputValue()
   await expect(page.getByLabel('Data mode', { exact: true })).toHaveCount(0)
   await page.getByLabel('View', { exact: true }).selectOption('reduction')
-  await page.getByLabel('Data mode', { exact: true }).selectOption('real')
   await page.getByLabel('View', { exact: true }).selectOption('clustering')
   await expect(configuration).toHaveValue(runId)
   await expect(page.getByLabel('Encoder', { exact: true })).toHaveCount(0)
@@ -169,7 +168,6 @@ test('organization clustering is independent of legacy snapshots and workspace m
     )
   }
   await page.getByLabel('View', { exact: true }).selectOption('reduction')
-  await page.getByLabel('Data mode', { exact: true }).selectOption('demo')
   await page.getByLabel('View', { exact: true }).selectOption('clustering')
   await expect(configuration).toHaveValue(runId)
   await expect(evidence).not.toContainText(

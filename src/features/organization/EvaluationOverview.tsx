@@ -1,14 +1,13 @@
 import { useSearchParams } from 'react-router-dom'
-import { useSnapshot } from '@/data/provider'
-import { Select, Notice } from '@/components/feedback/Primitives'
-import { EmptyArtifactState } from '@/components/research/Evidence'
-import { ArtifactStage } from './ArtifactStage'
-import { Splits } from './splitting/Splits'
+import { Select } from '@/components/feedback/Primitives'
 import { DetectionEvaluation } from '@/features/detection/DetectionEvaluation'
+import { RealSplits } from './splitting/RealSplits'
+import { ReferenceComparison } from './ReferenceComparison'
 export function EvaluationOverview() {
   const [params, setParams] = useSearchParams()
-  const view = params.get('view') === 'splits' ? 'splits' : 'detector'
-  const { data } = useSnapshot(view === 'splits')
+  const requested = params.get('view')
+  const view =
+    requested === 'splits' || requested === 'reference' ? requested : 'detector'
   return (
     <>
       <div className="toolbar detection-view-selector">
@@ -19,24 +18,19 @@ export function EvaluationOverview() {
           options={[
             { value: 'splits', label: 'Grouping / split' },
             { value: 'detector', label: 'Detector evaluation' },
+            {
+              value: 'reference',
+              label: 'Eyes in the Sky / experimental context',
+            },
           ]}
         />
       </div>
-      {view === 'detector' ? (
-        <DetectionEvaluation />
-      ) : data?.leakage ? (
-        <ArtifactStage key={view} snapshot={data.leakage} stage={view} />
+      {view === 'splits' ? (
+        <RealSplits />
+      ) : view === 'reference' ? (
+        <ReferenceComparison />
       ) : (
-        <Splits />
-      )}
-      {view === 'splits' && data?.leakage && (
-        <EmptyArtifactState stage="Residual dependency / similarity" />
-      )}
-      {view === 'splits' && (
-        <Notice>
-          Historical partitions are not sampled-video partitions. Dataset
-          variant differences do not establish causal effects.
-        </Notice>
+        <DetectionEvaluation />
       )}
     </>
   )

@@ -1,17 +1,14 @@
 import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { useSnapshot } from '@/data/provider'
-import { Select } from '@/components/feedback/Primitives'
+import { useRepresentationSnapshot } from '@/data/representation'
+import { Select, Notice } from '@/components/feedback/Primitives'
 import { ArtifactStage } from './ArtifactStage'
-import { Embeddings } from './embeddings/Embeddings'
-import { Similarity } from './similarity/Similarity'
-import { Reduction } from './reduction/Reduction'
 import { Clustering } from './clustering/Clustering'
 const views = {
-  embeddings: Embeddings,
-  similarity: Similarity,
-  reduction: Reduction,
-  clustering: Clustering,
+  embeddings: true,
+  similarity: true,
+  reduction: true,
+  clustering: true,
 }
 export function VisualExplorer() {
   const [params, setParams] = useSearchParams()
@@ -19,12 +16,12 @@ export function VisualExplorer() {
   const requested = params.get('view') ?? 'reduction'
   const view =
     requested in views ? (requested as keyof typeof views) : 'reduction'
-  const { data } = useSnapshot(view !== 'clustering')
-  const Demo = views[view]
+  const evidence = useRepresentationSnapshot(view !== 'clustering')
+  const data = evidence.data
   return (
     <>
       <div className="toolbar explorer-toolbar">
-        {view !== 'clustering' && data?.leakage && (
+        {view !== 'clustering' && data && (
           <Select
             label="Encoder"
             value={encoder}
@@ -48,15 +45,19 @@ export function VisualExplorer() {
       </div>
       {view === 'clustering' ? (
         <Clustering />
-      ) : data?.leakage ? (
+      ) : data ? (
         <ArtifactStage
           key={`${view}-${encoder}`}
-          snapshot={data.leakage}
+          snapshot={data}
           stage={view}
           encoder={encoder}
         />
       ) : (
-        <Demo />
+        <Notice>
+          {evidence.isPending
+            ? 'Loading real representation evidence...'
+            : 'UNAVAILABLE: real representation snapshot could not be loaded or validated. No synthetic substitute.'}
+        </Notice>
       )}
     </>
   )

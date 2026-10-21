@@ -1,158 +1,102 @@
-import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { useSnapshot } from '@/data/provider'
-import { MetricSummary, ArtifactStatus } from '@/components/research/Evidence'
+import { useOrganizationManifest } from '@/data/organization-provider'
+import { useRepresentationSnapshot } from '@/data/representation'
+import { MetricSummary } from '@/components/research/Evidence'
 import { TechnicalDetailsDrawer } from '@/components/research/TechnicalDetailsDrawer'
 import { Notice } from '@/components/feedback/Primitives'
+import { VariantRegister } from './VariantRegister'
+
 export function DatasetOverview() {
-  const { data } = useSnapshot()
-  const sources = useMemo(
-    () =>
-      new Set(
-        data?.leakage?.contents.flatMap((c) =>
-          c.occurrences.map((o) => o.sourceVideo),
-        ),
-      ).size,
-    [data],
-  )
-  if (!data) return null
-  const snapshot = data.leakage
-  const research =
-    snapshot?.schemaVersion === 'LeakageSnapshotV2'
-      ? snapshot.research
-      : undefined
-  const state = (stage: string) =>
-    snapshot
-      ? snapshot.runs.some((r) => r.stage === stage)
-        ? 'artifact_available'
-        : 'pending'
-      : 'demo'
+  const organization = useOrganizationManifest()
+  const representation = useRepresentationSnapshot()
   return (
     <>
-      <div className="section-intro">
-        <h2>What data and analysis are available?</h2>
-        <span className="eyebrow">
-          {snapshot ? 'ARTIFACT / SAMPLED VIDEO' : 'DEMO / SYNTHETIC'}
-        </span>
-      </div>
-      <MetricSummary
-        items={[
-          {
-            label: 'Occurrences',
-            value: data.dataset.occurrences.toLocaleString(),
-          },
-          {
-            label: 'Unique contents',
-            value: data.dataset.uniqueContents.toLocaleString(),
-          },
-          { label: 'Source videos', value: snapshot ? sources : null },
-        ]}
-      />
-      <div className="research-flow">
-        <div className="flow-source">
-          Source videos <span>↓ sampling / manifest ↓</span>
-          <strong>DINOv2 + CLIP</strong>
-          <div className="inline-status">
-            {['DINOv2', 'CLIP'].map((encoder) => (
-              <span key={encoder}>
-                {encoder}{' '}
-                <ArtifactStatus
-                  state={
-                    snapshot
-                      ? snapshot.runs.some(
-                          (r) =>
-                            r.stage === 'embeddings' && r.encoder === encoder,
-                        )
-                        ? 'artifact_available'
-                        : 'pending'
-                      : 'demo'
-                  }
-                />
-              </span>
-            ))}
-          </div>
-        </div>
-        <div className="flow-branches">
-          <Link to="/organization/explore" className="flow-branch">
-            <span className="eyebrow">VISUAL STRUCTURE ↗</span>
-            <h3>Explore visual relationships</h3>
-            {['similarity', 'reduction', 'clustering'].map((s) => (
-              <div className="availability-row" key={s}>
-                <span>{s}</span>
-                <ArtifactStatus state={state(s)} />
-              </div>
-            ))}
-          </Link>
-          <Link to="/organization/sequences" className="flow-branch">
-            <span className="eyebrow">TEMPORAL STRUCTURE ↗</span>
-            <h3>Inspect sequence evidence</h3>
-            <div className="availability-row">
-              Sequences{' '}
-              <ArtifactStatus state={research?.sequences.state ?? 'pending'} />
-            </div>
-            <div className="availability-row">
-              Experiments{' '}
-              <ArtifactStatus
-                state={research?.experiments.state ?? 'pending'}
-              />
-            </div>
-            <div className="availability-row">
-              Review / evidence{' '}
-              <ArtifactStatus state={research?.evidence.state ?? 'pending'} />
-            </div>
-          </Link>
-        </div>
-        <Link className="flow-merge" to="/organization/sequences?mode=linkage">
-          <strong>Cross-dataset linkage ↗</strong>
-          <span>Labeled data ↔ sampled video</span>
-          <ArtifactStatus state={research?.linkage.state ?? 'pending'} />
+      <h2>What data and analysis are available?</h2>
+      <section aria-label="Organization export summary">
+        <h3>REAL / EXPORTED - organization-evidence-v2</h3>
+        {organization.isPending ? (
+          <p role="status">Loading organization manifest...</p>
+        ) : organization.isError ? (
+          <Notice>
+            UNAVAILABLE: organization export could not be loaded or validated.
+            No synthetic substitute.
+          </Notice>
+        ) : (
+          <>
+            <MetricSummary
+              items={[
+                {
+                  label: 'Export occurrences',
+                  value: organization.data.record_count,
+                },
+                {
+                  label: 'Export unique contents',
+                  value: organization.data.unique_content_count,
+                },
+                {
+                  label: 'Candidate pairs',
+                  value: organization.data.candidate_pair_count,
+                },
+                {
+                  label: 'Historical splits',
+                  value: organization.data.split_count,
+                },
+              ]}
+            />
+            <TechnicalDetailsDrawer title="Organization export provenance">
+              <pre className="audit-json">
+                {JSON.stringify(organization.data, null, 2)}
+              </pre>
+            </TechnicalDetailsDrawer>
+          </>
+        )}
+      </section>
+      <section aria-label="Representation availability">
+        <h3>Separate sampled-video representation snapshot</h3>
+        {representation.isPending ? (
+          <p role="status">Loading real representation evidence...</p>
+        ) : representation.isError ? (
+          <Notice>
+            UNAVAILABLE: representation snapshot. The organization bundle
+            remains independent.
+          </Notice>
+        ) : (
+          <>
+            <p>
+              {representation.data.dataset.occurrences} occurrences /{' '}
+              {representation.data.dataset.uniqueContents} contents. This
+              population is not the labeled historical population.
+            </p>
+            <p>
+              {['embeddings', 'similarity', 'reduction']
+                .map(
+                  (stage) =>
+                    `${stage}: ${representation.data.runs.some((r) => r.stage === stage) ? 'EXPORTED' : 'PENDING'}`,
+                )
+                .join(' / ')}
+            </p>
+          </>
+        )}
+      </section>
+      <nav className="toolbar" aria-label="Real evidence shortcuts">
+        <Link to="/organization/explore">Representation evidence</Link>
+        <Link to="/organization/explore?view=clustering">
+          Stored cluster memberships
         </Link>
-        <Link className="flow-merge" to="/organization/evaluation">
-          <strong>Future organization & downstream evaluation ↗</strong>
-          <span>Grouping / split · residual dependency · detector</span>
-          <ArtifactStatus state={state('splits')} />
+        <Link to="/organization/sequences">Temporal evidence</Link>
+        <Link to="/organization/sequences?mode=linkage">Candidate linkage</Link>
+        <Link to="/organization/evaluation?view=splits">
+          Visual split explorer
         </Link>
-      </div>
-      <TechnicalDetailsDrawer title="View technical details">
-        <pre className="audit-json">
-          {JSON.stringify(
-            snapshot
-              ? {
-                  dataset: snapshot.dataset,
-                  exportPolicy: snapshot.exportPolicy,
-                  runs: snapshot.runs.map(
-                    ({
-                      id,
-                      stage,
-                      encoder,
-                      coverage,
-                      integrity,
-                      featureSpaceId,
-                    }) => ({
-                      id,
-                      stage,
-                      encoder,
-                      coverage,
-                      integrity,
-                      featureSpaceId,
-                    }),
-                  ),
-                }
-              : data.dataset,
-            null,
-            2,
-          )}
-        </pre>
-        <p>
-          Exact duplicate groups: {data.dataset.duplicateGroups}. Source video ≠
-          sequence. Cluster ≠ scene. Sampling-grid time ≠ capture timestamp.
-          Labels and historical splits are not representation inputs.
-        </p>
-      </TechnicalDetailsDrawer>
+        <Link to="/organization/evaluation">Historical detector results</Link>
+      </nav>
       <Notice>
-        Availability describes the exported evidence. It does not establish
-        scientific verification or a completed detector comparison.
+        Candidate dependency is not confirmed dependency. Cluster is not
+        sequence. Frozen membership does not reconstruct the original clustering
+        experiment. Missing coordinates remain unavailable. Export integrity is
+        not scientific validation.
       </Notice>
+      <VariantRegister />
     </>
   )
 }
