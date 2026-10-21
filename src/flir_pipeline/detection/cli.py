@@ -5,7 +5,7 @@ from pathlib import Path
 import typer
 
 app = typer.Typer(help="Frozen historical/random/cluster detector comparison.")
-common_executor_app = typer.Typer(help="Provisional YOLO11m common-test operations; real training blocked.")
+common_executor_app = typer.Typer(help="YOLO11m common-test operations; scientific execution requires signed admission.")
 app.add_typer(common_executor_app, name="common-executor")
 
 def _prime_cuda_import_order() -> None:
@@ -71,13 +71,38 @@ def common_executor_probe(output: Path,
 
 
 @common_executor_app.command("train")
-def common_executor_train(plan: Path, output: Path, index: int = 0, resume: bool = False) -> None:
+def common_executor_train(plan: Path, output: Path, index: int = 0, resume: bool = False,
+                          admission: Path | None = None, signature: Path | None = None,
+                          resume_admission: Path | None = None, resume_signature: Path | None = None) -> None:
     from flir_pipeline.detection.common_executor import train
     try:
-        train(plan, output, index, resume)
+        train(plan, output, index, resume, admission, signature, resume_admission, resume_signature)
     except ValueError as exc:
         typer.echo(str(exc), err=True)
         raise typer.Exit(1) from exc
+
+
+@common_executor_app.command("admission-check")
+def common_admission_check(plan: Path, output: Path, admission: Path, signature: Path) -> None:
+    """Check signed matrix and immutable inputs; no model import or training."""
+    from flir_pipeline.detection.scientific_executor import context
+    checked = context(admission, signature, plan, output)
+    typer.echo(len(checked["runs"]))
+
+
+@common_executor_app.command("prepare-test")
+def common_prepare_test(admission: Path, signature: Path, training_admission: Path,
+                        training_signature: Path, output: Path) -> None:
+    """Custodian operation after a signed release of the entire completed matrix."""
+    from flir_pipeline.detection.scientific_executor import prepare_test
+    typer.echo(prepare_test(admission, signature, training_admission, training_signature, output)["state"])
+
+
+@common_executor_app.command("evaluate")
+def common_evaluate(admission: Path, signature: Path, training_admission: Path,
+                    training_signature: Path, test_root: Path, output: Path, index: int = 0) -> None:
+    from flir_pipeline.detection.scientific_executor import evaluate_run
+    typer.echo(evaluate_run(admission, signature, training_admission, training_signature, test_root, output, index)["state"])
 
 
 @common_executor_app.command("status")

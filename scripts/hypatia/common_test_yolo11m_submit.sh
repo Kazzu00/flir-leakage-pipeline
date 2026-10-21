@@ -8,11 +8,17 @@ concurrency="${FLIR_EXECUTOR_CONCURRENCY:-1}"
 [[ "$concurrency" =~ ^[1-9][0-9]*$ ]] || exit 2
 case "$mode" in
   train)
-    # Admission is checked BEFORE allocating cluster resources. Currently closed.
-    uv run --frozen --no-sync python -c \
-      'from flir_pipeline.detection.common_executor import require_admission; require_admission()'
-    echo "No admitted real-run submission contract implemented" >&2; exit 1 ;;
+    : "${FLIR_EXECUTOR_PLAN:?Export existing plan directory}"
+    : "${FLIR_ADMISSION:?Export signed admission document}"
+    : "${FLIR_ADMISSION_SIGNATURE:?Export detached signature}"
+    # Worker repeats admission; missing trust never reaches sbatch.
+    count=$(bash scripts/hypatia/common_test_yolo11m.sh admission-check \
+      "$FLIR_EXECUTOR_PLAN" "$FLIR_EXECUTOR_OUTPUT" "$FLIR_ADMISSION" "$FLIR_ADMISSION_SIGNATURE")
+    [[ "$count" =~ ^[1-9][0-9]*$ ]] || exit 2 ;;
   synthetic-smoke|probe) count=1 ;;
   *) echo "Only synthetic-smoke, probe or train accepted" >&2; exit 2 ;;
 esac
-sbatch --array="0-$((count - 1))%$concurrency" "$@" scripts/hypatia/common_test_yolo11m.sbatch
+# Optional singleton for first authorized run or an explicit resume.
+indices="${FLIR_EXECUTOR_INDICES:-0-$((count - 1))}"
+[[ "$indices" =~ ^[0-9]+(-[0-9]+)?$ ]] || exit 2
+sbatch --array="$indices%$concurrency" "$@" scripts/hypatia/common_test_yolo11m.sbatch

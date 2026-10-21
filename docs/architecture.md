@@ -1,5 +1,14 @@
 # Architecture
 
+The common-test executor has a separate signed admission boundary in
+`detection/admission.py`: an administrator-owned OpenSSH allowlist, attributed
+decision hashes, expiration and clean code/environment freeze. `scientific_executor.py`
+joins existing plans/prepared memberships and verifies variants; it never solves
+splits. `scientific_runtime.py` runs development-only attempts and separately
+released test evaluation, reusing original label validation and detector metrics.
+No changes to the historical YOLO11n runtime or its admission rules. See the
+[scientific runbook](runbooks/scientific_yolo11m.md).
+
 Ground-truth evidence lives in `detection/ground_truth_quality.py` (descriptive
 metrics and human-form contract), `ground_truth_gallery.py` (static native-raster
 views) and `ground_truth_quality_storage.py` (source binding, receipts and replay).

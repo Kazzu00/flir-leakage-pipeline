@@ -1,5 +1,18 @@
 # Design decisions
 
+## Scientific admission is attributed, external and scope-bound (2026-10-21)
+
+Provisional receipts remain provisional. A separate OpenSSH-signed decision binds
+their exact bytes, fixed test, reviewed annotations/dependencies, configuration,
+weights origin, capacity, code and environment. A root-managed allowlist establishes
+authority; worker-provided keys and `approved=true` cannot admit a run. This is a
+proposed institutional trust policy, not scientific adjudication by software.
+Test access requires OS isolation plus a second signed release of a complete
+matrix; application checks cannot discover undeclared test copies. Resume is a
+new receipted attempt from a signed checkpoint release, not extra training budget.
+Geometry-preserving variants require reviewed one-to-one lineage and unchanged
+labels/memberships. Similarity, equal dimensions and raw video are insufficient.
+
 ## Ground-truth audit is evidence, not adjudication (2026-10-14)
 
 Count instances, positive images, exact contents and hypothetical candidate groups

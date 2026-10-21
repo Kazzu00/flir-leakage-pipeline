@@ -1,5 +1,22 @@
 # Project status
 
+## YOLO11m con admisión firmada (2026-10-21)
+
+Ruta técnica añadida sobre `756cdc0`, sin ejecutar entrenamiento real. El executor
+reutiliza planes/preparación y selecciona nueve runs ampliados S1/S2/S3 (split 0,
+detector 42/43/44) únicamente con firma OpenSSH validada contra autoridad externa.
+JSON autodeclarados, test provisional, ambiente distinto y checkpoints no vinculados
+siguen bloqueados. Train/validation y evaluación de test tienen permisos separados;
+el test se libera después de completar la matriz. Resume preserva intentos previos.
+
+Variantes: A tiene ZIP/particiones existentes; B tiene 19.800 imágenes sin HUD pero
+su publicación revisada informa cero correspondencias aprobadas; C tiene tres videos
+fuente, sin contrato supervisado admitido aquí. No se ejecutaron auditorías, prepare
+real, nuevos splits ni modelos. Resultados YOLO11n intactos. Validación nueva:
+pruebas offline/sintéticas, no aceptación operacional CUDA/SLURM. Autoridad del
+revisor, aislamiento de test, adjudicación, suficiencia y freeze siguen pendientes.
+Véase [procedimiento y contrato](runbooks/scientific_yolo11m.md).
+
 ## Ground-truth quality y suficiencia v1 (cierre 2026-10-15)
 
 Infraestructura implementada para auditar el test propuesto y los train/validation

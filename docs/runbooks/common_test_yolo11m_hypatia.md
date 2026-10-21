@@ -1,5 +1,10 @@
 # YOLO11m v2 con test común provisional
 
+Actualización 2026-10-21: existe una ruta separada de admisión firmada, entrenamiento,
+resume y evaluación descrita en [ejecución científica](scientific_yolo11m.md).
+Las órdenes sin esa admisión siguen bloqueadas. Las secciones siguientes registran
+la infraestructura provisional previa; no autorizan experimentos reales.
+
 Infraestructura técnica, sin aprobación científica. `controlled_detector_v1` y
 sus 48 ejecuciones no se modifican ni se reutilizan como inicialización.
 El estado vigente del repositorio está en `docs/status.md` (no existe
@@ -30,9 +35,9 @@ sus bytes y etiqueta; las vistas comparten el mismo almacén físico. El nombre
 original del ID 4 es `SDZI`; `Heavy Machinery` en el catálogo interno no acredita
 equivalencia. La discrepancia queda en los recibos; no se corrigen anotaciones.
 
-**Train y resume están bloqueados incondicionalmente**, incluso con JSON que
-declare `approved=true`. No existe `--force`. No se implementa una vía de
-entrenamiento FLIR hasta disponer de un contrato de admisión verificable:
+**Train y resume permanecen bloqueados por defecto**, incluso con JSON que
+declare `approved=true`. No existe `--force`. La nueva ruta exige un contrato
+de admisión firmado verificable que vincule:
 
 - revisión humana atribuida y verificable por una raíz de confianza externa;
 - decisiones de anotación, suficiencia y clases ligadas a hashes de entradas;
@@ -43,10 +48,10 @@ entrenamiento FLIR hasta disponer de un contrato de admisión verificable:
 - resultados completos inmutables, historial de interrupciones, recibos de
   checkpoints y evaluación de test solo bajo autorización verificable.
 
-Ese contrato y la ejecución/evaluación científica posterior permanecen pendientes.
+La adopción humana de esa autoridad y la ejecución/evaluación real permanecen pendientes.
 Los smoke interrumpidos se preservan; se reintentan en directorio nuevo, sin
 deserializar `last.pt`. `--resume` real falla antes de cargar pesos o tocar GPU.
-No se afirma que entrenamiento científico o recuperación estén validados.
+No se afirma que entrenamiento científico o recuperación estén validados en Hypatia.
 
 ## Windows: planificación sin GPU
 
@@ -102,7 +107,7 @@ pickle. Los resultados reportan estado completed/failed/interrupted; el plan
 científico sigue pending con bloqueos y no declara resultados reutilizables.
 
 La plantilla SLURM soporta índices de array y concurrencia; el submit científico
-falla antes de `sbatch`. No enviar manualmente jobs reales para intentar eludir
+sin admisión firmada falla antes de `sbatch`. No enviar manualmente jobs reales para intentar eludir
 el bloqueo: el worker también lo aplica.
 
 ## Verificación offline focalizada

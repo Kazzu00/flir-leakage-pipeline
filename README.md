@@ -2,6 +2,12 @@
 
 ## Overview
 
+YOLO11m common-test execution now has a **signed, default-deny admission route**
+for existing prepared splits, checkpoint resume and separate final evaluation.
+No real training has been executed or approved. Test/annotation decisions,
+administrator trust and Hypatia operational acceptance remain pending. See the
+[scientific execution runbook](docs/runbooks/scientific_yolo11m.md).
+
 `flir-pipeline detection ground-truth-quality` audits the original proposed test
 and support in existing train/validation arms, producing external static galleries,
 descriptive sensitivity tables and pending human forms. `verify-ground-truth-quality`

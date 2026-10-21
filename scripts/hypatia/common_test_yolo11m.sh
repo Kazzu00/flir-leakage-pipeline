@@ -4,7 +4,7 @@ set -euo pipefail
 operation="${1:?preflight|synthetic-smoke|probe|dry-run|prepare|verify|status|train}"
 shift
 case "$operation" in
-  preflight|synthetic-smoke|probe|dry-run|prepare|verify|status|train) ;;
+  preflight|synthetic-smoke|probe|dry-run|prepare|verify|status|train|admission-check|prepare-test|evaluate) ;;
   *) echo "Unknown operation: $operation" >&2; exit 2 ;;
 esac
 exec uv run --frozen --no-sync flir-pipeline detection common-executor "$operation" "$@"

@@ -1,5 +1,15 @@
 # Pipeline traceability
 
+## Signed YOLO11m execution boundary (2026-10-21)
+
+Existing candidate publication and prepared membership receipts → attributed
+decisions plus signed protocol/code/environment/weight freeze → nine admitted
+expanded S1/S2/S3 runs → development-only checkpoint selection → separately signed
+release of the complete matrix → fixed-test metrics. Every attempt retains its
+run/variant/seeds, input and checkpoint hashes. Synthetic tests cover the bridge;
+no real run, test approval or scientific validation was performed. A/B label reuse
+requires reviewed identity geometry; unannotated videos remain outside supervision.
+
 ## Ground-truth quality and sufficiency (2026-10-14)
 
 Verified source publications and original ZIP/member SHA-256 → unchanged test

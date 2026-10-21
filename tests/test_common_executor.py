@@ -220,6 +220,9 @@ def test_real_training_and_resume_fail_before_io(tmp_path, resume):
         "synthetic-smoke",
         "probe",
         "train",
+        "admission-check",
+        "prepare-test",
+        "evaluate",
     ],
 )
 def test_cli_help(command):

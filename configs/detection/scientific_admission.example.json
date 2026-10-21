@@ -1,0 +1,41 @@
+{
+  "schema_version": "flir-scientific-admission-v1",
+  "purpose": "train",
+  "reviewer": "",
+  "not_before": "REQUIRES_ATTRIBUTED_REVIEW",
+  "expires_at": "REQUIRES_EXPIRY",
+  "code_commit": "REQUIRES_CLEAN_COMMIT",
+  "uv_lock_sha256": "REQUIRES_SHA256",
+  "plan": {"path": "/external/plan/plan.json", "sha256": "REQUIRES_SHA256"},
+  "preparation": {"path": "/external/prepared/preparation.json", "sha256": "REQUIRES_SHA256"},
+  "config": {"path": "/checkout/configs/detection/common_test_yolo11m_v2.yaml", "sha256": "REQUIRES_SHA256"},
+  "output_root": "/external/scientific-runs",
+  "population": "expanded",
+  "policies": ["S1", "S2", "S3"],
+  "split_seeds": [0],
+  "detector_seeds": [42, 43, 44],
+  "max_runs": 9,
+  "batch": null,
+  "variant": {"kind": "original", "id": "REQUIRES_DATASET_ID", "version": "REQUIRES_VERSION"},
+  "test": {
+    "status": "PROPOSED",
+    "records_id": "REQUIRES_APPROVED_PREPARATION_TEST_ID",
+    "protected_roots": []
+  },
+  "weights": {
+    "path": "/external/weights/yolo11m.pt",
+    "sha256": "REQUIRES_VERIFIED_SHA256",
+    "url": "https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11m.pt"
+  },
+  "environment": {"python": "REQUIRES_EXACT_VERSION", "signature": {}},
+  "decisions": {
+    "annotations": {"path": "/external/decisions/annotations.json", "sha256": "REQUIRES_SHA256"},
+    "class_ontology": {"path": "/external/decisions/classes.json", "sha256": "REQUIRES_SHA256"},
+    "class_sufficiency": {"path": "/external/decisions/sufficiency.json", "sha256": "REQUIRES_SHA256"},
+    "dependencies": {"path": "/external/decisions/dependencies.json", "sha256": "REQUIRES_SHA256"},
+    "test_freeze": {"path": "/external/decisions/test.json", "sha256": "REQUIRES_SHA256"},
+    "protocol_budget": {"path": "/external/decisions/budget.json", "sha256": "REQUIRES_SHA256"},
+    "weights_origin": {"path": "/external/decisions/weights.json", "sha256": "REQUIRES_SHA256"},
+    "non_test_batch_pilot": {"path": "/external/decisions/capacity.json", "sha256": "REQUIRES_SHA256"}
+  }
+}

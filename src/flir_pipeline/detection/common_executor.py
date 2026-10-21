@@ -1,4 +1,4 @@
-"""Technical handoff of provisional assignments; scientific admission is closed.
+"""Technical handoff of provisional assignments; signed admission is separate.
 
 No legacy detector plan or freeze is accepted here. Run equivalence binds full
 occurrences (including quarantine), original annotations and configuration.
@@ -34,7 +34,7 @@ BLOCKERS = [
     "common_test_approval_and_freeze_missing",
     "methodological_freeze_missing",
     "environment_and_common_batch_freeze_missing",
-    "authenticated_admission_contract_not_implemented",
+    "authenticated_admission_contract_missing",
 ]
 
 
@@ -65,7 +65,8 @@ def load_executor_config(path: Path) -> dict:
         or config["train"]["epochs"] != 50
         or config["train"]["imgsz"] != 640
         or config["train"]["batch"] is not None
-        or config["compute"] != {
+        or config["compute"]
+        != {
             "cpu_batch_candidates": [1, 2],
             "cuda_batch_candidates": [1, 2],
             "synthetic_epochs": 1,
@@ -381,6 +382,25 @@ def require_admission() -> None:
     raise ValueError("Real training/resume BLOCKED: " + "; ".join(BLOCKERS))
 
 
-def train(plan: Path, output: Path, index: int, resume: bool = False) -> None:
+def train(
+    plan: Path,
+    output: Path,
+    index: int,
+    resume: bool = False,
+    admission: Path | None = None,
+    signature: Path | None = None,
+    resume_admission: Path | None = None,
+    resume_signature: Path | None = None,
+) -> dict:
     # Must precede imports, checkpoint loading, output creation and all GPU work.
-    require_admission()
+    if admission is None or signature is None:
+        require_admission()
+    if resume != (resume_admission is not None and resume_signature is not None):
+        raise ValueError(
+            "BLOCKED: resume requires a separately signed checkpoint release"
+        )
+    from flir_pipeline.detection.scientific_executor import execute
+
+    return execute(
+        plan, output, index, admission, signature, resume_admission, resume_signature
+    )
