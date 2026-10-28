@@ -1,5 +1,25 @@
 # Project status
 
+## Curated development preparation (2026-10-27)
+
+Implemented a manifest-driven, non-admitted preparation with deterministic receipts
+and idempotent verification. Local real-data preparation verified 1135 canonical
+contents and preserved S1 1044/91, S2 1065/70, S3 1052/83. Selected original
+metadata checksums and assignments were compared; protected-reference intersection
+was zero (514 occurrences / 373 contents). No protected payload was opened.
+This is technical preparation, not scientific admission, training or detector
+validation. A curated-population admission extension remains a proposal requiring
+human methodological decisions. See [audit and commands](runbooks/curated_development.md).
+
+Validation closed on 2026-10-28: **1360 passed, zero failures/errors/skips**, across
+all 54 test files in isolated processes (three workers, 786.54 s wall time).
+The JUnit total matches collection and the recorded source fingerprint remained
+unchanged. Monolithic attempts were interrupted and are not claimed as passed;
+an external runner setup error and its correction are retained in the audit.
+Global Ruff, notebook-source checks and `git diff --check` pass. Real-data replay,
+idempotence, original membership and source-receipt checks were repeated successfully.
+No formal admission, model training, protected payload access, commit or deployment.
+
 ## YOLO11m con admisión firmada (2026-10-21)
 
 Ruta técnica añadida sobre `756cdc0`, sin ejecutar entrenamiento real. El executor

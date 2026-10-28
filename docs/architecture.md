@@ -1,5 +1,12 @@
 # Architecture
 
+`detection/curated_development.py` adds manifest-driven development materialization
+to the existing common-executor CLI. It reuses source hashing, YOLO validation,
+external-output checks and checked writes. Its versioned development receipt is
+not accepted by the existing preparation/admission contracts. No alternative
+training runtime, split engine or authority mechanism is added. See the
+[curated preparation contract](runbooks/curated_development.md).
+
 The common-test executor has a separate signed admission boundary in
 `detection/admission.py`: an administrator-owned OpenSSH allowlist, attributed
 decision hashes, expiration and clean code/environment freeze. `scientific_executor.py`

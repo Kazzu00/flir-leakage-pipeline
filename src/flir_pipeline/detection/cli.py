@@ -8,6 +8,21 @@ app = typer.Typer(help="Frozen historical/random/cluster detector comparison.")
 common_executor_app = typer.Typer(help="YOLO11m common-test operations; scientific execution requires signed admission.")
 app.add_typer(common_executor_app, name="common-executor")
 
+
+@common_executor_app.command("prepare-curated-development")
+def common_prepare_curated_development(
+    source_root: Path, manifest: Path, matrix: Path, provenance: Path,
+    output: Path, linux_root: str = typer.Option(...),
+    protected_records: Path | None = None, protected_receipt: Path | None = None,
+) -> None:
+    """Prepare or reverify curated development only. Does not admit training."""
+    from flir_pipeline.detection.curated_development import prepare_curated
+
+    result = prepare_curated(source_root, manifest, matrix, provenance, output,
+                             linux_root, protected_records, protected_receipt)
+    typer.echo(f"{result['state']}: {result['canonical_contents']} contents; "
+               f"protection={result['protected_exclusion']['status']}")
+
 def _prime_cuda_import_order() -> None:
     """Load GPU dependencies before the detection runtime."""
     import torch  # noqa: F401

@@ -1,5 +1,15 @@
 # Design decisions
 
+## Curated content is a new experimental population (2026-10-27)
+
+Deduplicating development occurrences changes sample weighting even when all
+content assignments survive. Do not alias curated manifest identity to historical
+records_id or thirty-arm publication identity. A narrow development preparer
+reuses existing hash/YOLO utilities under the common-executor CLI, with no training
+route. Its deterministic receipt binds inputs, implementation and Linux locators;
+verification reconstructs expected output without repairing it. Approval and test
+isolation remain independent requirements. See [proposed extension](runbooks/curated_development.md).
+
 ## Scientific admission is attributed, external and scope-bound (2026-10-21)
 
 Provisional receipts remain provisional. A separate OpenSSH-signed decision binds

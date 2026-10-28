@@ -1,5 +1,14 @@
 # Pipeline traceability
 
+## Curated development boundary (2026-10-27)
+
+Curated manifest bytes + proposed matrix/provenance + optional receipt-bound
+protected metadata → validated unchanged image/label copies and existing assignments
+→ Linux development views + deterministic receipt → NOT ADMITTED. The manifest
+identity is separate from full-occurrence records_id. Exact reference exclusion
+does not approve the test or establish OS isolation. The historical signed
+executor remains unchanged; see [contract](runbooks/curated_development.md).
+
 ## Signed YOLO11m execution boundary (2026-10-21)
 
 Existing candidate publication and prepared membership receipts → attributed
