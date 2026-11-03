@@ -77,6 +77,9 @@ def make_server(store: Store, port=8765, frontend_origin="http://127.0.0.1:5173"
                         download=f"audit-decisions.{fmt}",
                     )
                 parts = path.strip("/").split("/")
+                if len(parts) == 3 and parts[:2] == ["api", "external-media"]:
+                    data, mime = store.external_media(parts[2])
+                    return self.respond(200, data, mime)
                 if len(parts) == 4 and parts[:2] == ["api", "media"]:
                     data, mime = store.media(parts[2], int(parts[3]))
                     return self.respond(200, data, mime)

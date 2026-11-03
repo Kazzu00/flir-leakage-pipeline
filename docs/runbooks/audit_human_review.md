@@ -1,5 +1,8 @@
 # FLIR Audit & Human Review v1
 
+> Para la política y operación vigentes, consulte [v1.1](audit_human_review_v11.md).
+> Este documento conserva el registro inicial de v1.
+
 Módulo local de **auditoría exploratoria y juicio humano**, integrado en
 `flir-pipeline-explorer` → Sequences & linkage → Human audit review.
 No crea secuencias, grupos de independencia, particiones ni entrenamiento.
@@ -106,7 +109,7 @@ El informe se guarda en la base de datos. Repetir la importación no duplica fil
 Adaptadores observados: inventario de índices por split, perfil temporal,
 candidatos 5 FPS, rachas y manifiestos JSON/CSV de ventanas dentro de ZIP.
 Se validan campos, números finitos, rangos, intervalos, conteos declarados,
-booleanos y concordancia JSON/CSV. JSON tiene precedencia para normalizar;
+booleanos y concordancia JSON/CSV. En v1, JSON tenía precedencia para normalizar;
 el CSV se conserva como evidencia alternativa sin duplicar eventos.
 Las ventanas extendidas sin vídeo declarado conservan `source_video=null`.
 La clasificación automática y las métricas no cambian con una decisión humana.

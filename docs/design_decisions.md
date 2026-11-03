@@ -878,6 +878,13 @@ is retained verbatim and is not independent visual ground truth.
 
 ## Local exploratory audit decisions (2026-11-02)
 
+Revision 1.1 preserves the first accepted canonical source (JSON first only when
+both arrive together). Later companions cannot change event IDs or migrate reviews.
+Conflicting revisions require a separate ledger. Existing duplicate identities
+require explicit reconciliation with a receipt and retained histories. Evidence
+references are validated before new conclusions; legacy conclusions remain visible
+with warnings. See [policy](runbooks/audit_human_review_v11.md).
+
 Audiovisual continuity and visual/region dependence are independent dimensions.
 `shot_change + same_region` is valid; neither implies independence or a split
 constraint. Imported classifications remain original evidence, not human history.

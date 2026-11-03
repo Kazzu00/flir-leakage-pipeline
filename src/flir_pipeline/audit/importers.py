@@ -1,8 +1,7 @@
 """Bounded read-only adapters for observed legacy formats, retaining original bytes.
 
-JSON takes normalization precedence over its CSV companion. Both are validated
-and retained, and their records must agree. Different experiments/windows are
-never merged just because their nominal times coincide.
+Companion identity is resolved transactionally by the store. Different
+experiments/windows are never merged just because nominal times coincide.
 """
 
 import csv
@@ -218,6 +217,8 @@ def normalize(data: bytes, filename: str):
                 )
         if obj["indices_unique"] != len(all_indices):
             raise ValueError("Unique historical count disagrees")
+        for anomaly in historical_anomalies(observations):
+            warnings.append("historical_index_overlap: " + encode(anomaly))
         return asset.model_dump(), events, observations, media, warnings
     rows = records(obj)
     if not rows:
@@ -228,6 +229,8 @@ def normalize(data: bytes, filename: str):
         locator = f"{manifest or filename}#/results/{i}"
         eid = digest(f"{asset_id}:{locator}".encode())
         start = end = idx = end_idx = None
+        start_sample = end_sample = representative = fps = None
+        temporal_basis = "reported_nominal"
         evidence = []
         candidate = True
         if "left_index" in row:
@@ -236,7 +239,7 @@ def normalize(data: bytes, filename: str):
             candidate = flag(row.get("review_candidate"))
             method, alert = "SIFT_RANSAC_and_blurred_correlation", "low_similarity"
         elif "approx_video_second" in row:
-            start = end = number(row, "approx_video_second")
+            representative = number(row, "approx_video_second")
             idx = end_idx = number(row, "approx_video13_index")
             for key in (
                 "event_start_sample",
@@ -246,6 +249,28 @@ def normalize(data: bytes, filename: str):
                 integer(row, key)
             if number(row, "event_start_sample") > number(row, "event_end_sample"):
                 raise ValueError("Reversed sample interval")
+            start_sample = integer(row, "event_start_sample")
+            end_sample = integer(row, "event_end_sample")
+            if "frames_processed" in meta and end_sample >= integer(
+                meta, "frames_processed"
+            ):
+                raise ValueError(
+                    "Event sample interval exceeds declared sampled-frame domain"
+                )
+            fps = number(meta, "sample_rate_fps", required=False)
+            origin = number(meta, "start_second_nominal", required=False)
+            temporal_basis = "sample_interval_only; grid metadata unavailable"
+            if fps is not None and fps <= 0:
+                raise ValueError("sample_rate_fps must be positive")
+            if fps is not None and origin is not None:
+                start, end = origin + start_sample / fps, origin + end_sample / fps
+                # The legacy producer omits index-base metadata. Require every
+                # reported start to agree with this grid rather than guessing.
+                if not math.isclose(start, representative, rel_tol=0, abs_tol=1e-6):
+                    raise ValueError(
+                        "Ambiguous sample grid: reported start disagrees with origin + sample/fps"
+                    )
+                temporal_basis = "nominal_grid; zero-based convention consistent with reported start; alignment unverified"
             method, alert = (
                 "5fps_exploratory_correlation",
                 str(row.get("candidate_class", "unclassified")),
@@ -316,6 +341,11 @@ def normalize(data: bytes, filename: str):
             end_second=end,
             start_index=idx,
             end_index=end_idx,
+            event_start_sample=start_sample,
+            event_end_sample=end_sample,
+            representative_second=representative,
+            sample_rate_fps=fps,
+            temporal_basis=temporal_basis,
             method=str(meta.get("method", method)),
             method_version=str(meta.get("method_version", "unreported")),
             alert_type=alert,
@@ -328,3 +358,22 @@ def normalize(data: bytes, filename: str):
     if "frames_received" in meta and meta["frames_received"] != len(rows) + 1:
         raise ValueError("Profile frame/transition counts disagree")
     return asset.model_dump(), events, observations, media, warnings
+
+
+def historical_anomalies(observations):
+    groups = {}
+    for observation in observations:
+        if observation["original_split"] is not None:
+            groups.setdefault(observation["dataset_index"], []).append(observation)
+    return [
+        {
+            "kind": "historical_index_overlap",
+            "asset_id": items[0]["asset_id"],
+            "dataset_index": index,
+            "splits": sorted({r["original_split"] for r in items}),
+            "observation_ids": sorted(r["observation_id"] for r in items),
+            "semantic_leakage_confirmed": False,
+        }
+        for index, items in sorted(groups.items())
+        if len({r["original_split"] for r in items}) > 1
+    ]

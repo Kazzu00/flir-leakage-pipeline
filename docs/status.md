@@ -1,5 +1,16 @@
 # Project status
 
+## FLIR Human Review v1.1 (2026-11-03)
+
+Correcciones implementadas: evidencia obligatoria en conclusiones, registro externo
+explícito, compañeros CSV/JSON idempotentes, intervalos completos, esquemas raíz y
+anomalías cross-split. Historias anteriores preservadas. 49 pruebas backend focalizadas,
+94 unitarias frontend y 2 E2E del auditor aprobadas. La suite global backend quedó
+incompleta; E2E global: 16 aprobadas, 1 fallida, 8 omitidas (repetición aislada del
+fallo aprobada). No se declara validación global ni campaña científica completada.
+Véanse [validación](analysis/audit_human_review_v11_validation.md) y
+[operación](runbooks/audit_human_review_v11.md).
+
 ## FLIR Audit & Human Review v1 (2026-11-02)
 
 **Infraestructura implementada; smoke sintético de navegador validado;

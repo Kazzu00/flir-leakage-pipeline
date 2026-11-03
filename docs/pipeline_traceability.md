@@ -1,5 +1,13 @@
 # Pipeline traceability
 
+## Human review evidence policy 1.1 (2026-11-03)
+
+Conclusive reviews require explicitly consulted, event-bound image evidence.
+Pending and fully undetermined reviews remain possible. Legacy decisions retain
+their original policy and history. Sample intervals retain nominal provenance;
+shared historical indices are anomalies, not proof of semantic leakage.
+See [policy and limitations](runbooks/audit_human_review_v11.md).
+
 ## External visual variants (2026-10-08)
 
 Explicit YAML + read-only ZIP/video inputs → checksummed physical entry ledger →

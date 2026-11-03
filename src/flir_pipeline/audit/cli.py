@@ -110,3 +110,42 @@ def demo(output: Path):
 
     create_demo(output / "inputs")
     show(Store(output / "audit.sqlite3").import_directory(output / "inputs"))
+
+
+@app.command("attach-evidence")
+def attach_evidence(
+    event_id: str,
+    image: Path,
+    db: Path = typer.Option(..., exists=True),
+    locator: str = typer.Option(...),
+    basis: str = typer.Option(...),
+    rationale: str = typer.Option(...),
+    reviewer: str = typer.Option(...),
+):
+    """Freeze one existing image and an explicit attributable event association."""
+    show(
+        Store(db).attach_evidence(
+            event_id,
+            image,
+            locator=locator,
+            basis=basis,
+            rationale=rationale,
+            reviewer=reviewer,
+        )
+    )
+
+
+@app.command("reconcile-companions")
+def reconcile_companions(
+    canonical_asset_id: str,
+    companion_asset_id: str,
+    db: Path = typer.Option(..., exists=True),
+    reviewer: str = typer.Option(...),
+    rationale: str = typer.Option(...),
+):
+    """Explicitly reconcile a legacy duplicate pair; retain all records and reviews."""
+    show(
+        Store(db).reconcile_companions(
+            canonical_asset_id, companion_asset_id, reviewer, rationale
+        )
+    )

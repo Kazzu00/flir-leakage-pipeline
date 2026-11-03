@@ -484,6 +484,11 @@ optional validated occurrence correspondence; it never fits or constructs groups
 
 ## Local audit and human review (2026-11-02)
 
+Revision 1.1 adds persistent canonical companion mappings, explicit reconciliation
+receipts, frozen external image evidence and complete document schemas. Legacy
+normalizers verify original rows; current snapshots project compatible temporal
+metadata without rewriting history. See [v1.1](runbooks/audit_human_review_v11.md).
+
 `sequences audit` → bounded read-only legacy adapters → immutable raw evidence
 and normalized `audit-evidence-v1` rows in SQLite → loopback HTTP API → existing
 React `SequenceExplorer` reviewer. Human decisions are append-only revisions,
