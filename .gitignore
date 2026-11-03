@@ -10,6 +10,8 @@ __pycache__/
 .ipynb_checkpoints/
 .cache/
 .coverage*
+*.sqlite3
+*.sqlite3-*
 htmlcov/
 dist/
 build/

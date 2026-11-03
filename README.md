@@ -2,6 +2,15 @@
 
 ## Overview
 
+`flir-pipeline sequences audit` provides **FLIR Audit & Human Review v1**:
+read-only legacy JSON/CSV/ZIP ingestion, `audit-evidence-v1`, a local SQLite
+ledger, versioned human decisions and JSON/CSV exports. The reviewer is integrated
+in `flir-pipeline-explorer` → Sequences & linkage → Human audit review.
+An audiovisual cut and visual-region dependence are separate judgments;
+neither a cut nor a whole video defines an independent split group.
+See [installation, synthetic smoke, commands, semantics and limitations](docs/runbooks/audit_human_review.md).
+No sequences, partitions or detector runs are created by this module.
+
 `flir-pipeline data video-variant-ingestion build/verify/summary` audits external
 image variants directly from ZIP shards with bounded reads and immutable evidence.
 Scientific occurrence IDs survive unambiguous repackaging; duplicate indices

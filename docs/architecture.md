@@ -481,3 +481,13 @@ identity. Sequence experiment sources carry this declaration into every immutabl
 publication and SLURM run identity. Legacy undeclared stores remain `unspecified`.
 `sequences/experiments/variant_comparison.py` consumes completed frozen suites and
 optional validated occurrence correspondence; it never fits or constructs groups.
+
+## Local audit and human review (2026-11-02)
+
+`sequences audit` → bounded read-only legacy adapters → immutable raw evidence
+and normalized `audit-evidence-v1` rows in SQLite → loopback HTTP API → existing
+React `SequenceExplorer` reviewer. Human decisions are append-only revisions,
+separate from automatic metrics, with optimistic version checks and evidence
+hash bindings. JSON/CSV exports round-trip the full history. This local annotation
+service does not change the existing immutable organization/scientific contracts.
+See the [architecture, contract and operational guide](runbooks/audit_human_review.md).

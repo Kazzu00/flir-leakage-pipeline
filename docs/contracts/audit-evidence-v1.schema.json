@@ -1,0 +1,503 @@
+{
+  "$defs": {
+    "CandidateEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "title": "Event Id",
+          "type": "string"
+        },
+        "asset_id": {
+          "title": "Asset Id",
+          "type": "string"
+        },
+        "record_locator": {
+          "title": "Record Locator",
+          "type": "string"
+        },
+        "source_video": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Video"
+        },
+        "start_second": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Start Second"
+        },
+        "end_second": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "End Second"
+        },
+        "start_index": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Start Index"
+        },
+        "end_index": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "End Index"
+        },
+        "method": {
+          "title": "Method",
+          "type": "string"
+        },
+        "method_version": {
+          "default": "unreported",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "importer_version": {
+          "const": "legacy-audit-import-v1",
+          "default": "legacy-audit-import-v1",
+          "title": "Importer Version",
+          "type": "string"
+        },
+        "alert_type": {
+          "title": "Alert Type",
+          "type": "string"
+        },
+        "metrics": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "title": "Metrics",
+          "type": "object"
+        },
+        "evidence": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "observations": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Observations",
+          "type": "array"
+        },
+        "verification": {
+          "const": "candidate_only",
+          "default": "candidate_only",
+          "title": "Verification",
+          "type": "string"
+        }
+      },
+      "required": [
+        "event_id",
+        "asset_id",
+        "record_locator",
+        "method",
+        "alert_type"
+      ],
+      "title": "CandidateEvent",
+      "type": "object"
+    },
+    "DecisionInput": {
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "title": "Event Id",
+          "type": "string"
+        },
+        "expected_version": {
+          "minimum": 0,
+          "title": "Expected Version",
+          "type": "integer"
+        },
+        "status": {
+          "default": "pending",
+          "enum": [
+            "pending",
+            "reviewed"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "continuity": {
+          "default": "uncertain",
+          "enum": [
+            "continuous",
+            "shot_change",
+            "uncertain"
+          ],
+          "title": "Continuity",
+          "type": "string"
+        },
+        "dependence": {
+          "default": "uncertain",
+          "enum": [
+            "same_region",
+            "different_region",
+            "uncertain"
+          ],
+          "title": "Dependence",
+          "type": "string"
+        },
+        "confidence": {
+          "default": "undetermined",
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "undetermined"
+          ],
+          "title": "Confidence",
+          "type": "string"
+        },
+        "justification": {
+          "maxLength": 10000,
+          "minLength": 1,
+          "title": "Justification",
+          "type": "string"
+        },
+        "reviewer": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Reviewer",
+          "type": "string"
+        },
+        "phenomena": {
+          "items": {
+            "enum": [
+              "zoom",
+              "camera_motion",
+              "gain_change",
+              "polarity_change",
+              "signal_loss",
+              "unknown"
+            ],
+            "type": "string"
+          },
+          "title": "Phenomena",
+          "type": "array"
+        },
+        "evidence_consulted": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Consulted",
+          "type": "array"
+        }
+      },
+      "required": [
+        "event_id",
+        "expected_version",
+        "justification",
+        "reviewer"
+      ],
+      "title": "DecisionInput",
+      "type": "object"
+    },
+    "JsonValue": {},
+    "ReviewDecision": {
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "title": "Event Id",
+          "type": "string"
+        },
+        "expected_version": {
+          "minimum": 0,
+          "title": "Expected Version",
+          "type": "integer"
+        },
+        "status": {
+          "default": "pending",
+          "enum": [
+            "pending",
+            "reviewed"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "continuity": {
+          "default": "uncertain",
+          "enum": [
+            "continuous",
+            "shot_change",
+            "uncertain"
+          ],
+          "title": "Continuity",
+          "type": "string"
+        },
+        "dependence": {
+          "default": "uncertain",
+          "enum": [
+            "same_region",
+            "different_region",
+            "uncertain"
+          ],
+          "title": "Dependence",
+          "type": "string"
+        },
+        "confidence": {
+          "default": "undetermined",
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "undetermined"
+          ],
+          "title": "Confidence",
+          "type": "string"
+        },
+        "justification": {
+          "maxLength": 10000,
+          "minLength": 1,
+          "title": "Justification",
+          "type": "string"
+        },
+        "reviewer": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Reviewer",
+          "type": "string"
+        },
+        "phenomena": {
+          "items": {
+            "enum": [
+              "zoom",
+              "camera_motion",
+              "gain_change",
+              "polarity_change",
+              "signal_loss",
+              "unknown"
+            ],
+            "type": "string"
+          },
+          "title": "Phenomena",
+          "type": "array"
+        },
+        "evidence_consulted": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Consulted",
+          "type": "array"
+        },
+        "decision_id": {
+          "title": "Decision Id",
+          "type": "string"
+        },
+        "version": {
+          "minimum": 1,
+          "title": "Version",
+          "type": "integer"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "evidence_sha256": {
+          "title": "Evidence Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "event_id",
+        "expected_version",
+        "justification",
+        "reviewer",
+        "decision_id",
+        "version",
+        "created_at",
+        "evidence_sha256"
+      ],
+      "title": "ReviewDecision",
+      "type": "object"
+    },
+    "SourceAsset": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_id": {
+          "title": "Asset Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "json",
+            "csv",
+            "zip"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "filename": {
+          "title": "Filename",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "provenance": {
+          "default": "user_supplied_local_artifact",
+          "title": "Provenance",
+          "type": "string"
+        },
+        "metadata": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Metadata",
+          "type": "object"
+        }
+      },
+      "required": [
+        "asset_id",
+        "kind",
+        "filename",
+        "sha256"
+      ],
+      "title": "SourceAsset",
+      "type": "object"
+    },
+    "TemporalObservation": {
+      "additionalProperties": false,
+      "properties": {
+        "observation_id": {
+          "title": "Observation Id",
+          "type": "string"
+        },
+        "asset_id": {
+          "title": "Asset Id",
+          "type": "string"
+        },
+        "source_video": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Video"
+        },
+        "dataset_index": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dataset Index"
+        },
+        "nominal_second": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Nominal Second"
+        },
+        "alignment_method": {
+          "default": "reported_nominal_not_verified",
+          "title": "Alignment Method",
+          "type": "string"
+        },
+        "precision_seconds": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Precision Seconds"
+        },
+        "verification": {
+          "const": "unverified",
+          "default": "unverified",
+          "title": "Verification",
+          "type": "string"
+        },
+        "original_split": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Original Split"
+        }
+      },
+      "required": [
+        "observation_id",
+        "asset_id"
+      ],
+      "title": "TemporalObservation",
+      "type": "object"
+    }
+  },
+  "title": "audit-evidence-v1"
+}

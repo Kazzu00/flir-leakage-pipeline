@@ -210,3 +210,12 @@ and the assistant-review mode survive without asserting truth, exact provenance,
 sequence instances, dependency groups or splits. The normalized source retains
 the unspecified variant and is verified against the canonical source identities;
 any modified original invalidates verification even if its snapshot is intact.
+
+## Local exploratory audit trace (2026-11-02)
+
+Legacy artifact bytes + SHA256 + original locator → normalized observations and
+candidate events → explicitly consulted image references → versioned human
+continuity/dependence judgments → lossless JSON/CSV history. Review does not
+promote candidates to sequences, links, ground truth or split constraints.
+Real priority ingestion and a synthetic browser smoke are distinct evidence.
+See [commands and limitations](runbooks/audit_human_review.md).

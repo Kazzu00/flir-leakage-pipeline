@@ -1,5 +1,23 @@
 # Project status
 
+## FLIR Audit & Human Review v1 (2026-11-02)
+
+**Infraestructura implementada; smoke sintético de navegador validado;
+importación real prioritaria validada; revisión humana real pendiente.**
+`sequences audit` importa JSON/CSV/manifiestos ZIP, conserva evidencia y SHA-256,
+valida normalización y mantiene revisiones transaccionales en SQLite. La interfaz
+se integra en `flir-pipeline-explorer` y separa continuidad audiovisual de
+dependencia visual. No crea secuencias ni splits ni confirma independencia.
+
+Se importaron ocho artefactos prioritarios: 450 registros candidatos de distintos
+tipos y 1.855 observaciones, sin duplicación en reimportación; cero decisiones
+humanas reales. Tres archivos prioritarios estaban ausentes. La suite focalizada
+pasó 133 pruebas; el módulo pasó sus 30 pruebas finales. Frontend: 91 unitarias y
+E2E propio aprobados, con persistencia tras reinicio y export exacto. La suite
+Python global quedó incompleta; E2E global conserva un problema de accesibilidad
+en splits fuera del módulo. Véanse el [registro completo de validación](analysis/audit_human_review_validation.md)
+y el [runbook](runbooks/audit_human_review.md).
+
 ## Ingesta de variantes visuales externas (2026-10-08)
 
 **Ingesta real disponible localmente; puente de features implementado y validado

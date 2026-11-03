@@ -875,3 +875,15 @@ remain uncertain; `sequence_core_candidate` remains a candidate with legacy
 origin. Encoder ranks and candidate pairs are preserved, with no confirmed
 dependencies or components promoted to VDGs. The legacy assistant review mode
 is retained verbatim and is not independent visual ground truth.
+
+## Local exploratory audit decisions (2026-11-02)
+
+Audiovisual continuity and visual/region dependence are independent dimensions.
+`shot_change + same_region` is valid; neither implies independence or a split
+constraint. Imported classifications remain original evidence, not human history.
+Missing source-video attribution stays unknown. Source revisions receive new
+identities rather than inheriting decisions based on nearby nominal times.
+JSON and equivalent CSV are retained separately but normalized once.
+SQLite transactions and optimistic revision checks support local durable review;
+this is not a multiuser service or a scientific confirmation mechanism.
+See [audit human review](runbooks/audit_human_review.md).
