@@ -5,11 +5,15 @@ import {
   auditMedia,
   loadAudit,
   saveAuditDecision,
+  needsEvidence,
+  temporalOrder,
+  externalMedia,
 } from '@/data/audit-client'
 import type {
   AuditDecision,
   AuditEvent,
   DecisionInput,
+  AuditSnapshot,
 } from '@/data/audit-client'
 
 export function AuditReview() {
@@ -24,7 +28,9 @@ export function AuditReview() {
     method: '',
     status: '',
     alert: '',
+    evidence: '',
   })
+  const [descending, setDescending] = useState(false)
   if (query.isPending) return <p role="status">Abriendo auditoría local…</p>
   if (query.isError)
     return (
@@ -43,13 +49,26 @@ export function AuditReview() {
     )
   const data = query.data
   const latest = new Map(data.decisions.map((d) => [d.event_id, d]))
-  const events = data.events.filter(
-    (e) =>
-      (!filters.source || (e.source_video ?? 'unknown') === filters.source) &&
-      (!filters.method || e.method === filters.method) &&
-      (!filters.alert || e.alert_type === filters.alert) &&
-      (!filters.status ||
-        (latest.get(e.event_id)?.status ?? 'pending') === filters.status),
+  const available = (id: string) =>
+    !!data.events.find((e) => e.event_id === id)?.evidence.length ||
+    data.external_evidence.some((e) => e.event_id === id)
+  const state = (id: string) => {
+    const d = latest.get(id)
+    return d && data.legacy_review_warnings.includes(d.decision_id)
+      ? 'needs_evidence'
+      : (d?.status ?? 'pending')
+  }
+  const events = temporalOrder(
+    data.events.filter(
+      (e) =>
+        (!filters.source || (e.source_video ?? 'unknown') === filters.source) &&
+        (!filters.method || e.method === filters.method) &&
+        (!filters.evidence ||
+          (filters.evidence === 'registered') === available(e.event_id)) &&
+        (!filters.alert || e.alert_type === filters.alert) &&
+        (!filters.status || state(e.event_id) === filters.status),
+    ),
+    descending,
   )
   const active = events.find((e) => e.event_id === selected) ?? events[0]
   const synthetic =
@@ -59,11 +78,12 @@ export function AuditReview() {
     source: [...new Set(data.events.map((e) => e.source_video ?? 'unknown'))],
     method: [...new Set(data.events.map((e) => e.method))],
     alert: [...new Set(data.events.map((e) => e.alert_type))],
-    status: ['pending', 'reviewed'],
+    status: ['pending', 'reviewed', 'needs_evidence'],
+    evidence: ['registered', 'missing'],
   }
   return (
     <section className="audit-review">
-      <h2>FLIR Audit &amp; Human Review v1</h2>
+      <h2>FLIR Audit &amp; Human Review v1.1</h2>
       <p>
         <strong>
           {synthetic
@@ -90,9 +110,17 @@ export function AuditReview() {
                 method: 'Método',
                 alert: 'Tipo de alerta',
                 status: 'Estado',
+                evidence: 'Evidencia visual',
               }[key]
             }
             <select
+              aria-label={
+                key === 'evidence'
+                  ? 'Evidencia visual'
+                  : key === 'status'
+                    ? 'Filtrar estado'
+                    : key
+              }
               value={filters[key]}
               onChange={(e) =>
                 setFilters({ ...filters, [key]: e.target.value })
@@ -100,23 +128,82 @@ export function AuditReview() {
             >
               <option value="">Todos</option>
               {options[key].map((value) => (
-                <option key={value}>{value}</option>
+                <option key={value} value={value}>
+                  {value === 'registered'
+                    ? 'Con evidencia registrada'
+                    : value === 'missing'
+                      ? 'Sin evidencia visual'
+                      : value}
+                </option>
               ))}
             </select>
           </label>
         ))}
       </div>
+      <p>
+        Con evidencia registrada:{' '}
+        {data.events.filter((e) => available(e.event_id)).length} · Sin
+        evidencia visual:{' '}
+        {data.events.filter((e) => !available(e.event_id)).length}. La
+        disponibilidad no acredita que la imagen haya sido consultada.
+      </p>
+      <div className="toolbar">
+        <label>
+          Orden temporal
+          <select
+            aria-label="Orden temporal"
+            value={descending ? 'desc' : 'asc'}
+            onChange={(e) => setDescending(e.target.value === 'desc')}
+          >
+            <option value="asc">Ascendente por fuente</option>
+            <option value="desc">Descendente por fuente</option>
+          </select>
+        </label>
+        <button
+          type="button"
+          disabled={!events.some((e) => state(e.event_id) !== 'reviewed')}
+          onClick={() => {
+            const index = events.findIndex(
+              (e) => e.event_id === active?.event_id,
+            )
+            const next = [
+              ...events.slice(index + 1),
+              ...events.slice(0, index + 1),
+            ].find((e) => state(e.event_id) !== 'reviewed')
+            if (next) setSelected(next.event_id)
+          }}
+        >
+          Siguiente pendiente
+        </button>
+      </div>
+      {!!data.legacy_review_warnings.length && (
+        <p role="alert">
+          Hay revisiones v1 sin evidencia suficiente. Se conservan; requieren
+          una nueva revisión explícita.
+        </p>
+      )}
+      {!!data.anomalies.length && (
+        <details>
+          <summary>Anomalías históricas ({data.anomalies.length})</summary>
+          <p>Compartir un índice no confirma leakage semántico.</p>
+          <pre>{JSON.stringify(data.anomalies, null, 2)}</pre>
+        </details>
+      )}
       <label>
         Evento candidato
         <select
+          aria-label="Evento candidato"
           value={active?.event_id ?? ''}
           onChange={(e) => setSelected(e.target.value)}
         >
           {events.map((e) => (
             <option key={e.event_id} value={e.event_id}>
               {e.record_locator} · {e.start_second ?? '?'} s ·{' '}
-              {latest.get(e.event_id)?.status ?? 'pending'} ·{' '}
-              {e.event_id.slice(0, 8)}
+              {state(e.event_id)} ?{' '}
+              {available(e.event_id)
+                ? 'evidencia registrada'
+                : 'sin evidencia visual'}{' '}
+              · {e.event_id.slice(0, 8)}
             </option>
           ))}
         </select>
@@ -127,6 +214,18 @@ export function AuditReview() {
         <ReviewCase
           key={`${active.event_id}:${latest.get(active.event_id)?.version ?? 0}`}
           event={active}
+          external={data.external_evidence.filter(
+            (e) => e.event_id === active.event_id,
+          )}
+          companionHistory={data.decisions.filter((d) =>
+            data.companions.some((c) =>
+              c.event_links.some(
+                (l) =>
+                  l.canonical_event_id === active.event_id &&
+                  l.companion_event_id === d.event_id,
+              ),
+            ),
+          )}
           history={data.decisions.filter((d) => d.event_id === active.event_id)}
           filename={
             data.assets.find((a) => a.asset_id === active.asset_id)?.filename ??
@@ -163,10 +262,14 @@ function ReviewCase({
   event,
   history,
   filename,
+  external,
+  companionHistory,
 }: {
   event: AuditEvent
   history: AuditDecision[]
   filename: string
+  external: AuditSnapshot['external_evidence']
+  companionHistory: AuditDecision[]
 }) {
   const client = useQueryClient()
   const previous = history.at(-1)
@@ -181,7 +284,9 @@ function ReviewCase({
     justification: previous?.justification ?? '',
     phenomena: previous?.phenomena ?? [],
     evidence_consulted: [],
+    external_evidence_consulted: [],
   })
+  const blocked = needsEvidence(form)
   const [mediaIndex, setMediaIndex] = useState(0)
   const [mediaError, setMediaError] = useState(false)
   const [message, setMessage] = useState('')
@@ -208,6 +313,12 @@ function ReviewCase({
       <p>
         Índices {event.start_index ?? '?'}–{event.end_index ?? '?'} · Tiempo
         estimado {event.start_second ?? '?'}–{event.end_second ?? '?'} s
+      </p>
+      <p>
+        Muestras {event.event_start_sample ?? '?'}–
+        {event.event_end_sample ?? '?'} · Posición representativa{' '}
+        {event.representative_second ?? '?'} s · Precisión:{' '}
+        {event.precision_seconds ?? 'no declarada'}. {event.temporal_basis}
       </p>
       <details>
         <summary>Identidad y métricas automáticas</summary>
@@ -288,9 +399,64 @@ function ReviewCase({
           partir de tiempos cercanos.
         </p>
       )}
+      {external.map((e) => (
+        <figure key={e.evidence_id}>
+          <img
+            src={externalMedia(e.evidence_id)}
+            alt={`Evidencia externa registrada: ${e.filename}`}
+            style={{ maxWidth: '100%', maxHeight: 450, objectFit: 'contain' }}
+          />
+          <figcaption>
+            {e.filename} · {e.locator} · Asociación: {e.basis} · {e.reviewer}.{' '}
+            {e.rationale}
+          </figcaption>
+          <details>
+            <summary>Procedencia y hash externo</summary>
+            <pre style={{ whiteSpace: 'pre-wrap' }}>
+              {JSON.stringify(e, null, 2)}
+            </pre>
+          </details>
+          <label>
+            <input
+              type="checkbox"
+              checked={form.external_evidence_consulted.includes(e.evidence_id)}
+              onChange={(event) =>
+                setForm({
+                  ...form,
+                  external_evidence_consulted: event.target.checked
+                    ? [...form.external_evidence_consulted, e.evidence_id]
+                    : form.external_evidence_consulted.filter(
+                        (id) => id !== e.evidence_id,
+                      ),
+                })
+              }
+            />
+            Consulté la evidencia externa {e.filename}
+          </label>
+        </figure>
+      ))}
+      {!event.evidence.length && !external.length && (
+        <details>
+          <summary>Registrar evidencia externa verificable</summary>
+          <p>
+            El servicio no busca archivos automáticamente. Registre una imagen
+            existente mediante <code>sequences audit attach-evidence</code>,
+            indicando este event_id, localizador, base de correspondencia,
+            justificación y revisor. Después recargue la auditoría. La cercanía
+            temporal por sí sola no acredita la asociación.
+          </p>
+          <code>{event.event_id}</code>
+        </details>
+      )}
       <form
         onSubmit={(e) => {
           e.preventDefault()
+          if (blocked) {
+            setMessage(
+              'Una revisión conclusiva requiere evidencia consultada y trazable.',
+            )
+            return
+          }
           setSaving(true)
           setMessage('')
           void saveAuditDecision(form)
@@ -370,11 +536,32 @@ function ReviewCase({
             </label>
           ))}
         </fieldset>
-        <button disabled={saving} type="submit">
+        {blocked && (
+          <p role="alert">
+            Seleccione evidencia consultada para guardar una revisión
+            conclusiva. Puede mantener el caso pendiente o indeterminado.
+          </p>
+        )}
+        <button disabled={saving || blocked} type="submit">
           {saving ? 'Guardando…' : 'Guardar revisión'}
         </button>
         {message && <p role="alert">{message}</p>}
       </form>
+      {!!companionHistory.length && (
+        <details>
+          <summary>
+            Historial conservado de fuente compañera ({companionHistory.length})
+          </summary>
+          <p>
+            Estas revisiones conservan sus event_id originales. No se
+            trasladaron al evento canónico ni se resolvieron discrepancias
+            automáticamente.
+          </p>
+          <pre style={{ whiteSpace: 'pre-wrap' }}>
+            {JSON.stringify(companionHistory, null, 2)}
+          </pre>
+        </details>
+      )}
       <h4>Historial persistido ({history.length})</h4>
       {history.length === 0 ? (
         <p>Pendiente: sin decisión humana.</p>

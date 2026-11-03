@@ -1,4 +1,20 @@
-# Local audit reviewer v1
+# Local audit reviewer v1.1
+
+Conclusive reviewed decisions require explicitly consulted, event-bound evidence.
+Pending or fully undetermined decisions may remain without it. Existing v1 reviews
+without evidence are retained and flagged. Availability filters distinguish
+registered images from missing evidence; temporal sorting is grouped by source,
+and next-pending navigation follows the filtered order.
+
+An existing PNG/JPEG can be registered through backend `sequences audit attach-evidence`
+with event ID, locator, correspondence basis, rationale and reviewer. The backend
+freezes bytes and metadata; the UI shows them and requires explicit consultation.
+Temporal proximity alone is not identity. There is no bulk extraction. Consult
+backend `docs/runbooks/audit_human_review_v11.md` for commands and limits.
+
+CSV/JSON companion histories remain separate and traceable. Historical cross-split
+index overlap is displayed as an anomaly, never automatically as semantic leakage.
+Sample bounds, nominal times and unknown temporal precision remain distinct.
 
 `/organization/sequences?mode=audit` adds Human audit review to the existing
 Sequences & linkage workspace. It consumes the separate `audit-evidence-v1`
@@ -46,6 +62,13 @@ The Zod adapter `src/data/audit-client.ts` validates API data outside components
 scientific calculations, new UI framework or additional dependencies.
 
 Verification:
+
+Observed v1.1: 94 unit tests and 2 real-service audit E2E tests passed; lint has
+0 errors and 3 pre-existing hook warnings; typecheck/build passed. Global E2E:
+16 passed, 1 failed (preview wait outside the auditor), 8 skipped. The failed
+test passed in isolation, which does not make the global run green. Backend global
+pytest was incomplete at its 300-second budget; 49 focused backend tests passed.
+Accented Spanish strings are checked in source and browser persistence tests.
 
 ```powershell
 npm run lint

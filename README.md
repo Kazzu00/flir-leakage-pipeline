@@ -4,6 +4,8 @@ Interfaz de investigación para explorar tres pipelines independientes de visió
 
 ## Estado
 
+- **Human Review v1.1:** evidencia trazable obligatoria para conclusiones, registro visual externo explícito, filtros de disponibilidad, orden temporal y siguiente pendiente. Conserva historias y muestra anomalías sin inferir leakage. [Operación y resultados de pruebas](docs/AUDIT_REVIEW.md).
+
 - **Aceptación local M02: ACCEPTED_WITH_LIMITATIONS.** Explorador de 16 splits históricos y 30 particiones candidatas S1/S2/S3, filtros, miniaturas existentes y comparación lateral. El test nuevo permanece PROPOSED y no hay resultados YOLO11m. Antecedentes y variantes se distinguen por disponibilidad y procedencia. [Pruebas, evidencia y pendientes](docs/M02_ACCEPTANCE.md).
 
 - **Detector conectado:** `/organization/evaluation` presenta el contrato público `detection-export-v1`, publicación upstream `0a4ea1f`: 48/48 runs, 16 splits, cuatro estrategias y siete asociaciones preespecificadas. Finalización y verificación reportadas upstream; validación de integridad aquí. Comparación descriptiva, no causal. [Contrato, procedencia y actualización](docs/DETECTION_CONTRACT.md).

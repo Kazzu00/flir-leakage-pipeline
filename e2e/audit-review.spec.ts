@@ -1,9 +1,11 @@
 import { test, expect } from '@playwright/test'
 import AxeBuilder from '@axe-core/playwright'
 import { spawn, execFileSync, type ChildProcess } from 'node:child_process'
-import { mkdtempSync } from 'node:fs'
+import { mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { resolve, join } from 'node:path'
+
+test.describe.configure({ mode: 'serial' })
 
 // A real backend and SQLite ledger, not intercepted/mock HTTP responses.
 // Run after `uv sync --extra dev` in the sibling backend checkout.
@@ -73,6 +75,42 @@ test.beforeAll(async () => {
     cwd: backend,
     windowsHide: true,
   })
+  writeFileSync(
+    join(workspace, 'inputs', 'synthetic-missing.json'),
+    JSON.stringify({
+      synthetic: true,
+      source_video: 'ZZ-SYNTHETIC-MISSING',
+      results: [
+        { start: 4, end: 5, length: 2 },
+        { start: 8, end: 9, length: 2 },
+      ],
+    }),
+    'utf8',
+  )
+  execFileSync(
+    python,
+    [...entry, 'import', join(workspace, 'inputs'), '--db', db],
+    { cwd: backend, windowsHide: true },
+  )
+  execFileSync(
+    python,
+    [
+      '-c',
+      `
+from pathlib import Path
+import sys
+from flir_pipeline.audit.store import Store
+s=Store(Path(sys.argv[1])); data=s.snapshot()
+visual=next(e for e in data['events'] if e['evidence'])
+target=next(e for e in data['events'] if e['source_video']=='ZZ-SYNTHETIC-MISSING' and e['start_index']==4)
+p=Path(sys.argv[1]).parent/'SYNTHETIC-external.png'
+p.write_bytes(s.media(visual['event_id'],0)[0])
+s.attach_evidence(target['event_id'],p,locator='SYNTHETIC explicit record 4',basis='explicit_record_reference',rationale='Fixture association by record ID, not temporal proximity',reviewer='SYNTHETIC registrar')
+`,
+      db,
+    ],
+    { cwd: backend, windowsHide: true },
+  )
   await start()
 })
 test.afterAll(stop)
@@ -97,6 +135,17 @@ test('synthetic evidence → review → correction → service restart → exact
   await page
     .getByLabel('Justificación', { exact: true })
     .fill('SYNTHETIC pending review')
+  await page
+    .getByLabel('Estado de revisión', { exact: true })
+    .selectOption('reviewed')
+  await page.getByLabel('Confianza', { exact: true }).selectOption('high')
+  await expect(
+    page.getByRole('button', { name: 'Guardar revisión' }),
+  ).toBeDisabled()
+  await expect(page.getByRole('alert')).toContainText('evidencia consultada')
+  await page
+    .getByLabel('Estado de revisión', { exact: true })
+    .selectOption('pending')
   await page.getByRole('button', { name: 'Guardar revisión' }).click()
   await expect(
     page.getByText('Historial persistido (1)', { exact: true }),
@@ -162,4 +211,108 @@ test('synthetic evidence → review → correction → service restart → exact
   })
   expect(denied.status()).toBe(403)
   await reopened.close()
+})
+
+test('API evidence guards, externally registered visual evidence and pending navigation', async ({
+  page,
+  request,
+}) => {
+  const initial = await (
+    await request.get('http://127.0.0.1:8765/api/audit')
+  ).json()
+  const missing = initial.events.find(
+    (e: { start_index: number; source_video: string }) =>
+      e.source_video === 'ZZ-SYNTHETIC-MISSING' && e.start_index === 8,
+  )
+  const external = initial.external_evidence[0]
+  const input = {
+    event_id: missing.event_id,
+    expected_version: 0,
+    status: 'reviewed',
+    confidence: 'high',
+    continuity: 'shot_change',
+    dependence: 'same_region',
+    reviewer: 'SYNTHETIC',
+    justification: 'Síntesis: región, cámara y revisión',
+    evidence_consulted: [],
+    external_evidence_consulted: [],
+  }
+  const post = (data: unknown) =>
+    request.post('http://127.0.0.1:8765/api/decisions', {
+      headers: { 'Content-Type': 'application/json', 'X-Audit-Review': '1' },
+      data,
+    })
+  expect((await post(input)).status()).toBe(400)
+  expect(
+    (await post({ ...input, evidence_consulted: ['invented.jpg'] })).status(),
+  ).toBe(400)
+  expect(
+    (
+      await post({
+        ...input,
+        external_evidence_consulted: [external.evidence_id],
+      })
+    ).status(),
+  ).toBe(400)
+  const pending = await post({ ...input, status: 'pending' })
+  expect(pending.status()).toBe(201)
+  await page.goto('/organization/sequences?mode=audit')
+  await page
+    .getByLabel('Evidencia visual', { exact: true })
+    .selectOption('missing')
+  await expect(
+    page.getByLabel('Evento candidato', { exact: true }),
+  ).toHaveValue(missing.event_id)
+  await expect(
+    page.getByText(
+      'Evidencia visual no disponible para este evento; no se infiere a partir de tiempos cercanos.',
+    ),
+  ).toBeVisible()
+  await expect(
+    page.getByRole('button', { name: 'Siguiente pendiente' }),
+  ).toBeEnabled()
+  await page.getByRole('button', { name: 'Siguiente pendiente' }).click()
+  await page
+    .getByLabel('Evidencia visual', { exact: true })
+    .selectOption('registered')
+  await page
+    .getByLabel('Evento candidato', { exact: true })
+    .selectOption(external.event_id)
+  await expect(
+    page.getByRole('img', { name: /Evidencia externa registrada/ }),
+  ).toBeVisible()
+  await page
+    .getByLabel('Revisor', { exact: true })
+    .fill('SYNTHETIC external reviewer')
+  await page
+    .getByLabel('Justificación', { exact: true })
+    .fill('Correspondencia explícita; región y cámara, no proximidad temporal.')
+  await page
+    .getByLabel('Estado de revisión', { exact: true })
+    .selectOption('reviewed')
+  await page
+    .getByLabel('Continuidad audiovisual', { exact: true })
+    .selectOption('shot_change')
+  await page
+    .getByLabel('Dependencia visual o de región', { exact: true })
+    .selectOption('same_region')
+  await page.getByLabel('Confianza', { exact: true }).selectOption('high')
+  await expect(
+    page.getByRole('button', { name: 'Guardar revisión' }),
+  ).toBeDisabled()
+  await page.getByLabel(/Consulté la evidencia externa/).check()
+  await page.getByRole('button', { name: 'Guardar revisión' }).click()
+  await expect(
+    page.getByText('Historial persistido (1)', { exact: true }),
+  ).toBeVisible()
+  const after = await (
+    await request.get('http://127.0.0.1:8765/api/audit')
+  ).json()
+  const decision = after.decisions.find(
+    (d: { event_id: string }) => d.event_id === external.event_id,
+  )
+  expect(decision.external_evidence_consulted).toEqual([external.evidence_id])
+  expect(decision.justification).toContain('explícita; región y cámara')
+  await page.getByLabel('Orden temporal', { exact: true }).selectOption('desc')
+  await expect(page.locator('.audit-review')).not.toContainText('Ã')
 })
