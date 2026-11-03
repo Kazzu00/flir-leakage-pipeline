@@ -217,6 +217,13 @@ def test_real_pipeline_synthetic_integration_idempotence_and_ledger(inputs, tmp_
             tmp_path / "bad-review.json",
         )
     assert CliRunner().invoke(app, ["verify", str(output)]).exit_code == 0
+    import runpy
+
+    diagnostic = runpy.run_path("scripts/report_phase2a_diagnostics.py")["build"]
+    report = diagnostic(inputs, output, tmp_path / "diagnostics")
+    assert report["pairs"] == 4
+    assert report["complete_pairs"] == 0
+    assert not list((tmp_path / "diagnostics").glob("*.png"))
     from jsonschema import Draft202012Validator
 
     Draft202012Validator(Evidence.model_json_schema()).validate(evidence)

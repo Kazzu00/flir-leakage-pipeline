@@ -878,6 +878,14 @@ is retained verbatim and is not independent visual ground truth.
 
 ## Local exploratory audit decisions (2026-11-02)
 
+Phase 2A uses the original multisplit image archive explicitly; alternative archive
+occurrences stay separate even when names match. Nominal offset is a retrieval prior,
+not correspondence evidence. CPU SIFT/RANSAC support, normalized correlation and
+perceptual hash are separate uncalibrated diagnostics. Outside-window controls do
+not imply different geographic regions. Media timestamps identify decoded frames;
+only an explicit human review can assign `human_verified`. The local HTML is the
+bounded review surface; no React expansion is required for this phase.
+
 Revision 1.1 preserves the first accepted canonical source (JSON first only when
 both arrive together). Later companions cannot change event IDs or migrate reviews.
 Conflicting revisions require a separate ledger. Existing duplicate identities

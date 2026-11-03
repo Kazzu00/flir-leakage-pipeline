@@ -1,5 +1,17 @@
 # Project status
 
+## Fase 2A: alineación multisplit (2026-11-03)
+
+**Implementada y ejecutada sobre muestra real; verificación humana pendiente.**
+Manifiesto de 3.659 ocurrencias en cinco ZIPs; fuente original seleccionada de
+747 imágenes (467/50/230). Muestra estratificada y diagnóstica de 44: 43 candidatos,
+1 sin soporte, 0 errores, 0 verificaciones humanas. Reportes locales con 88 láminas
+y cuatro comparaciones de fronteras; PTS y hashes de reextracción comprobados.
+Regresión focalizada ampliada: 214 pruebas aprobadas; Ruff aprobado. No se repitieron
+las suites globales completas. No se generaron secuencias, splits ni entrenamiento.
+Véanse [validación y límites](analysis/phase2a_multisplit_validation.md) y
+[operación](runbooks/phase2a_multisplit_alignment.md).
+
 ## FLIR Human Review v1.1 (2026-11-03)
 
 Correcciones implementadas: evidencia obligatoria en conclusiones, registro externo

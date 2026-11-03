@@ -3,6 +3,7 @@
 Este módulo propone correspondencias de procedencia entre imágenes originales y
 cuadros de un vídeo. No estima ground truth, no declara secuencias independientes,
 no utiliza etiquetas YOLO y no modifica el ledger Human Audit v1.1.
+Los resultados observados están en el [informe de validación de Fase 2A](../analysis/phase2a_multisplit_validation.md).
 La referencia metodológica es el [protocolo piloto v0.1](human_review_pilot_protocol_v01.md),
 leído como instrucción de trabajo. El piloto de 24 juicios humanos y la medición
 de acuerdo entre revisores son posteriores; no se simulan con resultados automáticos.
@@ -21,6 +22,15 @@ Abrir `reports/phase2a-run/index.html` localmente. No subir imágenes ni informe
 reales al repositorio o a servicios externos. No es necesario modificar el frontend:
 el informe enlaza láminas, alternativas, controles y procedencia. Es una superficie
 local de inspección; las acciones React de validación quedan fuera de esta entrega.
+
+Para comparar las cuatro fronteras en láminas de cuatro paneles, en otro directorio:
+
+```powershell
+uv run python scripts/report_phase2a_diagnostics.py --root $facRoot --evidence reports/phase2a-run --output reports/phase2a-diagnostics
+```
+
+Este informe vuelve a decodificar los PTS seleccionados y compara sus hashes RGB
+con los candidatos guardados. No juzga continuidad ni dependencia de región.
 
 `--dry-run` equivale a `--sample-only`: inventaría y selecciona sin decodificar vídeo.
 `--config archivo.json` permite modificar presupuestos y parámetros explícitos del
@@ -64,6 +74,9 @@ desempeño poblacional; el split no interviene en ninguna medida de similitud.
   inliers, proporción, cobertura espacial y residual. Ranking lexicográfico,
   no combinación ponderada convertida en probabilidad. Umbrales exploratorios:
   12 inliers, proporción ≥0,35, cobertura ≥0,03; no calibrados con datos FAC.
+  dHash se conserva para evaluar filtrado, pero no descarta automáticamente cuadros:
+  no se calibró una poda segura frente a cambios térmicos o de tono. Esta elección
+  conservadora aumenta el costo de SIFT y evita afirmar validado un filtro perceptual.
 - Modos separados por más de 2 s con al menos 80% del soporte del mejor generan
   `ambiguous`. Esto no prueba unicidad cuando no se detectan alternativas. Un zoom,
   tono o HUD compartido puede dificultar o sesgar la búsqueda: revisión requerida.
@@ -81,6 +94,11 @@ PTS devueltos y pasos efectivos, que pueden diferir de la frecuencia solicitada.
 Los timestamps localizan cuadros del medio, no prueban el instante exacto de captura
 del JPEG. El intervalo candidato abarca soporte observado; no es un intervalo de
 confianza estadística. No se transforma el muestreo 5 FPS previo en tiempo exacto.
+
+En el AVI local, `ffprobe` expone `best_effort_timestamp` mientras omite `pts` en
+la salida de cuadros inspeccionada. El valor coincide con `frame.pts` de PyAV:
+es tiempo del medio reconstruido por el decodificador, no un reloj original de
+captura. La comparación independiente y su tolerancia se conservan en el reporte.
 
 El run ID vincula inventario, selección, vídeo, configuración, hashes del código,
 versiones de librerías y ledger de referencia. Repetir el mismo run verifica y devuelve

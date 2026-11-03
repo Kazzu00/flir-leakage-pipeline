@@ -1,5 +1,14 @@
 # Pipeline traceability
 
+## Multisplit visual provenance alignment (Phase 2A)
+
+Original occurrence (archive/member/ordinal, split, index, SHA-256) → seeded temporal
+stratum → image-to-video candidate rankings with media PTS and independent support
+metrics → checksummed visual evidence → optional explicit human identity review.
+This is data understanding/preparation and provenance QA, not a clustering/splitting
+decision. Historical `TemporalObservation.verification` is unchanged. See
+[implementation and operational boundaries](runbooks/phase2a_multisplit_alignment.md).
+
 ## Human review evidence policy 1.1 (2026-11-03)
 
 Conclusive reviews require explicitly consulted, event-bound image evidence.

@@ -10,6 +10,11 @@ An audiovisual cut and visual-region dependence are separate judgments;
 neither a cut nor a whole video defines an independent split group.
 See [installation, synthetic smoke, commands, semantics and limitations](docs/runbooks/audit_human_review.md).
 See [v1.1 evidence policy, canonical imports and validation](docs/runbooks/audit_human_review_v11.md).
+
+`flir-pipeline sequences alignment` adds bounded CPU multisplit image-to-video
+retrieval with media timestamps, explicit alternatives and local visual evidence.
+Automatic output remains candidate/ambiguous/not_found; human verification is a
+separate explicit action. See [Phase 2A operation](docs/runbooks/phase2a_multisplit_alignment.md).
 No sequences, partitions or detector runs are created by this module.
 
 `flir-pipeline data video-variant-ingestion build/verify/summary` audits external

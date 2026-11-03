@@ -484,6 +484,13 @@ optional validated occurrence correspondence; it never fits or constructs groups
 
 ## Local audit and human review (2026-11-02)
 
+Phase 2A adds the separate `alignment` package: image occurrence inventory and
+stratified selection → CPU visual retrieval and native media-time refinement →
+immutable JSON/CSV, contact sheets and local HTML. Existing audit IDs are referenced
+read-only as index-based navigation candidates, never silently promoted into visual
+identity. Human correspondence reviews live in separate source-bound revision files.
+No new frontend backend endpoint or dependency graph is introduced.
+
 Revision 1.1 adds persistent canonical companion mappings, explicit reconciliation
 receipts, frozen external image evidence and complete document schemas. Legacy
 normalizers verify original rows; current snapshots project compatible temporal
