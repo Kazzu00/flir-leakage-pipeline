@@ -18,17 +18,19 @@ import { TechnicalDetailsDrawer } from '@/components/research/TechnicalDetailsDr
 import { OrganizationLinkageExplorer } from './OrganizationLinkageExplorer'
 import { TimelinePlayer } from './TimelinePlayer'
 import { Pager } from './evidence-views/Pager'
+import { AuditReview } from './AuditReview'
 
 export function SequenceExplorer() {
   const [params, setParams] = useSearchParams()
   const linkage = params.get('mode') === 'linkage'
+  const audit = params.get('mode') === 'audit'
 
   return (
     <>
       <div className="toolbar">
         <div className="split-toggle" aria-label="Sequence and linkage views">
           <button
-            aria-pressed={!linkage}
+            aria-pressed={!linkage && !audit}
             onClick={() => setParams({ mode: 'sequences' })}
           >
             Temporal evidence
@@ -39,10 +41,22 @@ export function SequenceExplorer() {
           >
             Cross-dataset linkage
           </button>
+          <button
+            aria-pressed={audit}
+            onClick={() => setParams({ mode: 'audit' })}
+          >
+            Human audit review
+          </button>
         </div>
       </div>
 
-      {linkage ? <OrganizationLinkageExplorer /> : <TemporalEvidence />}
+      {audit ? (
+        <AuditReview />
+      ) : linkage ? (
+        <OrganizationLinkageExplorer />
+      ) : (
+        <TemporalEvidence />
+      )}
     </>
   )
 }

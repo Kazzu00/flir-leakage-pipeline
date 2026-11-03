@@ -119,3 +119,11 @@ Tests sintéticos y validación del contrato público ligero versionado del dete
 ## Seguridad y alcance
 
 No se versionan `.references`, `.env*`, datasets, archivos FLIR, pesos, cachés, reportes ejecutados ni artifacts nativos. Solo se incluye el contrato público del detector expresamente autorizado y documentado. Los repositorios científicos permanecen independientes. No se implementan algoritmos de ciencia de datos en este frontend; visualizar exports no equivale a ejecutar o revalidar experimentos.
+
+## Local human audit review
+
+The existing Sequences & linkage module includes **FLIR Audit & Human Review v1**,
+with a separate local evidence service, image context, independent audiovisual
+and visual-region judgments, durable version history and JSON/CSV exports.
+See [installation, synthetic smoke and review workflow](docs/AUDIT_REVIEW.md).
+No sequences, splits, training or scientific confirmations are created.

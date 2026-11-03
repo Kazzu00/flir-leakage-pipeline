@@ -2362,6 +2362,74 @@ tr:last-child td {
 }
 
 /* Bounded real-membership views; runtime previews never become build assets. */
+.audit-review p,
+.audit-review details,
+.audit-review figure,
+.audit-review h3,
+.audit-review h4 {
+  margin-block: 0.8rem;
+}
+.audit-review h2 {
+  font-size: 1.3rem;
+  font-weight: 650;
+}
+.audit-review h3 {
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+.audit-review label {
+  display: inline-flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.audit-review form {
+  display: grid;
+  gap: 1rem;
+  margin-block: 1.5rem;
+}
+.audit-review input:not([type='checkbox']),
+.audit-review textarea {
+  padding: 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--surface);
+  color: inherit;
+  min-width: 18rem;
+  max-width: 100%;
+}
+.audit-review textarea {
+  width: 38rem;
+  min-height: 6rem;
+}
+.audit-review fieldset {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+.audit-review button {
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 0.6rem 1rem;
+  width: fit-content;
+}
+.audit-review ol {
+  padding-left: 1.5rem;
+  list-style: decimal;
+}
+.audit-review li {
+  margin-bottom: 1rem;
+}
+.audit-review select {
+  max-width: 100%;
+}
+.audit-review pre {
+  overflow-wrap: anywhere;
+}
+.audit-review a {
+  text-decoration: underline;
+}
+
 .split-comparison-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

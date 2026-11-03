@@ -20,6 +20,8 @@ import { useSnapshot, DataModeSwitch } from '@/data/provider'
 import { isDetectionRoute } from '@/features/detection/route'
 import { isOrganizationClusteringRoute } from '@/features/organization/clustering/route'
 import { useDetectionSnapshot } from '@/features/detection/query'
+import { useQuery } from '@tanstack/react-query'
+import { loadAudit } from '@/data/audit-client'
 const icons = [Network, Layers, GitBranch, Box, FlaskConical, Activity]
 export function AppShell() {
   const [open, setOpen] = useState(false)
@@ -27,6 +29,23 @@ export function AppShell() {
     () => localStorage.getItem('flir-theme') === 'light',
   )
   const location = useLocation()
+  const audit =
+    location.pathname === '/organization/sequences' &&
+    new URLSearchParams(location.search).get('mode') === 'audit'
+  const auditQuery = useQuery({
+    queryKey: ['local-audit'],
+    queryFn: loadAudit,
+    enabled: audit,
+    retry: false,
+  })
+  const auditMode = auditQuery.isError
+    ? 'AUDIT UNAVAILABLE'
+    : !auditQuery.data
+      ? 'AUDIT LOADING'
+      : auditQuery.data.assets.length > 0 &&
+          auditQuery.data.assets.every((a) => a.metadata.synthetic === true)
+        ? 'DEMO AUDIT'
+        : 'LOCAL EXPLORATORY AUDIT'
   const detector = isDetectionRoute(location.pathname, location.search)
   const clustering = isOrganizationClusteringRoute(
     location.pathname,
@@ -97,24 +116,28 @@ export function AppShell() {
         <div className="sidebar-bottom">
           <div className="side-note">
             <span className="status status-mock">
-              {organizationEvidence
-                ? 'M02 REAL EVIDENCE'
-                : detector
-                  ? 'M02 DETECTOR CONTRACT'
-                  : mixed
-                    ? 'MIXED WORKSPACE'
-                    : '◈ DEMO WORKSPACE'}
+              {audit
+                ? auditMode
+                : organizationEvidence
+                  ? 'M02 REAL EVIDENCE'
+                  : detector
+                    ? 'M02 DETECTOR CONTRACT'
+                    : mixed
+                      ? 'MIXED WORKSPACE'
+                      : '◈ DEMO WORKSPACE'}
             </span>
             <p>
-              {clustering
-                ? 'organization-evidence-v2 · stored cluster evidence.'
-                : organizationEvidence
-                  ? 'organization-evidence-v2 · stored evidence; see resource status.'
-                  : detector
-                    ? 'Other modules retain their own data modes.'
-                    : mixed
-                      ? 'M02 local artifacts.'
-                      : 'Synthetic data.'}
+              {audit
+                ? 'audit-evidence-v1 · local evidence and human decisions.'
+                : clustering
+                  ? 'organization-evidence-v2 · stored cluster evidence.'
+                  : organizationEvidence
+                    ? 'organization-evidence-v2 · stored evidence; see resource status.'
+                    : detector
+                      ? 'Other modules retain their own data modes.'
+                      : mixed
+                        ? 'M02 local artifacts.'
+                        : 'Synthetic data.'}
               <br />
               Real research boundaries.
             </p>
@@ -161,15 +184,17 @@ export function AppShell() {
             {!detector && !organizationEvidence && <DataModeSwitch />}
             <span className="local-status">
               <span />
-              {clustering
-                ? 'M02 real contracts - presentation only'
-                : organizationEvidence
+              {audit
+                ? auditMode
+                : clustering
                   ? 'M02 real contracts - presentation only'
-                  : detector
-                    ? 'Detector export · presentation only'
-                    : mixed
-                      ? 'Artifact + mock adapters · local'
-                      : 'Mock adapter · local'}
+                  : organizationEvidence
+                    ? 'M02 real contracts - presentation only'
+                    : detector
+                      ? 'Detector export · presentation only'
+                      : mixed
+                        ? 'Artifact + mock adapters · local'
+                        : 'Mock adapter · local'}
             </span>
             <Button
               variant="ghost"
@@ -185,25 +210,29 @@ export function AppShell() {
         </header>
         <div className="demo-bar">
           <span>
-            {clustering
-              ? 'EXPORTED EVIDENCE'
-              : organizationEvidence
+            {audit
+              ? auditMode
+              : clustering
                 ? 'EXPORTED EVIDENCE'
-                : detector
-                  ? detectorMode
-                  : mixed
-                    ? 'MIXED'
-                    : 'DEMO'}
+                : organizationEvidence
+                  ? 'EXPORTED EVIDENCE'
+                  : detector
+                    ? detectorMode
+                    : mixed
+                      ? 'MIXED'
+                      : 'DEMO'}
           </span>
-          {clustering
-            ? 'Module 02 clustering uses organization-evidence-v2. Export and membership checks do not establish sequence identity or ground truth.'
-            : organizationEvidence
-              ? 'Module 02 uses real exports only. Missing resources remain unavailable. Candidate evidence is not ground truth; other modules retain their own modes.'
-              : detector
-                ? 'Detector contract only. Scientific computation and verification upstream. Modules 01 and 03 remain DEMO.'
-                : mixed
-                  ? 'Module 02: local artifacts. Modules 01 and 03: DEMO. Missing stages remain pending.'
-                  : 'All displayed collections, runs and numeric metrics are synthetic. Repository evidence is labeled separately.'}
+          {audit
+            ? 'Local review workspace. Synthetic evidence is labeled DEMO. Import integrity and human review do not establish scientific independence.'
+            : clustering
+              ? 'Module 02 clustering uses organization-evidence-v2. Export and membership checks do not establish sequence identity or ground truth.'
+              : organizationEvidence
+                ? 'Module 02 uses real exports only. Missing resources remain unavailable. Candidate evidence is not ground truth; other modules retain their own modes.'
+                : detector
+                  ? 'Detector contract only. Scientific computation and verification upstream. Modules 01 and 03 remain DEMO.'
+                  : mixed
+                    ? 'Module 02: local artifacts. Modules 01 and 03: DEMO. Missing stages remain pending.'
+                    : 'All displayed collections, runs and numeric metrics are synthetic. Repository evidence is labeled separately.'}
         </div>
         <main id="main" tabIndex={-1} ref={mainRef}>
           <Outlet />
