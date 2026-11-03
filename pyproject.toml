@@ -22,6 +22,10 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+alignment = [
+    "av>=14,<17",
+    "opencv-python>=4.10,<6",
+]
 explorer = [
     "streamlit>=1.64,<2",
 ]
