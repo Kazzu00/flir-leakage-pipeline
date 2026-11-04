@@ -1,0 +1,2 @@
+# Preserve upstream checksum receipts exactly across Windows and Linux checkouts.
+src/features/detection/snapshot/** -text

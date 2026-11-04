@@ -1,0 +1,1136 @@
+[
+  {
+    "association_id": "domain_clip",
+    "category": "DOMAIN",
+    "class_id": 4,
+    "detector_metric": "recall",
+    "global_pearson": 0.7664381599198551,
+    "global_spearman": 0.7122886402233649,
+    "interpretation": {
+      "absolute_r_reduction": 0.39171553670987425,
+      "causal": false,
+      "centering_reduces_absolute_r": true,
+      "global_vs_within": "Asociación global y asociación centrada por estrategia son descriptivas, no causales. El centrado cambia |r| de 0.766438 a 0.374723. La reducción es compatible con una contribución de diferencias entre estrategias a la asociación global.",
+      "undefined_correlation": "null si hay menos de tres pares válidos o si una variable es constante; sin p-values ni inferencia causal.",
+      "unit_of_analysis": "split_mean_across_detector_seeds"
+    },
+    "n_splits": 16,
+    "n_valid_splits": 16,
+    "per_strategy": [
+      {
+        "n_valid_splits": 5,
+        "pearson": -0.6528883059632666,
+        "spearman": -0.7,
+        "strategy": "C10"
+      },
+      {
+        "n_valid_splits": 5,
+        "pearson": -0.01781118741565585,
+        "spearman": 0.30779350562554625,
+        "strategy": "C12"
+      },
+      {
+        "n_valid_splits": 1,
+        "pearson": null,
+        "spearman": null,
+        "strategy": "historical"
+      },
+      {
+        "n_valid_splits": 5,
+        "pearson": 0.31150180045790765,
+        "spearman": 0.3,
+        "strategy": "random_content"
+      }
+    ],
+    "points": [
+      {
+        "split_seed": 0,
+        "split_space_id": "88ccf4e12335a83f",
+        "strategy": "C10",
+        "x": 0.9430827498435974,
+        "y": 0.012345679012345678
+      },
+      {
+        "split_seed": 1,
+        "split_space_id": "d1e0e22b4da64503",
+        "strategy": "C10",
+        "x": 0.9409855604171752,
+        "y": 0.2692307692307692
+      },
+      {
+        "split_seed": 2,
+        "split_space_id": "02ccd8e857470233",
+        "strategy": "C10",
+        "x": 0.9411699771881104,
+        "y": 0.16049382716049382
+      },
+      {
+        "split_seed": 3,
+        "split_space_id": "7b0bd203efaea755",
+        "strategy": "C10",
+        "x": 0.942909061908722,
+        "y": 0.1111111111111111
+      },
+      {
+        "split_seed": 4,
+        "split_space_id": "35a234cf83ab104e",
+        "strategy": "C10",
+        "x": 0.9420493841171264,
+        "y": 0.32098765432098764
+      },
+      {
+        "split_seed": 0,
+        "split_space_id": "79a8ca09669699fc",
+        "strategy": "C12",
+        "x": 0.9377029538154602,
+        "y": 0.1176470588235294
+      },
+      {
+        "split_seed": 1,
+        "split_space_id": "4da6a1bb4ad5e33f",
+        "strategy": "C12",
+        "x": 0.9387381076812744,
+        "y": 0.1176470588235294
+      },
+      {
+        "split_seed": 2,
+        "split_space_id": "c3a680e8c5020194",
+        "strategy": "C12",
+        "x": 0.9382439851760864,
+        "y": 0.0588235294117647
+      },
+      {
+        "split_seed": 3,
+        "split_space_id": "4912c8491085e274",
+        "strategy": "C12",
+        "x": 0.9384220242500304,
+        "y": 0.049019607843137254
+      },
+      {
+        "split_seed": 4,
+        "split_space_id": "6de6878534f641e6",
+        "strategy": "C12",
+        "x": 0.9384872913360596,
+        "y": 0.12745098039215688
+      },
+      {
+        "split_seed": 0,
+        "split_space_id": "9cbd4bf45de58e21",
+        "strategy": "historical",
+        "x": 0.9485986232757568,
+        "y": 0.7368421052631579
+      },
+      {
+        "split_seed": 0,
+        "split_space_id": "c2e75560b458bddd",
+        "strategy": "random_content",
+        "x": 0.964224338531494,
+        "y": 0.5333333333333333
+      },
+      {
+        "split_seed": 1,
+        "split_space_id": "30c01fe0fb11002b",
+        "strategy": "random_content",
+        "x": 0.963187336921692,
+        "y": 0.37777777777777777
+      },
+      {
+        "split_seed": 2,
+        "split_space_id": "491de44d3cd34267",
+        "strategy": "random_content",
+        "x": 0.9640269875526428,
+        "y": 0.4761904761904762
+      },
+      {
+        "split_seed": 3,
+        "split_space_id": "644fb301b08cde0f",
+        "strategy": "random_content",
+        "x": 0.9638147950172424,
+        "y": 0.5402298850574713
+      },
+      {
+        "split_seed": 4,
+        "split_space_id": "b5aef03de2071d7f",
+        "strategy": "random_content",
+        "x": 0.9628079533576964,
+        "y": 0.5252525252525252
+      }
+    ],
+    "population": "class",
+    "prespecified": true,
+    "residual_metric": "clip_nn_mean",
+    "within_strategy_centered_pearson": -0.37472262320998084
+  },
+  {
+    "association_id": "domain_dinov2",
+    "category": "DOMAIN",
+    "class_id": 4,
+    "detector_metric": "recall",
+    "global_pearson": 0.7876731831831841,
+    "global_spearman": 0.7078736279905753,
+    "interpretation": {
+      "absolute_r_reduction": 0.27286739127419757,
+      "causal": false,
+      "centering_reduces_absolute_r": true,
+      "global_vs_within": "Asociación global y asociación centrada por estrategia son descriptivas, no causales. El centrado cambia |r| de 0.787673 a 0.514806. La reducción es compatible con una contribución de diferencias entre estrategias a la asociación global.",
+      "undefined_correlation": "null si hay menos de tres pares válidos o si una variable es constante; sin p-values ni inferencia causal.",
+      "unit_of_analysis": "split_mean_across_detector_seeds"
+    },
+    "n_splits": 16,
+    "n_valid_splits": 16,
+    "per_strategy": [
+      {
+        "n_valid_splits": 5,
+        "pearson": -0.7441918115380342,
+        "spearman": -0.6,
+        "strategy": "C10"
+      },
+      {
+        "n_valid_splits": 5,
+        "pearson": -0.1264436029939644,
+        "spearman": -0.05129891760425771,
+        "strategy": "C12"
+      },
+      {
+        "n_valid_splits": 1,
+        "pearson": null,
+        "spearman": null,
+        "strategy": "historical"
+      },
+      {
+        "n_valid_splits": 5,
+        "pearson": 0.3280905461851238,
+        "spearman": 0.6,
+        "strategy": "random_content"
+      }
+    ],
+    "points": [
+      {
+        "split_seed": 0,
+        "split_space_id": "88ccf4e12335a83f",
+        "strategy": "C10",
+        "x": 0.8003510236740112,
+        "y": 0.012345679012345678
+      },
+      {
+        "split_seed": 1,
+        "split_space_id": "d1e0e22b4da64503",
+        "strategy": "C10",
+        "x": 0.7944207191467285,
+        "y": 0.2692307692307692
+      },
+      {
+        "split_seed": 2,
+        "split_space_id": "02ccd8e857470233",
+        "strategy": "C10",
+        "x": 0.7932263612747192,
+        "y": 0.16049382716049382
+      },
+      {
+        "split_seed": 3,
+        "split_space_id": "7b0bd203efaea755",
+        "strategy": "C10",
+        "x": 0.798355758190155,
+        "y": 0.1111111111111111
+      },
+      {
+        "split_seed": 4,
+        "split_space_id": "35a234cf83ab104e",
+        "strategy": "C10",
+        "x": 0.7951927781105042,
+        "y": 0.32098765432098764
+      },
+      {
+        "split_seed": 0,
+        "split_space_id": "79a8ca09669699fc",
+        "strategy": "C12",
+        "x": 0.788790225982666,
+        "y": 0.1176470588235294
+      },
+      {
+        "split_seed": 1,
+        "split_space_id": "4da6a1bb4ad5e33f",
+        "strategy": "C12",
+        "x": 0.7915791869163513,
+        "y": 0.1176470588235294
+      },
+      {
+        "split_seed": 2,
+        "split_space_id": "c3a680e8c5020194",
+        "strategy": "C12",
+        "x": 0.7922953963279724,
+        "y": 0.0588235294117647
+      },
+      {
+        "split_seed": 3,
+        "split_space_id": "4912c8491085e274",
+        "strategy": "C12",
+        "x": 0.790118396282196,
+        "y": 0.049019607843137254
+      },
+      {
+        "split_seed": 4,
+        "split_space_id": "6de6878534f641e6",
+        "strategy": "C12",
+        "x": 0.7915405631065369,
+        "y": 0.12745098039215688
+      },
+      {
+        "split_seed": 0,
+        "split_space_id": "9cbd4bf45de58e21",
+        "strategy": "historical",
+        "x": 0.8410229682922363,
+        "y": 0.7368421052631579
+      },
+      {
+        "split_seed": 0,
+        "split_space_id": "c2e75560b458bddd",
+        "strategy": "random_content",
+        "x": 0.8985626697540283,
+        "y": 0.5333333333333333
+      },
+      {
+        "split_seed": 1,
+        "split_space_id": "30c01fe0fb11002b",
+        "strategy": "random_content",
+        "x": 0.8965104818344116,
+        "y": 0.37777777777777777
+      },
+      {
+        "split_seed": 2,
+        "split_space_id": "491de44d3cd34267",
+        "strategy": "random_content",
+        "x": 0.8969452381134033,
+        "y": 0.4761904761904762
+      },
+      {
+        "split_seed": 3,
+        "split_space_id": "644fb301b08cde0f",
+        "strategy": "random_content",
+        "x": 0.897037923336029,
+        "y": 0.5402298850574713
+      },
+      {
+        "split_seed": 4,
+        "split_space_id": "b5aef03de2071d7f",
+        "strategy": "random_content",
+        "x": 0.8959227204322815,
+        "y": 0.5252525252525252
+      }
+    ],
+    "population": "class",
+    "prespecified": true,
+    "residual_metric": "dinov2_nn_mean",
+    "within_strategy_centered_pearson": -0.5148057919089866
+  },
+  {
+    "association_id": "extreme_clip",
+    "category": "EXTREME_VISUAL",
+    "class_id": -1,
+    "detector_metric": "map50_95",
+    "global_pearson": 0.8320087147619448,
+    "global_spearman": 0.5900863340643645,
+    "interpretation": {
+      "absolute_r_reduction": 0.5714293974605542,
+      "causal": false,
+      "centering_reduces_absolute_r": true,
+      "global_vs_within": "Asociación global y asociación centrada por estrategia son descriptivas, no causales. El centrado cambia |r| de 0.832009 a 0.260579. La reducción es compatible con una contribución de diferencias entre estrategias a la asociación global.",
+      "undefined_correlation": "null si hay menos de tres pares válidos o si una variable es constante; sin p-values ni inferencia causal.",
+      "unit_of_analysis": "split_mean_across_detector_seeds"
+    },
+    "n_splits": 16,
+    "n_valid_splits": 16,
+    "per_strategy": [
+      {
+        "n_valid_splits": 5,
+        "pearson": 0.50032434517107,
+        "spearman": 0.35355339059327373,
+        "strategy": "C10"
+      },
+      {
+        "n_valid_splits": 5,
+        "pearson": 0.32197946486245255,
+        "spearman": 0.7181848464596079,
+        "strategy": "C12"
+      },
+      {
+        "n_valid_splits": 1,
+        "pearson": null,
+        "spearman": null,
+        "strategy": "historical"
+      },
+      {
+        "n_valid_splits": 5,
+        "pearson": 0.3064175227260741,
+        "spearman": 0.19999999999999998,
+        "strategy": "random_content"
+      }
+    ],
+    "points": [
+      {
+        "split_seed": 0,
+        "split_space_id": "88ccf4e12335a83f",
+        "strategy": "C10",
+        "x": 7.0,
+        "y": 0.15734096563124725
+      },
+      {
+        "split_seed": 1,
+        "split_space_id": "d1e0e22b4da64503",
+        "strategy": "C10",
+        "x": 13.0,
+        "y": 0.183749257935106
+      },
+      {
+        "split_seed": 2,
+        "split_space_id": "02ccd8e857470233",
+        "strategy": "C10",
+        "x": 7.0,
+        "y": 0.1586608365791631
+      },
+      {
+        "split_seed": 3,
+        "split_space_id": "7b0bd203efaea755",
+        "strategy": "C10",
+        "x": 7.0,
+        "y": 0.18978225568702833
+      },
+      {
+        "split_seed": 4,
+        "split_space_id": "35a234cf83ab104e",
+        "strategy": "C10",
+        "x": 7.0,
+        "y": 0.14877371680401444
+      },
+      {
+        "split_seed": 0,
+        "split_space_id": "79a8ca09669699fc",
+        "strategy": "C12",
+        "x": 14.0,
+        "y": 0.10634387087974702
+      },
+      {
+        "split_seed": 1,
+        "split_space_id": "4da6a1bb4ad5e33f",
+        "strategy": "C12",
+        "x": 17.0,
+        "y": 0.08533688563332549
+      },
+      {
+        "split_seed": 2,
+        "split_space_id": "c3a680e8c5020194",
+        "strategy": "C12",
+        "x": 14.0,
+        "y": 0.08211911118508264
+      },
+      {
+        "split_seed": 3,
+        "split_space_id": "4912c8491085e274",
+        "strategy": "C12",
+        "x": 11.0,
+        "y": 0.07989719289685394
+      },
+      {
+        "split_seed": 4,
+        "split_space_id": "6de6878534f641e6",
+        "strategy": "C12",
+        "x": 12.0,
+        "y": 0.07691023604499916
+      },
+      {
+        "split_seed": 0,
+        "split_space_id": "9cbd4bf45de58e21",
+        "strategy": "historical",
+        "x": 277.0,
+        "y": 0.1708769601483069
+      },
+      {
+        "split_seed": 0,
+        "split_space_id": "c2e75560b458bddd",
+        "strategy": "random_content",
+        "x": 461.0,
+        "y": 0.25196404594481286
+      },
+      {
+        "split_seed": 1,
+        "split_space_id": "30c01fe0fb11002b",
+        "strategy": "random_content",
+        "x": 530.0,
+        "y": 0.2354927339616473
+      },
+      {
+        "split_seed": 2,
+        "split_space_id": "491de44d3cd34267",
+        "strategy": "random_content",
+        "x": 502.0,
+        "y": 0.2983196085080848
+      },
+      {
+        "split_seed": 3,
+        "split_space_id": "644fb301b08cde0f",
+        "strategy": "random_content",
+        "x": 435.0,
+        "y": 0.2266202225801506
+      },
+      {
+        "split_seed": 4,
+        "split_space_id": "b5aef03de2071d7f",
+        "strategy": "random_content",
+        "x": 406.0,
+        "y": 0.24696777427546165
+      }
+    ],
+    "population": "overall",
+    "prespecified": true,
+    "residual_metric": "clip_top001_pairs",
+    "within_strategy_centered_pearson": 0.26057931730139067
+  },
+  {
+    "association_id": "extreme_dinov2",
+    "category": "EXTREME_VISUAL",
+    "class_id": -1,
+    "detector_metric": "map50_95",
+    "global_pearson": 0.8356748480183636,
+    "global_spearman": 0.8002967235799942,
+    "interpretation": {
+      "absolute_r_reduction": 0.39384397486960976,
+      "causal": false,
+      "centering_reduces_absolute_r": true,
+      "global_vs_within": "Asociación global y asociación centrada por estrategia son descriptivas, no causales. El centrado cambia |r| de 0.835675 a 0.441831. La reducción es compatible con una contribución de diferencias entre estrategias a la asociación global.",
+      "undefined_correlation": "null si hay menos de tres pares válidos o si una variable es constante; sin p-values ni inferencia causal.",
+      "unit_of_analysis": "split_mean_across_detector_seeds"
+    },
+    "n_splits": 16,
+    "n_valid_splits": 16,
+    "per_strategy": [
+      {
+        "n_valid_splits": 5,
+        "pearson": -0.35246445180324104,
+        "spearman": 0.05270462766947298,
+        "strategy": "C10"
+      },
+      {
+        "n_valid_splits": 5,
+        "pearson": 0.9830391146744202,
+        "spearman": 0.9746794344808964,
+        "strategy": "C12"
+      },
+      {
+        "n_valid_splits": 1,
+        "pearson": null,
+        "spearman": null,
+        "strategy": "historical"
+      },
+      {
+        "n_valid_splits": 5,
+        "pearson": 0.549192917054881,
+        "spearman": 0.49999999999999994,
+        "strategy": "random_content"
+      }
+    ],
+    "points": [
+      {
+        "split_seed": 0,
+        "split_space_id": "88ccf4e12335a83f",
+        "strategy": "C10",
+        "x": 6.0,
+        "y": 0.15734096563124725
+      },
+      {
+        "split_seed": 1,
+        "split_space_id": "d1e0e22b4da64503",
+        "strategy": "C10",
+        "x": 1.0,
+        "y": 0.183749257935106
+      },
+      {
+        "split_seed": 2,
+        "split_space_id": "02ccd8e857470233",
+        "strategy": "C10",
+        "x": 5.0,
+        "y": 0.1586608365791631
+      },
+      {
+        "split_seed": 3,
+        "split_space_id": "7b0bd203efaea755",
+        "strategy": "C10",
+        "x": 6.0,
+        "y": 0.18978225568702833
+      },
+      {
+        "split_seed": 4,
+        "split_space_id": "35a234cf83ab104e",
+        "strategy": "C10",
+        "x": 5.0,
+        "y": 0.14877371680401444
+      },
+      {
+        "split_seed": 0,
+        "split_space_id": "79a8ca09669699fc",
+        "strategy": "C12",
+        "x": 7.0,
+        "y": 0.10634387087974702
+      },
+      {
+        "split_seed": 1,
+        "split_space_id": "4da6a1bb4ad5e33f",
+        "strategy": "C12",
+        "x": 4.0,
+        "y": 0.08533688563332549
+      },
+      {
+        "split_seed": 2,
+        "split_space_id": "c3a680e8c5020194",
+        "strategy": "C12",
+        "x": 3.0,
+        "y": 0.08211911118508264
+      },
+      {
+        "split_seed": 3,
+        "split_space_id": "4912c8491085e274",
+        "strategy": "C12",
+        "x": 2.0,
+        "y": 0.07989719289685394
+      },
+      {
+        "split_seed": 4,
+        "split_space_id": "6de6878534f641e6",
+        "strategy": "C12",
+        "x": 2.0,
+        "y": 0.07691023604499916
+      },
+      {
+        "split_seed": 0,
+        "split_space_id": "9cbd4bf45de58e21",
+        "strategy": "historical",
+        "x": 328.0,
+        "y": 0.1708769601483069
+      },
+      {
+        "split_seed": 0,
+        "split_space_id": "c2e75560b458bddd",
+        "strategy": "random_content",
+        "x": 483.0,
+        "y": 0.25196404594481286
+      },
+      {
+        "split_seed": 1,
+        "split_space_id": "30c01fe0fb11002b",
+        "strategy": "random_content",
+        "x": 484.0,
+        "y": 0.2354927339616473
+      },
+      {
+        "split_seed": 2,
+        "split_space_id": "491de44d3cd34267",
+        "strategy": "random_content",
+        "x": 521.0,
+        "y": 0.2983196085080848
+      },
+      {
+        "split_seed": 3,
+        "split_space_id": "644fb301b08cde0f",
+        "strategy": "random_content",
+        "x": 479.0,
+        "y": 0.2266202225801506
+      },
+      {
+        "split_seed": 4,
+        "split_space_id": "b5aef03de2071d7f",
+        "strategy": "random_content",
+        "x": 423.0,
+        "y": 0.24696777427546165
+      }
+    ],
+    "population": "overall",
+    "prespecified": true,
+    "residual_metric": "dinov2_top001_pairs",
+    "within_strategy_centered_pearson": 0.4418308731487538
+  },
+  {
+    "association_id": "primary_clip",
+    "category": "PRIMARY",
+    "class_id": -1,
+    "detector_metric": "map50_95",
+    "global_pearson": 0.8973170186142334,
+    "global_spearman": 0.888235294117647,
+    "interpretation": {
+      "absolute_r_reduction": 0.8402696250024757,
+      "causal": false,
+      "centering_reduces_absolute_r": true,
+      "global_vs_within": "Asociación global y asociación centrada por estrategia son descriptivas, no causales. El centrado cambia |r| de 0.897317 a 0.057047. La reducción es compatible con una contribución de diferencias entre estrategias a la asociación global.",
+      "undefined_correlation": "null si hay menos de tres pares válidos o si una variable es constante; sin p-values ni inferencia causal.",
+      "unit_of_analysis": "split_mean_across_detector_seeds"
+    },
+    "n_splits": 16,
+    "n_valid_splits": 16,
+    "per_strategy": [
+      {
+        "n_valid_splits": 5,
+        "pearson": -0.012236177090405868,
+        "spearman": -0.19999999999999998,
+        "strategy": "C10"
+      },
+      {
+        "n_valid_splits": 5,
+        "pearson": -0.8087896230985085,
+        "spearman": -0.39999999999999997,
+        "strategy": "C12"
+      },
+      {
+        "n_valid_splits": 1,
+        "pearson": null,
+        "spearman": null,
+        "strategy": "historical"
+      },
+      {
+        "n_valid_splits": 5,
+        "pearson": 0.3798793272561792,
+        "spearman": 0.49999999999999994,
+        "strategy": "random_content"
+      }
+    ],
+    "points": [
+      {
+        "split_seed": 0,
+        "split_space_id": "88ccf4e12335a83f",
+        "strategy": "C10",
+        "x": 0.9430827498435974,
+        "y": 0.15734096563124725
+      },
+      {
+        "split_seed": 1,
+        "split_space_id": "d1e0e22b4da64503",
+        "strategy": "C10",
+        "x": 0.9409855604171752,
+        "y": 0.183749257935106
+      },
+      {
+        "split_seed": 2,
+        "split_space_id": "02ccd8e857470233",
+        "strategy": "C10",
+        "x": 0.9411699771881104,
+        "y": 0.1586608365791631
+      },
+      {
+        "split_seed": 3,
+        "split_space_id": "7b0bd203efaea755",
+        "strategy": "C10",
+        "x": 0.942909061908722,
+        "y": 0.18978225568702833
+      },
+      {
+        "split_seed": 4,
+        "split_space_id": "35a234cf83ab104e",
+        "strategy": "C10",
+        "x": 0.9420493841171264,
+        "y": 0.14877371680401444
+      },
+      {
+        "split_seed": 0,
+        "split_space_id": "79a8ca09669699fc",
+        "strategy": "C12",
+        "x": 0.9377029538154602,
+        "y": 0.10634387087974702
+      },
+      {
+        "split_seed": 1,
+        "split_space_id": "4da6a1bb4ad5e33f",
+        "strategy": "C12",
+        "x": 0.9387381076812744,
+        "y": 0.08533688563332549
+      },
+      {
+        "split_seed": 2,
+        "split_space_id": "c3a680e8c5020194",
+        "strategy": "C12",
+        "x": 0.9382439851760864,
+        "y": 0.08211911118508264
+      },
+      {
+        "split_seed": 3,
+        "split_space_id": "4912c8491085e274",
+        "strategy": "C12",
+        "x": 0.9384220242500304,
+        "y": 0.07989719289685394
+      },
+      {
+        "split_seed": 4,
+        "split_space_id": "6de6878534f641e6",
+        "strategy": "C12",
+        "x": 0.9384872913360596,
+        "y": 0.07691023604499916
+      },
+      {
+        "split_seed": 0,
+        "split_space_id": "9cbd4bf45de58e21",
+        "strategy": "historical",
+        "x": 0.9485986232757568,
+        "y": 0.1708769601483069
+      },
+      {
+        "split_seed": 0,
+        "split_space_id": "c2e75560b458bddd",
+        "strategy": "random_content",
+        "x": 0.964224338531494,
+        "y": 0.25196404594481286
+      },
+      {
+        "split_seed": 1,
+        "split_space_id": "30c01fe0fb11002b",
+        "strategy": "random_content",
+        "x": 0.963187336921692,
+        "y": 0.2354927339616473
+      },
+      {
+        "split_seed": 2,
+        "split_space_id": "491de44d3cd34267",
+        "strategy": "random_content",
+        "x": 0.9640269875526428,
+        "y": 0.2983196085080848
+      },
+      {
+        "split_seed": 3,
+        "split_space_id": "644fb301b08cde0f",
+        "strategy": "random_content",
+        "x": 0.9638147950172424,
+        "y": 0.2266202225801506
+      },
+      {
+        "split_seed": 4,
+        "split_space_id": "b5aef03de2071d7f",
+        "strategy": "random_content",
+        "x": 0.9628079533576964,
+        "y": 0.24696777427546165
+      }
+    ],
+    "population": "overall",
+    "prespecified": true,
+    "residual_metric": "clip_nn_mean",
+    "within_strategy_centered_pearson": 0.05704739361175774
+  },
+  {
+    "association_id": "primary_dinov2",
+    "category": "PRIMARY",
+    "class_id": -1,
+    "detector_metric": "map50_95",
+    "global_pearson": 0.8594807489313159,
+    "global_spearman": 0.888235294117647,
+    "interpretation": {
+      "absolute_r_reduction": 0.8221924914772161,
+      "causal": false,
+      "centering_reduces_absolute_r": true,
+      "global_vs_within": "Asociación global y asociación centrada por estrategia son descriptivas, no causales. El centrado cambia |r| de 0.859481 a 0.037288. La reducción es compatible con una contribución de diferencias entre estrategias a la asociación global.",
+      "undefined_correlation": "null si hay menos de tres pares válidos o si una variable es constante; sin p-values ni inferencia causal.",
+      "unit_of_analysis": "split_mean_across_detector_seeds"
+    },
+    "n_splits": 16,
+    "n_valid_splits": 16,
+    "per_strategy": [
+      {
+        "n_valid_splits": 5,
+        "pearson": 0.10372454037647136,
+        "spearman": -0.09999999999999999,
+        "strategy": "C10"
+      },
+      {
+        "n_valid_splits": 5,
+        "pearson": -0.7575632284550031,
+        "spearman": -0.19999999999999998,
+        "strategy": "C12"
+      },
+      {
+        "n_valid_splits": 1,
+        "pearson": null,
+        "spearman": null,
+        "strategy": "historical"
+      },
+      {
+        "n_valid_splits": 5,
+        "pearson": 0.09124931968822457,
+        "spearman": 0.09999999999999999,
+        "strategy": "random_content"
+      }
+    ],
+    "points": [
+      {
+        "split_seed": 0,
+        "split_space_id": "88ccf4e12335a83f",
+        "strategy": "C10",
+        "x": 0.8003510236740112,
+        "y": 0.15734096563124725
+      },
+      {
+        "split_seed": 1,
+        "split_space_id": "d1e0e22b4da64503",
+        "strategy": "C10",
+        "x": 0.7944207191467285,
+        "y": 0.183749257935106
+      },
+      {
+        "split_seed": 2,
+        "split_space_id": "02ccd8e857470233",
+        "strategy": "C10",
+        "x": 0.7932263612747192,
+        "y": 0.1586608365791631
+      },
+      {
+        "split_seed": 3,
+        "split_space_id": "7b0bd203efaea755",
+        "strategy": "C10",
+        "x": 0.798355758190155,
+        "y": 0.18978225568702833
+      },
+      {
+        "split_seed": 4,
+        "split_space_id": "35a234cf83ab104e",
+        "strategy": "C10",
+        "x": 0.7951927781105042,
+        "y": 0.14877371680401444
+      },
+      {
+        "split_seed": 0,
+        "split_space_id": "79a8ca09669699fc",
+        "strategy": "C12",
+        "x": 0.788790225982666,
+        "y": 0.10634387087974702
+      },
+      {
+        "split_seed": 1,
+        "split_space_id": "4da6a1bb4ad5e33f",
+        "strategy": "C12",
+        "x": 0.7915791869163513,
+        "y": 0.08533688563332549
+      },
+      {
+        "split_seed": 2,
+        "split_space_id": "c3a680e8c5020194",
+        "strategy": "C12",
+        "x": 0.7922953963279724,
+        "y": 0.08211911118508264
+      },
+      {
+        "split_seed": 3,
+        "split_space_id": "4912c8491085e274",
+        "strategy": "C12",
+        "x": 0.790118396282196,
+        "y": 0.07989719289685394
+      },
+      {
+        "split_seed": 4,
+        "split_space_id": "6de6878534f641e6",
+        "strategy": "C12",
+        "x": 0.7915405631065369,
+        "y": 0.07691023604499916
+      },
+      {
+        "split_seed": 0,
+        "split_space_id": "9cbd4bf45de58e21",
+        "strategy": "historical",
+        "x": 0.8410229682922363,
+        "y": 0.1708769601483069
+      },
+      {
+        "split_seed": 0,
+        "split_space_id": "c2e75560b458bddd",
+        "strategy": "random_content",
+        "x": 0.8985626697540283,
+        "y": 0.25196404594481286
+      },
+      {
+        "split_seed": 1,
+        "split_space_id": "30c01fe0fb11002b",
+        "strategy": "random_content",
+        "x": 0.8965104818344116,
+        "y": 0.2354927339616473
+      },
+      {
+        "split_seed": 2,
+        "split_space_id": "491de44d3cd34267",
+        "strategy": "random_content",
+        "x": 0.8969452381134033,
+        "y": 0.2983196085080848
+      },
+      {
+        "split_seed": 3,
+        "split_space_id": "644fb301b08cde0f",
+        "strategy": "random_content",
+        "x": 0.897037923336029,
+        "y": 0.2266202225801506
+      },
+      {
+        "split_seed": 4,
+        "split_space_id": "b5aef03de2071d7f",
+        "strategy": "random_content",
+        "x": 0.8959227204322815,
+        "y": 0.24696777427546165
+      }
+    ],
+    "population": "overall",
+    "prespecified": true,
+    "residual_metric": "dinov2_nn_mean",
+    "within_strategy_centered_pearson": -0.03728825745409976
+  },
+  {
+    "association_id": "temporal_at5",
+    "category": "TEMPORAL",
+    "class_id": -1,
+    "detector_metric": "map50_95",
+    "global_pearson": 0.8268963545344858,
+    "global_spearman": 0.8241356167873644,
+    "interpretation": {
+      "absolute_r_reduction": 0.7794249677402634,
+      "causal": false,
+      "centering_reduces_absolute_r": true,
+      "global_vs_within": "Asociación global y asociación centrada por estrategia son descriptivas, no causales. El centrado cambia |r| de 0.826896 a 0.047471. La reducción es compatible con una contribución de diferencias entre estrategias a la asociación global.",
+      "undefined_correlation": "null si hay menos de tres pares válidos o si una variable es constante; sin p-values ni inferencia causal.",
+      "unit_of_analysis": "split_mean_across_detector_seeds"
+    },
+    "n_splits": 16,
+    "n_valid_splits": 16,
+    "per_strategy": [
+      {
+        "n_valid_splits": 5,
+        "pearson": -0.5852792766724513,
+        "spearman": -0.46169025843831935,
+        "strategy": "C10"
+      },
+      {
+        "n_valid_splits": 5,
+        "pearson": 0.4007500483603575,
+        "spearman": 0.7999999999999999,
+        "strategy": "C12"
+      },
+      {
+        "n_valid_splits": 1,
+        "pearson": null,
+        "spearman": null,
+        "strategy": "historical"
+      },
+      {
+        "n_valid_splits": 5,
+        "pearson": 0.6213269072396158,
+        "spearman": 0.7999999999999999,
+        "strategy": "random_content"
+      }
+    ],
+    "points": [
+      {
+        "split_seed": 0,
+        "split_space_id": "88ccf4e12335a83f",
+        "strategy": "C10",
+        "x": 0.2392792289425897,
+        "y": 0.15734096563124725
+      },
+      {
+        "split_seed": 1,
+        "split_space_id": "d1e0e22b4da64503",
+        "strategy": "C10",
+        "x": 0.2212599525073334,
+        "y": 0.183749257935106
+      },
+      {
+        "split_seed": 2,
+        "split_space_id": "02ccd8e857470233",
+        "strategy": "C10",
+        "x": 0.2445872328537505,
+        "y": 0.1586608365791631
+      },
+      {
+        "split_seed": 3,
+        "split_space_id": "7b0bd203efaea755",
+        "strategy": "C10",
+        "x": 0.2392792289425897,
+        "y": 0.18978225568702833
+      },
+      {
+        "split_seed": 4,
+        "split_space_id": "35a234cf83ab104e",
+        "strategy": "C10",
+        "x": 0.2419332308981701,
+        "y": 0.14877371680401444
+      },
+      {
+        "split_seed": 0,
+        "split_space_id": "79a8ca09669699fc",
+        "strategy": "C12",
+        "x": 0.2135773152674954,
+        "y": 0.10634387087974702
+      },
+      {
+        "split_seed": 1,
+        "split_space_id": "4da6a1bb4ad5e33f",
+        "strategy": "C12",
+        "x": 0.2160916329096242,
+        "y": 0.08533688563332549
+      },
+      {
+        "split_seed": 2,
+        "split_space_id": "c3a680e8c5020194",
+        "strategy": "C12",
+        "x": 0.2124598407598826,
+        "y": 0.08211911118508264
+      },
+      {
+        "split_seed": 3,
+        "split_space_id": "4912c8491085e274",
+        "strategy": "C12",
+        "x": 0.2085486799832379,
+        "y": 0.07989719289685394
+      },
+      {
+        "split_seed": 4,
+        "split_space_id": "6de6878534f641e6",
+        "strategy": "C12",
+        "x": 0.211621734879173,
+        "y": 0.07691023604499916
+      },
+      {
+        "split_seed": 0,
+        "split_space_id": "9cbd4bf45de58e21",
+        "strategy": "historical",
+        "x": 0.1476463193183405,
+        "y": 0.1708769601483069
+      },
+      {
+        "split_seed": 0,
+        "split_space_id": "c2e75560b458bddd",
+        "strategy": "random_content",
+        "x": 0.4453135912836988,
+        "y": 0.25196404594481286
+      },
+      {
+        "split_seed": 1,
+        "split_space_id": "30c01fe0fb11002b",
+        "strategy": "random_content",
+        "x": 0.4319038971923453,
+        "y": 0.2354927339616473
+      },
+      {
+        "split_seed": 2,
+        "split_space_id": "491de44d3cd34267",
+        "strategy": "random_content",
+        "x": 0.44279927364157,
+        "y": 0.2983196085080848
+      },
+      {
+        "split_seed": 3,
+        "split_space_id": "644fb301b08cde0f",
+        "strategy": "random_content",
+        "x": 0.4337197932672161,
+        "y": 0.2266202225801506
+      },
+      {
+        "split_seed": 4,
+        "split_space_id": "b5aef03de2071d7f",
+        "strategy": "random_content",
+        "x": 0.442100852074312,
+        "y": 0.24696777427546165
+      }
+    ],
+    "population": "overall",
+    "prespecified": true,
+    "residual_metric": "temporal_at5",
+    "within_strategy_centered_pearson": 0.04747138679422246
+  }
+]
