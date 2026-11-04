@@ -15,6 +15,10 @@ See [v1.1 evidence policy, canonical imports and validation](docs/runbooks/audit
 retrieval with media timestamps, explicit alternatives and local visual evidence.
 Automatic output remains candidate/ambiguous/not_found; human verification is a
 separate explicit action. See [Phase 2A operation](docs/runbooks/phase2a_multisplit_alignment.md).
+
+`sequences alignment pilot` prepares and serves the 24-case human alignment pilot
+on loopback, with separate versioned judgments and JSON/CSV exports. All delivered
+FAC cases remain pending. See the [human review runbook](docs/runbooks/phase2a1_human_alignment_review.md).
 No sequences, partitions or detector runs are created by this module.
 
 `flir-pipeline data video-variant-ingestion build/verify/summary` audits external

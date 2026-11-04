@@ -484,6 +484,13 @@ optional validated occurrence correspondence; it never fits or constructs groups
 
 ## Local audit and human review (2026-11-02)
 
+Phase 2A.1 adds `alignment/pilot*`: immutable selection/media bundle → loopback
+HTML/API reviewer → separately bound SQLite append-only alignment judgments.
+The service does not write the historical audit ledger or matching evidence.
+Fixed-pair geometry is reconstructed only at existing candidate PTS; no retrieval
+or ranking is performed. Report denominators distinguish pending, uncertain and
+conclusive human labels; confidence calibration is unavailable.
+
 Phase 2A adds the separate `alignment` package: image occurrence inventory and
 stratified selection → CPU visual retrieval and native media-time refinement →
 immutable JSON/CSV, contact sheets and local HTML. Existing audit IDs are referenced

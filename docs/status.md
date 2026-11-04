@@ -1,5 +1,17 @@
 # Project status
 
+## Fase 2A.1: piloto de validación humana de alineamiento
+
+**Preparado y comprobado técnicamente; 24 casos pendientes, cero anotaciones FAC.**
+Ocho diagnósticos, doce adicionales equilibrados por split y cuatro difíciles,
+incluido 630; 500 sigue ausente. Servicio local de revisión, historial versionado,
+exportación JSON/CSV y reporte descriptivo condicionado a referencias humanas.
+380 imágenes cargadas en Chromium; persistencia tras reinicio validada con datos
+sintéticos y ledger real sin cambios de decisiones. 76 pruebas focalizadas y Ruff
+aprobados. No hay confianza automática calibrada ni estimación de exactitud humana.
+Véanse [selección y validación](analysis/phase2a1_pilot_validation.md) y
+[runbook](runbooks/phase2a1_human_alignment_review.md).
+
 ## Fase 2A: alineación multisplit (2026-11-03)
 
 **Implementada y ejecutada sobre muestra real; verificación humana pendiente.**

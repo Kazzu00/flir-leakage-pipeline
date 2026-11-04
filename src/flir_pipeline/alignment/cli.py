@@ -5,7 +5,10 @@ from pathlib import Path
 
 import typer
 
+from .pilot_cli import app as pilot_app
+
 app = typer.Typer(help="Bounded multisplit visual provenance alignment; CPU only.")
+app.add_typer(pilot_app, name="pilot")
 
 
 @app.command("run")

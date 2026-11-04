@@ -878,6 +878,14 @@ is retained verbatim and is not independent visual ground truth.
 
 ## Local exploratory audit decisions (2026-11-02)
 
+Phase 2A.1 alignment labels judge top-1 identity only: correct_match,
+incorrect_match or uncertain. They are not continuity/region labels. Better-rank
+preferences and proposed negative-control judgments remain separate fields.
+Implicit pending rows are exported as version 0 without fabricating a reviewer.
+Only an explicit reviewed/correct_match action with bound consulted evidence marks
+human_verified_top1. The 40-inlier display bands and five-review reporting gate are
+operational diagnostics, not calibrated confidence or statistical sufficiency.
+
 Phase 2A uses the original multisplit image archive explicitly; alternative archive
 occurrences stay separate even when names match. Nominal offset is a retrieval prior,
 not correspondence evidence. CPU SIFT/RANSAC support, normalized correlation and

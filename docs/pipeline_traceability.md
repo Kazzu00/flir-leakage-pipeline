@@ -1,5 +1,13 @@
 # Pipeline traceability
 
+## Alignment review pilot (Phase 2A.1)
+
+Existing image-to-video candidates → frozen 24-case sample → exact-PTS evidence
+reconstruction → explicitly consulted human top-1 judgments → versioned exports
+and descriptive analysis. The pipeline never substitutes scores for human labels,
+infers independence from incorrect matches, or recalibrates thresholds using test.
+The delivered real sample has no human annotations yet.
+
 ## Multisplit visual provenance alignment (Phase 2A)
 
 Original occurrence (archive/member/ordinal, split, index, SHA-256) → seeded temporal
