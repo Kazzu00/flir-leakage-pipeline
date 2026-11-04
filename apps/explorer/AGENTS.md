@@ -1,6 +1,10 @@
 # FLIR Pipeline Explorer — permanent agent rules
 
-This repository is the independent frontend `flir-pipeline-explorer`. Scientific work remains in the three upstream repositories. Do not apply the old backend workspace scope to this frontend.
+This directory is the frontend `apps/explorer` of the canonical
+`flir-leakage-pipeline` monorepo. Its history was imported from
+`flir-pipeline-explorer`. Scientific computation remains in the backend; the
+frontend remains a read-only visualization boundary. Root project instructions
+apply; the UI-specific rules below supplement them.
 
 - `.references/` contains ignored, read-only shallow clones. Never modify, commit inside, or publish their contents.
 - Inspect `docs/RESEARCH.md` and current code before changing scientific vocabulary. Preserve source disagreements as inconsistent / experimental / unavailable, not as resolved facts.

@@ -1,15 +1,35 @@
-﻿import { readFileSync } from 'node:fs'
-import { resolve } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   OrganizationEvidenceAdapter,
   OrganizationEvidenceError,
 } from './OrganizationEvidenceAdapter'
 
-const manifestPath = resolve(
-  process.cwd(),
-  'public/runtime/organization-evidence-v2/manifest.json',
-)
+// Synthetic fixture: unit tests must not depend on private runtime exports.
+const syntheticManifest = {
+  schema_version: 'organization-evidence-v2',
+  generated_at: '2026-01-01T00:00:00Z',
+  source_commit: null,
+  source_dirty: null,
+  dataset_id: 'SYNTHETIC',
+  manifest_sha256: '0'.repeat(64),
+  plan_id: 'SYNTHETIC',
+  plan_sha256: '0'.repeat(64),
+  runtime_freeze_sha256: '0'.repeat(64),
+  record_count: 0,
+  unique_content_count: 0,
+  labeled_record_count: 0,
+  labeled_unique_content_count: 0,
+  source_video_count: 0,
+  timeline_count: 0,
+  split_count: 0,
+  strategy_count: 0,
+  candidate_pair_count: 0,
+  clustering_configuration_ids: [],
+  evidence_sources: [],
+  limitations: ['SYNTHETIC TEST ONLY'],
+  terminology: {},
+  file_sha256: {},
+}
 
 afterEach(() => {
   vi.unstubAllGlobals()
@@ -26,7 +46,7 @@ describe('OrganizationEvidenceAdapter', () => {
         requested.push(url)
 
         if (url === '/runtime/organization-evidence-v2/manifest.json') {
-          return new Response(readFileSync(manifestPath, 'utf8'), {
+          return new Response(JSON.stringify(syntheticManifest), {
             status: 200,
             headers: { 'content-type': 'application/json' },
           })

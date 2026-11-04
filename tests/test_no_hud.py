@@ -204,4 +204,3 @@ def test_publication_replay_no_automatic_promotion_and_bound_transfer(
     label.write_bytes(b"")
     with pytest.raises(ValueError, match="changed transfer"):
         no_hud.verify(verified)
-

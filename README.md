@@ -1,5 +1,16 @@
 # FLIR Leakage-Aware Clustering Pipeline
 
+## Consolidated workspace
+
+The persistent integration branch contains the backend at `src/` and the explorer
+at `apps/explorer/` (Git subtree with preserved history). Run frontend commands
+from that directory: `npm ci`, `npm run build`, `npm test`. Existing backend imports
+and CLI names are preserved. Original worktrees and repositories are retained.
+
+The [HUD/no-HUD operational report](docs/runbooks/hud_hypatia_handoff.md) separates
+the validated BASE preparation from pending annotation review, missing verified
+NO-HUD transfers, and training that has **not** run.
+
 Curated development preparation is implemented as
 `detection common-executor prepare-curated-development`. It preserves the supplied
 manifest and assignments, verifies exact protected-reference exclusion when metadata

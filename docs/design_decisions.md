@@ -1,5 +1,13 @@
 # Design decisions
 
+## Paired HUD/no-HUD identity and admission (2026-11-04)
+
+Preserve distinct source/target content hashes and link them by observation identity.
+Never assign equal content hashes to altered rasters for experimental parity.
+Pending empty labels and accepted temporal matches do not certify ground truth.
+The existing nine-run signed protocol is not relabeled as a two-run curated
+experiment. No final-test approval is inferred from development preparation.
+
 ## Curated content is a new experimental population (2026-10-27)
 
 Deduplicating development occurrences changes sample weighting even when all

@@ -1,5 +1,13 @@
 # Project status
 
+## HUD/no-HUD handoff and monorepo (2026-11-04)
+
+BASE: 1,135 pairs revalidated and packaged; 185 empty labels still pending review.
+NO-HUD: zero verified annotation transfers in the inspected publication; no paired
+training population. No training or protected payload access. The persistent
+integration branch now includes the executor, alignment, recovered transfer code
+and the explorer subtree. See the [single operational report](runbooks/hud_hypatia_handoff.md).
+
 ## Curated development preparation (2026-10-27)
 
 Implemented a manifest-driven, non-admitted preparation with deterministic receipts

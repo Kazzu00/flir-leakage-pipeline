@@ -1,5 +1,12 @@
 # Pipeline traceability
 
+## HUD ablation preparation (2026-11-04)
+
+Existing curated membership -> verified original image/label pairs -> transfer TAR
+with checksums. This is technical preparation, not detector evidence. NO-HUD
+correspondence candidates remain separate from geometry/box verification. No paired
+population or final detector comparison exists. See the [handoff](runbooks/hud_hypatia_handoff.md).
+
 ## Curated development boundary (2026-10-27)
 
 Curated manifest bytes + proposed matrix/provenance + optional receipt-bound

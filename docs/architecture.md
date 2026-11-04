@@ -1,5 +1,13 @@
 # Architecture
 
+## Monorepo boundary (2026-11-04)
+
+The existing backend remains under src/flir_pipeline; apps/explorer is a Git
+subtree retaining frontend history. Root GitHub Actions activates its quality
+workflow with the frontend working directory. Data stays external. The standalone
+handoff checksum verifier uses only the standard library and cannot grant training
+admission. Recovered no-HUD transfer code reuses existing data validation.
+
 `detection/curated_development.py` adds manifest-driven development materialization
 to the existing common-executor CLI. It reuses source hashing, YOLO validation,
 external-output checks and checked writes. Its versioned development receipt is
