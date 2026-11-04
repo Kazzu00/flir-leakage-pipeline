@@ -1,5 +1,16 @@
 # Project status
 
+## Accepted positive-only BASE pilot (2026-11-04)
+
+User explicitly accepted original nonempty labels for preliminary training with
+visual review pending. A separate immutable package retains S3: 883 train / 67 val;
+185 pending empty labels excluded. Exact cross-split overlap is zero; temporal
+dependence remains unresolved. Separate CLI/SLURM executor preserves final gates.
+112 focused offline tests and global Ruff pass. No actual training/CUDA validation.
+NO-HUD pilot: 13 pairs inspected geometrically, seven candidate pairs / 11 proposed
+boxes, zero verified transfers; paired training remains blocked. See the
+[current operational commands](runbooks/preliminary_base_hypatia.md).
+
 ## HUD/no-HUD handoff and monorepo (2026-11-04)
 
 BASE: 1,135 pairs revalidated and packaged; 185 empty labels still pending review.

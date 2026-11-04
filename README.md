@@ -11,6 +11,11 @@ The [HUD/no-HUD operational report](docs/runbooks/hud_hypatia_handoff.md) separa
 the validated BASE preparation from pending annotation review, missing verified
 NO-HUD transfers, and training that has **not** run.
 
+The [preliminary BASE runbook](docs/runbooks/preliminary_base_hypatia.md) now
+provides a separate user-accepted positive-only pilot: 883 train / 67 val, original
+annotations with visual review pending, 185 empty labels excluded. It is locally
+prepared and validated, not trained. NO-HUD has no verified box-transfer population.
+
 Curated development preparation is implemented as
 `detection common-executor prepare-curated-development`. It preserves the supplied
 manifest and assignments, verifies exact protected-reference exclusion when metadata
@@ -21,7 +26,7 @@ training boundary is unchanged. See the [audit and contract](docs/runbooks/curat
 
 YOLO11m common-test execution now has a **signed, default-deny admission route**
 for existing prepared splits, checkpoint resume and separate final evaluation.
-No real training has been executed or approved. Test/annotation decisions,
+No real training has been executed; final scientific training is not approved. Test/annotation decisions,
 administrator trust and end-to-end signed execution acceptance remain pending.
 The operator reported a successful GPU/model preflight on Hypatia; this does not
 admit the curated population and was not repeated in this integration. See the

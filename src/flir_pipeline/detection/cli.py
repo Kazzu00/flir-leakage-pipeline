@@ -4,7 +4,10 @@ from pathlib import Path
 
 import typer
 
+from flir_pipeline.detection.preliminary_cli import app as preliminary_app
+
 app = typer.Typer(help="Frozen historical/random/cluster detector comparison.")
+app.add_typer(preliminary_app, name="preliminary-base")
 common_executor_app = typer.Typer(help="YOLO11m common-test operations; scientific execution requires signed admission.")
 app.add_typer(common_executor_app, name="common-executor")
 

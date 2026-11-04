@@ -1,5 +1,14 @@
 # Design decisions
 
+## Original nonempty pilot acceptance (2026-11-04)
+
+The user explicitly accepts original nonempty annotations only for a preliminary
+BASE run, with new visual review pending. Exclude all 185 unresolved empty labels;
+do not infer that they are erroneous. Preserve existing S3 assignments and disclose
+positive-only selection bias. Implement this as a separate executor/package, never
+as a bypass of final scientific admission. Geometrically plausible NO-HUD boxes
+are review proposals, not accepted annotations or a paired training population.
+
 ## Paired HUD/no-HUD identity and admission (2026-11-04)
 
 Preserve distinct source/target content hashes and link them by observation identity.

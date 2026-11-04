@@ -1,5 +1,14 @@
 # Pipeline traceability
 
+## Explicit preliminary acceptance (2026-11-04)
+
+Receipt-bound curated source -> user acceptance of original nonempty annotations
+-> unchanged S3 subset (883/67), exclusions and class impact -> immutable receipt
+-> independent preliminary runtime with loader-membership checks and no test.
+No original annotation is silently repaired. Cached NO-HUD retrieval -> masked
+registration -> inverse box transform -> JSON-only proposals; temporal/object
+adjudication is still required. No candidate enters a training label file.
+
 ## HUD ablation preparation (2026-11-04)
 
 Existing curated membership -> verified original image/label pairs -> transfer TAR

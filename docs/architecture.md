@@ -1,5 +1,15 @@
 # Architecture
 
+## Independent preliminary BASE runtime (2026-11-04)
+
+`detection/preliminary.py` and `preliminary_cli.py` implement explicit user-accepted
+positive-only preparation/verification/training. They reuse environment and loader
+guards while keeping package, receipts and outputs separate from final scientific
+admission. Runtime copies prevent cache writes to immutable transfer data.
+`data/box_transfer.py` inverts registration coordinates for review-only proposals;
+`scripts/build_hud_review.py` creates static contact sheets and traceable evidence.
+Neither module approves NO-HUD annotation transfer.
+
 ## Monorepo boundary (2026-11-04)
 
 The existing backend remains under src/flir_pipeline; apps/explorer is a Git
