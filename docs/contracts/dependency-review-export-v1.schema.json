@@ -1,0 +1,194 @@
+{
+  "$defs": {
+    "StoredDecision": {
+      "additionalProperties": false,
+      "properties": {
+        "pair_id": {
+          "minLength": 1,
+          "title": "Pair Id",
+          "type": "string"
+        },
+        "expected_version": {
+          "minimum": 0,
+          "title": "Expected Version",
+          "type": "integer"
+        },
+        "status": {
+          "default": "pending",
+          "enum": [
+            "pending",
+            "reviewed"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "continuity": {
+          "default": "uncertain",
+          "enum": [
+            "continuous",
+            "shot_change",
+            "uncertain"
+          ],
+          "title": "Continuity",
+          "type": "string"
+        },
+        "spatial": {
+          "default": "uncertain",
+          "enum": [
+            "same_region",
+            "different_region",
+            "uncertain"
+          ],
+          "title": "Spatial",
+          "type": "string"
+        },
+        "confidence": {
+          "default": "undetermined",
+          "enum": [
+            "high",
+            "medium",
+            "low",
+            "undetermined"
+          ],
+          "title": "Confidence",
+          "type": "string"
+        },
+        "justification": {
+          "default": "",
+          "maxLength": 10000,
+          "title": "Justification",
+          "type": "string"
+        },
+        "reviewer": {
+          "default": "",
+          "maxLength": 200,
+          "title": "Reviewer",
+          "type": "string"
+        },
+        "phenomena": {
+          "items": {
+            "enum": [
+              "zoom",
+              "rapid_camera",
+              "signal_loss",
+              "gain",
+              "polarity",
+              "occlusion",
+              "low_texture"
+            ],
+            "type": "string"
+          },
+          "title": "Phenomena",
+          "type": "array"
+        },
+        "evidence_consulted": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Consulted",
+          "type": "array"
+        },
+        "adjudicates": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Adjudicates",
+          "type": "array"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "version": {
+          "minimum": 1,
+          "title": "Version",
+          "type": "integer"
+        },
+        "created_at": {
+          "title": "Created At",
+          "type": "string"
+        },
+        "role": {
+          "enum": [
+            "reviewer1",
+            "reviewer2",
+            "adjudicator"
+          ],
+          "title": "Role",
+          "type": "string"
+        },
+        "pilot_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Pilot Sha256",
+          "type": "string"
+        },
+        "evidence_hashes": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Evidence Hashes",
+          "type": "object"
+        }
+      },
+      "required": [
+        "pair_id",
+        "expected_version",
+        "id",
+        "version",
+        "created_at",
+        "role",
+        "pilot_sha256",
+        "evidence_hashes"
+      ],
+      "title": "StoredDecision",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "dependency-review-export-v1",
+      "title": "Schema",
+      "type": "string"
+    },
+    "pilot_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Pilot Sha256",
+      "type": "string"
+    },
+    "role": {
+      "enum": [
+        "reviewer1",
+        "reviewer2",
+        "adjudicator"
+      ],
+      "title": "Role",
+      "type": "string"
+    },
+    "history": {
+      "items": {
+        "$ref": "#/$defs/StoredDecision"
+      },
+      "title": "History",
+      "type": "array"
+    },
+    "initial_pending": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Initial Pending",
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema",
+    "pilot_sha256",
+    "role",
+    "history",
+    "initial_pending"
+  ],
+  "title": "ReviewExport",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://flir-pipeline.local/contracts/dependency-review-export-v1.schema.json"
+}

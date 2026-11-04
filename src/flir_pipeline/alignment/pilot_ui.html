@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="es"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FLIR · Validación humana de alineamiento</title>
+<style>body{font:16px system-ui;margin:2rem auto;max-width:1200px;padding:0 1rem;background:#f6f7f8;color:#192333}h1{font-size:1.7rem}button,select,input,textarea{font:inherit;padding:.45rem;margin:.3rem}button{cursor:pointer}label{display:block}figure{margin:1rem 0}img{max-width:100%;height:auto;background:#ddd}article,form{background:white;border:1px solid #bec8d1;border-radius:8px;padding:1rem;margin:1rem 0}pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1rem}.notice{border-left:5px solid #bf7218;padding:1rem;background:#fff4dc}textarea{display:block;width:90%;min-height:80px}nav{position:sticky;top:0;background:#f6f7f8;padding:.5rem;z-index:2}#message{min-height:2rem}a{color:#164b82}</style>
+<h1>Validación humana de correspondencias FLIR · Fase 2A.1</h1>
+<p class="notice">Se evalúa la identidad imagen–vídeo de top-1. Estas etiquetas no describen continuidad de toma ni identidad geográfica. Confianza automática calibrada: no disponible. Ninguna coincidencia está verificada sin revisión humana explícita.</p>
+<nav><label>Caso <select id="cases"></select></label><button id="previous" type="button">Anterior</button><button id="next" type="button">Siguiente pendiente</button>
+<a href="/api/export/json" download="alignment-reviews.json">Exportar JSON</a> · <a href="/api/export/csv" download="alignment-reviews.csv">Exportar CSV</a> · <a href="/api/report" target="_blank">Reporte descriptivo</a></nav>
+<p id="summary"></p><div id="content"></div>
+<form id="review"><h2>Juicio de alineamiento — top-1</h2>
+<label>Estado <select id="status"><option value="pending">Pendiente</option><option value="reviewed">Revisado</option></select></label>
+<label>Etiqueta de top-1 <select id="label"><option value="">Sin juicio</option><option value="correct_match">correct_match · correspondencia correcta</option><option value="incorrect_match">incorrect_match · correspondencia incorrecta</option><option value="uncertain">uncertain · incierta</option></select></label>
+<label>Confianza humana <select id="confidence"><option value="undetermined">Indeterminada</option><option value="low">Baja</option><option value="medium">Media</option><option value="high">Alta</option></select></label>
+<label>Alternativa mejor que top-1 <select id="better"><option value="">Ninguna indicada</option></select></label>
+<label><input id="no-match" type="checkbox">No identifico correspondencia en las evidencias presentadas (no implica ausencia en todo el vídeo)</label>
+<label>Juicio del control negativo propuesto <select id="control"><option value="">Control pendiente</option><option value="incorrect_match">incorrect_match · rechazo el control</option><option value="correct_match">correct_match · el control corresponde</option><option value="uncertain">uncertain · control incierto</option></select></label>
+<label>Revisor <input id="reviewer" maxlength="200" autocomplete="off"></label>
+<label>Justificación: referencias visuales, alternativas y límites<textarea id="justification" maxlength="10000"></textarea></label>
+<p>Marque las imágenes consultadas arriba. Abrir una imagen no registra consulta automáticamente. La corrección crea una versión nueva; no borra la anterior.</p>
+<button type="submit">Guardar revisión</button><p id="message" role="status" aria-live="polite"></p>
+</form><details><summary>Historial de este caso</summary><pre id="history"></pre></details>
+<script>
+let state, current=0;
+const $=id=>document.getElementById(id);
+const add=(parent,tag,text)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;parent.append(e);return e};
+const last=id=>state.history.filter(d=>d.alignment_id===id).at(-1);
+const media=(parent,key,title,consulted)=>{if(!key)return;const fig=add(parent,'figure');add(fig,'figcaption',title);const a=add(fig,'a');a.href='/media/'+encodeURIComponent(key);a.target='_blank';const img=add(a,'img');img.src=a.href;img.alt=title;const l=add(fig,'label');const box=add(l,'input');box.type='checkbox';box.dataset.media=key;box.checked=consulted.includes(key);l.append(document.createTextNode(' Evidencia consultada: '+key));add(fig,'small','SHA-256: '+state.pilot.media[key].sha256);};
+function render(){
+ const c=state.pilot.cases[current],d=last(c.alignment_id),consulted=d?.evidence_consulted||[];
+ $('cases').value=String(current);$('content').replaceChildren();
+ add($('content'),'h2','Índice '+c.original.dataset_index+' · '+c.original.original_split+' · '+(d?.status||'pending'));
+ add($('content'),'p','Selección: '+c.selection_reason+' | Estado automático: '+c.automatic_status+' | Soporte: '+c.support_band+' (no calibrado)');
+ add($('content'),'p','Intervalo de soporte observado: '+JSON.stringify(c.candidate_interval)+' s. Precisión del instante del JPEG: desconocida; no es un intervalo de confianza.');
+ const provenance=add($('content'),'details');add(provenance,'summary','Identificadores, hashes y procedencia');add(provenance,'pre',JSON.stringify({alignment_id:c.alignment_id,image:c.original,pilot_sha256:state.pilot_sha256,source_video:state.pilot.source_video,source_video_sha256:state.pilot.source_video_sha256,audit_links:c.audit_event_links},null,2));
+ media($('content'),c.original_media,'Imagen original del dataset · '+c.original.original_split,consulted);
+ for(const a of c.alternatives){const section=add($('content'),'article');add(section,'h3','Alternativa '+a.rank+(a.rank===1?' · top-1':'')+(a.close_to_best_inliers?' · soporte cercano a top-1':''));
+  add(section,'p','PTS '+a.metrics.pts+' × '+a.metrics.time_base+' = '+a.metrics.second.toFixed(6)+' s | Inliers '+a.metrics.inliers+'/'+a.metrics.matches+' | Error mediano '+a.metrics.reprojection_median_px+' px | Cobertura '+a.metrics.coverage+' | Correlación '+a.metrics.correlation+' | dHash '+a.metrics.dhash_distance);
+  const grid=add(section,'div');grid.className='grid';media(grid,a.frame_media,'Fotograma candidato '+a.rank,consulted);media(grid,a.lines_media,'SIFT/RANSAC reconstruido: verde inlier, rojo outlier',consulted);media(grid,a.overlay_media,'Superposición interior con homografía (diagnóstico, no prueba de identidad)',consulted);
+  if(!a.overlay_media)add(section,'p','Superposición no disponible: homografía sin soporte o geometría numérica inválida.');
+  const details=add(section,'details');add(details,'summary','Métricas originales, transformación y puntos reconstruidos');add(details,'pre',JSON.stringify({metrics:a.metrics,geometry:a.geometry},null,2));
+ }
+ if(c.control){const s=add($('content'),'article');add(s,'h3','Control negativo propuesto · requiere referencia humana');media(s,c.control.media,'Control existente fuera de ventana · '+c.control.metrics.second+' s',consulted);add(s,'pre',JSON.stringify(c.control.metrics,null,2));}
+ $('status').value=d?.status||'pending';$('label').value=d?.label||'';$('confidence').value=d?.confidence||'undetermined';$('reviewer').value=d?.reviewer||'';$('justification').value=d?.justification||'';$('control').value=d?.control_label||'';$('no-match').checked=d?.no_correspondence_in_presented_evidence||false;
+ $('better').replaceChildren(new Option('Ninguna indicada',''));for(const a of c.alternatives.filter(a=>a.rank>1))$('better').add(new Option('Alternativa '+a.rank,String(a.rank)));$('better').value=d?.better_rank?String(d.better_rank):'';
+ $('history').textContent=JSON.stringify(state.history.filter(d=>d.alignment_id===c.alignment_id),null,2);$('message').textContent='';
+}
+async function load(){const response=await fetch('/api/pilot');if(!response.ok)throw Error(await response.text());state=await response.json();$('cases').replaceChildren();state.pilot.cases.forEach((c,i)=>$('cases').add(new Option(c.original.dataset_index+' · '+c.original.original_split+' · '+(last(c.alignment_id)?.status||'pending'),String(i))));const n=state.pilot.cases.filter(c=>last(c.alignment_id)?.status==='reviewed').length;$('summary').textContent=(state.pilot.synthetic?'SYNTHETIC: pruebas sin datos FAC. ':'')+n+' revisados / '+state.pilot.cases.length+' casos. Índice 500 ausente: '+(state.pilot.selection.absent_index_500?'Sí':'No')+'. El caso 630 no cuenta como match automático encontrado.';render();}
+$('cases').onchange=()=>{current=Number($('cases').value);render()};$('previous').onclick=()=>{current=(current+state.pilot.cases.length-1)%state.pilot.cases.length;render()};$('next').onclick=()=>{for(let k=1;k<=state.pilot.cases.length;k++){const i=(current+k)%state.pilot.cases.length;if(last(state.pilot.cases[i].alignment_id)?.status!=='reviewed'){current=i;break}}render()};
+$('review').onsubmit=async event=>{event.preventDefault();const c=state.pilot.cases[current];const payload={alignment_id:c.alignment_id,expected_version:last(c.alignment_id)?.version||0,status:$('status').value,label:$('label').value||null,confidence:$('confidence').value,reviewer:$('reviewer').value,justification:$('justification').value,evidence_consulted:[...document.querySelectorAll('[data-media]:checked')].map(e=>e.dataset.media),better_rank:$('better').value?Number($('better').value):null,no_correspondence_in_presented_evidence:$('no-match').checked,control_label:$('control').value||null};try{const r=await fetch('/api/decisions',{method:'POST',headers:{'Content-Type':'application/json','X-Alignment-Review':'1'},body:JSON.stringify(payload)});const data=await r.json();if(!r.ok)throw Error(data.error||'No guardado');await load();$('message').textContent='Revisión guardada. Versión '+data.version;}catch(e){$('message').textContent=e.message}};
+load().catch(e=>{$('summary').textContent='Error: '+e.message});
+</script></html>

@@ -1,0 +1,138 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "pair_id": {
+      "minLength": 1,
+      "title": "Pair Id",
+      "type": "string"
+    },
+    "expected_version": {
+      "minimum": 0,
+      "title": "Expected Version",
+      "type": "integer"
+    },
+    "status": {
+      "default": "pending",
+      "enum": [
+        "pending",
+        "reviewed"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "continuity": {
+      "default": "uncertain",
+      "enum": [
+        "continuous",
+        "shot_change",
+        "uncertain"
+      ],
+      "title": "Continuity",
+      "type": "string"
+    },
+    "spatial": {
+      "default": "uncertain",
+      "enum": [
+        "same_region",
+        "different_region",
+        "uncertain"
+      ],
+      "title": "Spatial",
+      "type": "string"
+    },
+    "confidence": {
+      "default": "undetermined",
+      "enum": [
+        "high",
+        "medium",
+        "low",
+        "undetermined"
+      ],
+      "title": "Confidence",
+      "type": "string"
+    },
+    "justification": {
+      "default": "",
+      "maxLength": 10000,
+      "title": "Justification",
+      "type": "string"
+    },
+    "reviewer": {
+      "default": "",
+      "maxLength": 200,
+      "title": "Reviewer",
+      "type": "string"
+    },
+    "phenomena": {
+      "items": {
+        "enum": [
+          "zoom",
+          "rapid_camera",
+          "signal_loss",
+          "gain",
+          "polarity",
+          "occlusion",
+          "low_texture"
+        ],
+        "type": "string"
+      },
+      "title": "Phenomena",
+      "type": "array"
+    },
+    "evidence_consulted": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Evidence Consulted",
+      "type": "array"
+    },
+    "adjudicates": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Adjudicates",
+      "type": "array"
+    }
+  },
+  "required": [
+    "pair_id",
+    "expected_version"
+  ],
+  "title": "PairDecision",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://flir-pipeline.local/contracts/dependency-decision-input-v1.schema.json",
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "reviewed"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "required": [
+          "reviewer",
+          "justification",
+          "evidence_consulted"
+        ],
+        "properties": {
+          "reviewer": {
+            "pattern": "\\S"
+          },
+          "justification": {
+            "pattern": "\\S"
+          },
+          "evidence_consulted": {
+            "minItems": 1,
+            "uniqueItems": true
+          }
+        }
+      }
+    }
+  ]
+}

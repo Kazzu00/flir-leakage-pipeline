@@ -88,6 +88,40 @@ scene identity, group constraint or new split is inferred. Real local audit and
 synthetic regressions were executed; downstream adjudication remains pending.
 See the [contract and evidence states](runbooks/adendo.md).
 
+## Dependency pair pilot (Phase 2B)
+
+Frozen alignment review export (24 final accepted top-1, 27 historical entries)
+→ 276 bounded masked geometric comparisons → 24 directed, exclusive-category pairs
+→ independent continuity/spatial annotations → separate reviewer ledgers and optional
+append-only adjudication. Pair annotations remain pending. Accepted alignment is
+not converted into continuity, region, independence, or leakage labels. No graph or
+new split is produced. Earlier pending counts below describe original delivery time.
+
+## Alignment review pilot (Phase 2A.1)
+
+Existing image-to-video candidates → frozen 24-case sample → exact-PTS evidence
+reconstruction → explicitly consulted human top-1 judgments → versioned exports
+and descriptive analysis. The pipeline never substitutes scores for human labels,
+infers independence from incorrect matches, or recalibrates thresholds using test.
+The delivered real sample has no human annotations yet.
+
+## Multisplit visual provenance alignment (Phase 2A)
+
+Original occurrence (archive/member/ordinal, split, index, SHA-256) → seeded temporal
+stratum → image-to-video candidate rankings with media PTS and independent support
+metrics → checksummed visual evidence → optional explicit human identity review.
+This is data understanding/preparation and provenance QA, not a clustering/splitting
+decision. Historical `TemporalObservation.verification` is unchanged. See
+[implementation and operational boundaries](runbooks/phase2a_multisplit_alignment.md).
+
+## Human review evidence policy 1.1 (2026-11-03)
+
+Conclusive reviews require explicitly consulted, event-bound image evidence.
+Pending and fully undetermined reviews remain possible. Legacy decisions retain
+their original policy and history. Sample intervals retain nominal provenance;
+shared historical indices are anomalies, not proof of semantic leakage.
+See [policy and limitations](runbooks/audit_human_review_v11.md).
+
 ## External visual variants (2026-10-08)
 
 Explicit YAML + read-only ZIP/video inputs → checksummed physical entry ledger →
@@ -298,3 +332,12 @@ and the assistant-review mode survive without asserting truth, exact provenance,
 sequence instances, dependency groups or splits. The normalized source retains
 the unspecified variant and is verified against the canonical source identities;
 any modified original invalidates verification even if its snapshot is intact.
+
+## Local exploratory audit trace (2026-11-02)
+
+Legacy artifact bytes + SHA256 + original locator → normalized observations and
+candidate events → explicitly consulted image references → versioned human
+continuity/dependence judgments → lossless JSON/CSV history. Review does not
+promote candidates to sequences, links, ground truth or split constraints.
+Real priority ingestion and a synthetic browser smoke are distinct evidence.
+See [commands and limitations](runbooks/audit_human_review.md).

@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:flir:audit-external-evidence-v1:1.1",
+  "additionalProperties": false,
+  "properties": {
+    "evidence_id": {
+      "title": "Evidence Id",
+      "type": "string"
+    },
+    "event_id": {
+      "title": "Event Id",
+      "type": "string"
+    },
+    "sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Sha256",
+      "type": "string"
+    },
+    "event_asset_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Event Asset Sha256",
+      "type": "string"
+    },
+    "filename": {
+      "title": "Filename",
+      "type": "string"
+    },
+    "locator": {
+      "minLength": 1,
+      "title": "Locator",
+      "type": "string"
+    },
+    "basis": {
+      "enum": [
+        "explicit_record_reference",
+        "manual_correspondence"
+      ],
+      "title": "Basis",
+      "type": "string"
+    },
+    "rationale": {
+      "minLength": 1,
+      "title": "Rationale",
+      "type": "string"
+    },
+    "reviewer": {
+      "minLength": 1,
+      "title": "Reviewer",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "mime": {
+      "enum": [
+        "image/png",
+        "image/jpeg"
+      ],
+      "title": "Mime",
+      "type": "string"
+    }
+  },
+  "required": [
+    "evidence_id",
+    "event_id",
+    "sha256",
+    "event_asset_sha256",
+    "filename",
+    "locator",
+    "basis",
+    "rationale",
+    "reviewer",
+    "created_at",
+    "mime"
+  ],
+  "title": "ExternalEvidence",
+  "type": "object"
+}

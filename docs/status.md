@@ -377,6 +377,76 @@ No se revalidaron los 48 experimentos de Hypatia. Los artefactos y
 la evidencia importada permanecen fuera del repositorio. Véase el
 [contrato y ejecución](runbooks/adendo.md).
 
+## Fase 2B: piloto de dependencias
+
+**Implementación y ejecución técnica reales; 24 pares pendientes de revisión.**
+Cuatro fronteras, seis cercanos, seis no consecutivos, cuatro cambios candidatos y
+cuatro controles con ocho contenidos distintos. 276 comparaciones acotadas, 129
+medios y ocho pares para segundo revisor independiente. Cero decisiones humanas
+de dependencia; concordancia todavía nula. Geometría débil, sin superposición válida.
+Véanse [validación](analysis/phase2b_dependency_validation.md) y
+[runbook](runbooks/phase2b_dependency_pilot.md).
+
+**Actualización de Fase 2A.1:** el export humano recibido después de la entrega
+técnica contiene 27 revisiones históricas y 24 aceptaciones finales. Se verificaron
+sus hashes y se congeló como referencia local. No son etiquetas de continuidad o
+región; la aceptación dirigida por un revisor no estima precisión poblacional.
+Los estados pendientes descritos debajo corresponden al momento de las entregas
+anteriores, antes de recibir este export.
+
+## Fase 2A.1: piloto de validación humana de alineamiento
+
+**Preparado y comprobado técnicamente; 24 casos pendientes, cero anotaciones FAC.**
+Ocho diagnósticos, doce adicionales equilibrados por split y cuatro difíciles,
+incluido 630; 500 sigue ausente. Servicio local de revisión, historial versionado,
+exportación JSON/CSV y reporte descriptivo condicionado a referencias humanas.
+380 imágenes cargadas en Chromium; persistencia tras reinicio validada con datos
+sintéticos y ledger real sin cambios de decisiones. 76 pruebas focalizadas y Ruff
+aprobados. No hay confianza automática calibrada ni estimación de exactitud humana.
+Véanse [selección y validación](analysis/phase2a1_pilot_validation.md) y
+[runbook](runbooks/phase2a1_human_alignment_review.md).
+
+## Fase 2A: alineación multisplit (2026-11-03)
+
+**Implementada y ejecutada sobre muestra real; verificación humana pendiente.**
+Manifiesto de 3.659 ocurrencias en cinco ZIPs; fuente original seleccionada de
+747 imágenes (467/50/230). Muestra estratificada y diagnóstica de 44: 43 candidatos,
+1 sin soporte, 0 errores, 0 verificaciones humanas. Reportes locales con 88 láminas
+y cuatro comparaciones de fronteras; PTS y hashes de reextracción comprobados.
+Regresión focalizada ampliada: 214 pruebas aprobadas; Ruff aprobado. No se repitieron
+las suites globales completas. No se generaron secuencias, splits ni entrenamiento.
+Véanse [validación y límites](analysis/phase2a_multisplit_validation.md) y
+[operación](runbooks/phase2a_multisplit_alignment.md).
+
+## FLIR Human Review v1.1 (2026-11-03)
+
+Correcciones implementadas: evidencia obligatoria en conclusiones, registro externo
+explícito, compañeros CSV/JSON idempotentes, intervalos completos, esquemas raíz y
+anomalías cross-split. Historias anteriores preservadas. 49 pruebas backend focalizadas,
+94 unitarias frontend y 2 E2E del auditor aprobadas. La suite global backend quedó
+incompleta; E2E global: 16 aprobadas, 1 fallida, 8 omitidas (repetición aislada del
+fallo aprobada). No se declara validación global ni campaña científica completada.
+Véanse [validación](analysis/audit_human_review_v11_validation.md) y
+[operación](runbooks/audit_human_review_v11.md).
+
+## FLIR Audit & Human Review v1 (2026-11-02)
+
+**Infraestructura implementada; smoke sintético de navegador validado;
+importación real prioritaria validada; revisión humana real pendiente.**
+`sequences audit` importa JSON/CSV/manifiestos ZIP, conserva evidencia y SHA-256,
+valida normalización y mantiene revisiones transaccionales en SQLite. La interfaz
+se integra en `flir-pipeline-explorer` y separa continuidad audiovisual de
+dependencia visual. No crea secuencias ni splits ni confirma independencia.
+
+Se importaron ocho artefactos prioritarios: 450 registros candidatos de distintos
+tipos y 1.855 observaciones, sin duplicación en reimportación; cero decisiones
+humanas reales. Tres archivos prioritarios estaban ausentes. La suite focalizada
+pasó 133 pruebas; el módulo pasó sus 30 pruebas finales. Frontend: 91 unitarias y
+E2E propio aprobados, con persistencia tras reinicio y export exacto. La suite
+Python global quedó incompleta; E2E global conserva un problema de accesibilidad
+en splits fuera del módulo. Véanse el [registro completo de validación](analysis/audit_human_review_validation.md)
+y el [runbook](runbooks/audit_human_review.md).
+
 ## Ingesta de variantes visuales externas (2026-10-08)
 
 **Ingesta real disponible localmente; puente de features implementado y validado

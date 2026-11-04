@@ -78,6 +78,16 @@ annotation ledger and evidence edges join through occurrence/content/label IDs.
 candidate publication does not mutate historical data, splits or detector runs.
 See the [schema, identity and failure contract](runbooks/adendo.md).
 
+## Local dependency pair review (Phase 2B)
+
+`alignment/dependency.py` validates frozen alignment references and builds a bounded
+pair bundle. `dependency_contract.py` describes the versioned pair schema.
+`dependency_store.py` binds each append-only SQLite ledger to manifest and reviewer
+role; reviewer 2 sees only assigned pairs and its own decisions. Adjudication uses
+two read-only source ledgers and a third history. `dependency_ui.html` reuses the
+loopback server with explicit consulted-evidence confirmation. Original datasets,
+alignment reviews and historical audit ledger are never written by this path.
+
 ## External visual-variant ingestion (2026-10-08)
 
 `data/video_variant_contract.py` defines explicit logical collections/series,
@@ -559,3 +569,32 @@ identity. Sequence experiment sources carry this declaration into every immutabl
 publication and SLURM run identity. Legacy undeclared stores remain `unspecified`.
 `sequences/experiments/variant_comparison.py` consumes completed frozen suites and
 optional validated occurrence correspondence; it never fits or constructs groups.
+
+## Local audit and human review (2026-11-02)
+
+Phase 2A.1 adds `alignment/pilot*`: immutable selection/media bundle → loopback
+HTML/API reviewer → separately bound SQLite append-only alignment judgments.
+The service does not write the historical audit ledger or matching evidence.
+Fixed-pair geometry is reconstructed only at existing candidate PTS; no retrieval
+or ranking is performed. Report denominators distinguish pending, uncertain and
+conclusive human labels; confidence calibration is unavailable.
+
+Phase 2A adds the separate `alignment` package: image occurrence inventory and
+stratified selection → CPU visual retrieval and native media-time refinement →
+immutable JSON/CSV, contact sheets and local HTML. Existing audit IDs are referenced
+read-only as index-based navigation candidates, never silently promoted into visual
+identity. Human correspondence reviews live in separate source-bound revision files.
+No new frontend backend endpoint or dependency graph is introduced.
+
+Revision 1.1 adds persistent canonical companion mappings, explicit reconciliation
+receipts, frozen external image evidence and complete document schemas. Legacy
+normalizers verify original rows; current snapshots project compatible temporal
+metadata without rewriting history. See [v1.1](runbooks/audit_human_review_v11.md).
+
+`sequences audit` → bounded read-only legacy adapters → immutable raw evidence
+and normalized `audit-evidence-v1` rows in SQLite → loopback HTTP API → existing
+React `SequenceExplorer` reviewer. Human decisions are append-only revisions,
+separate from automatic metrics, with optimistic version checks and evidence
+hash bindings. JSON/CSV exports round-trip the full history. This local annotation
+service does not change the existing immutable organization/scientific contracts.
+See the [architecture, contract and operational guide](runbooks/audit_human_review.md).

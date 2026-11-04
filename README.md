@@ -57,6 +57,32 @@ executed locally on the three source ZIPs; evidence adjudication remains pending
 It creates no splits or training runs. See the [contract and CLI](docs/runbooks/adendo.md)
 and [observed audit results](docs/status.md).
 
+`flir-pipeline sequences audit` provides **FLIR Audit & Human Review v1.1**:
+read-only legacy JSON/CSV/ZIP ingestion, `audit-evidence-v1`, a local SQLite
+ledger, versioned human decisions and JSON/CSV exports. The reviewer is integrated
+in `flir-pipeline-explorer` → Sequences & linkage → Human audit review.
+An audiovisual cut and visual-region dependence are separate judgments;
+neither a cut nor a whole video defines an independent split group.
+See [installation, synthetic smoke, commands, semantics and limitations](docs/runbooks/audit_human_review.md).
+See [v1.1 evidence policy, canonical imports and validation](docs/runbooks/audit_human_review_v11.md).
+
+`flir-pipeline sequences alignment` adds bounded CPU multisplit image-to-video
+retrieval with media timestamps, explicit alternatives and local visual evidence.
+Automatic output remains candidate/ambiguous/not_found; human verification is a
+separate explicit action. See [Phase 2A operation](docs/runbooks/phase2a_multisplit_alignment.md).
+
+`sequences alignment pilot` prepares and serves the 24-case human alignment pilot
+on loopback, with separate versioned judgments and JSON/CSV exports. The subsequently
+received human export contains 24 accepted alignments and 27 historical decisions.
+See the [human review runbook](docs/runbooks/phase2a1_human_alignment_review.md).
+No sequences, partitions or detector runs are created by this module.
+
+`sequences alignment dependencies` prepares and serves the Phase 2B pair pilot:
+24 directed pairs with separate continuity/spatial judgments, explicit evidence
+confirmation, independent reviewer ledgers and append-only adjudication. All pair
+decisions remain pending. See the [pair review runbook](docs/runbooks/phase2b_dependency_pilot.md)
+and [actual validation and limitations](docs/analysis/phase2b_dependency_validation.md).
+
 `flir-pipeline data video-variant-ingestion build/verify/summary` audits external
 image variants directly from ZIP shards with bounded reads and immutable evidence.
 Scientific occurrence IDs survive unambiguous repackaging; duplicate indices

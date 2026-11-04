@@ -108,6 +108,16 @@ additional review evidence and remain distinct from byte-level identity. No edge
 automatically assigns a split. The consolidated candidate is not a drop-in input
 for the existing splitter. See the [limits and future joins](runbooks/adendo.md).
 
+## 2026-11-04: independent pair axes and reviewer histories
+
+Phase 2B treats audiovisual continuity and spatial relation as independent judgments.
+Accepted image-video alignment supplies provenance only. Directed selection quotas
+are mutually exclusive; uncertainty and negative-control status are preserved.
+Separate role-bound SQLite ledgers prevent accidental answer disclosure through the
+review API. Adjudication references actual decisions without replacing them.
+Mask QA uses green HUD exclusion and bounded descriptor support, with visible masks;
+low geometric support is reported rather than converted into spatial independence.
+
 ## 2026-10-08: scientific occurrence identity independent of ZIP packaging
 
 External processed-frame ingestion separates exact image SHA256, named logical
@@ -983,3 +993,38 @@ remain uncertain; `sequence_core_candidate` remains a candidate with legacy
 origin. Encoder ranks and candidate pairs are preserved, with no confirmed
 dependencies or components promoted to VDGs. The legacy assistant review mode
 is retained verbatim and is not independent visual ground truth.
+
+## Local exploratory audit decisions (2026-11-02)
+
+Phase 2A.1 alignment labels judge top-1 identity only: correct_match,
+incorrect_match or uncertain. They are not continuity/region labels. Better-rank
+preferences and proposed negative-control judgments remain separate fields.
+Implicit pending rows are exported as version 0 without fabricating a reviewer.
+Only an explicit reviewed/correct_match action with bound consulted evidence marks
+human_verified_top1. The 40-inlier display bands and five-review reporting gate are
+operational diagnostics, not calibrated confidence or statistical sufficiency.
+
+Phase 2A uses the original multisplit image archive explicitly; alternative archive
+occurrences stay separate even when names match. Nominal offset is a retrieval prior,
+not correspondence evidence. CPU SIFT/RANSAC support, normalized correlation and
+perceptual hash are separate uncalibrated diagnostics. Outside-window controls do
+not imply different geographic regions. Media timestamps identify decoded frames;
+only an explicit human review can assign `human_verified`. The local HTML is the
+bounded review surface; no React expansion is required for this phase.
+
+Revision 1.1 preserves the first accepted canonical source (JSON first only when
+both arrive together). Later companions cannot change event IDs or migrate reviews.
+Conflicting revisions require a separate ledger. Existing duplicate identities
+require explicit reconciliation with a receipt and retained histories. Evidence
+references are validated before new conclusions; legacy conclusions remain visible
+with warnings. See [policy](runbooks/audit_human_review_v11.md).
+
+Audiovisual continuity and visual/region dependence are independent dimensions.
+`shot_change + same_region` is valid; neither implies independence or a split
+constraint. Imported classifications remain original evidence, not human history.
+Missing source-video attribution stays unknown. Source revisions receive new
+identities rather than inheriting decisions based on nearby nominal times.
+JSON and equivalent CSV are retained separately but normalized once.
+SQLite transactions and optimistic revision checks support local durable review;
+this is not a multiuser service or a scientific confirmation mechanism.
+See [audit human review](runbooks/audit_human_review.md).
