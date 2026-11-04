@@ -236,7 +236,19 @@ incorrecto (8 fallos/5 errores por configuración ausente); la repetición desde
 raíz integradora pasó. Frontend compiló; lint sin errores y con tres advertencias
 preexistentes. El primer unit test reveló la dependencia privada ya corregida.
 La repetición frontend pasó: **94 pruebas**, TypeScript aprobado.
-La suite global se registra en el cierre de esta entrega.
+Suite global: **1.475 aprobadas, cero fallos, errores u omisiones**, en 62 archivos,
+ejecutados en tres procesos (532 + 506 + 437). Los JUnit se sumaron y verificaron;
+tiempo del grupo más largo: 861,7 s incluyendo arranque. El primer intento
+monolítico se interrumpió durante un bloque numérico lento y no se declara
+completado; su log se conserva. La repetición utilizó límites de un hilo para
+OMP/OpenBLAS/MKL/Numba y bloqueo offline. Evidencia en `global-segmented/`.
+Ruff global, `git diff --check`, sintaxis Bash/PowerShell, ayuda CLI y siete
+notebooks fuente: PASS. La barrera `--require-training-ready` rechazó el paquete
+con código 2, como corresponde a su estado no admitido.
 No se ejecutaron E2E, Docker, entrenamiento, inferencia, preflight CUDA real ni
 evaluación de test. El paso siguiente es revisión de anotaciones y geometría,
 no clustering adicional.
+
+Commits locales de integración: `5bce09f` (executor/alineamiento/transferencia),
+`1638e97` (subtree frontend), `71509f2` (handoff y comprobaciones). El cierre
+documental se incluye en el bundle final. No hubo push ni merge a main.

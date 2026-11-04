@@ -8,6 +8,13 @@ training population. No training or protected payload access. The persistent
 integration branch now includes the executor, alignment, recovered transfer code
 and the explorer subtree. See the [single operational report](runbooks/hud_hypatia_handoff.md).
 
+Validation: 1,475 backend tests passed across all 62 test files in three isolated
+processes (zero failures/errors/skips); 94 frontend unit tests, TypeScript, build,
+Ruff and notebook-source checks passed. Frontend lint retains three warnings.
+The interrupted monolithic pytest attempt is not counted as completed. Local CPU
+preflight failed because the core environment lacks torch; no CUDA validation,
+training, protected-test evaluation or remote job was executed.
+
 ## Curated development preparation (2026-10-27)
 
 Implemented a manifest-driven, non-admitted preparation with deterministic receipts
