@@ -1,5 +1,14 @@
 # Pipeline traceability
 
+## Dependency pair pilot (Phase 2B)
+
+Frozen alignment review export (24 final accepted top-1, 27 historical entries)
+→ 276 bounded masked geometric comparisons → 24 directed, exclusive-category pairs
+→ independent continuity/spatial annotations → separate reviewer ledgers and optional
+append-only adjudication. Pair annotations remain pending. Accepted alignment is
+not converted into continuity, region, independence, or leakage labels. No graph or
+new split is produced. Earlier pending counts below describe original delivery time.
+
 ## Alignment review pilot (Phase 2A.1)
 
 Existing image-to-video candidates → frozen 24-case sample → exact-PTS evidence

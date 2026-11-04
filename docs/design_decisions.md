@@ -1,5 +1,15 @@
 # Design decisions
 
+## 2026-11-04: independent pair axes and reviewer histories
+
+Phase 2B treats audiovisual continuity and spatial relation as independent judgments.
+Accepted image-video alignment supplies provenance only. Directed selection quotas
+are mutually exclusive; uncertainty and negative-control status are preserved.
+Separate role-bound SQLite ledgers prevent accidental answer disclosure through the
+review API. Adjudication references actual decisions without replacing them.
+Mask QA uses green HUD exclusion and bounded descriptor support, with visible masks;
+low geometric support is reported rather than converted into spatial independence.
+
 ## 2026-10-08: scientific occurrence identity independent of ZIP packaging
 
 External processed-frame ingestion separates exact image SHA256, named logical

@@ -1,5 +1,22 @@
 # Project status
 
+## Fase 2B: piloto de dependencias
+
+**Implementación y ejecución técnica reales; 24 pares pendientes de revisión.**
+Cuatro fronteras, seis cercanos, seis no consecutivos, cuatro cambios candidatos y
+cuatro controles con ocho contenidos distintos. 276 comparaciones acotadas, 129
+medios y ocho pares para segundo revisor independiente. Cero decisiones humanas
+de dependencia; concordancia todavía nula. Geometría débil, sin superposición válida.
+Véanse [validación](analysis/phase2b_dependency_validation.md) y
+[runbook](runbooks/phase2b_dependency_pilot.md).
+
+**Actualización de Fase 2A.1:** el export humano recibido después de la entrega
+técnica contiene 27 revisiones históricas y 24 aceptaciones finales. Se verificaron
+sus hashes y se congeló como referencia local. No son etiquetas de continuidad o
+región; la aceptación dirigida por un revisor no estima precisión poblacional.
+Los estados pendientes descritos debajo corresponden al momento de las entregas
+anteriores, antes de recibir este export.
+
 ## Fase 2A.1: piloto de validación humana de alineamiento
 
 **Preparado y comprobado técnicamente; 24 casos pendientes, cero anotaciones FAC.**

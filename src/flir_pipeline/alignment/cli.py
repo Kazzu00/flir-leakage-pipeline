@@ -5,10 +5,12 @@ from pathlib import Path
 
 import typer
 
+from .dependency_cli import app as dependency_app
 from .pilot_cli import app as pilot_app
 
 app = typer.Typer(help="Bounded multisplit visual provenance alignment; CPU only.")
 app.add_typer(pilot_app, name="pilot")
+app.add_typer(dependency_app, name="dependencies")
 
 
 @app.command("run")

@@ -1,5 +1,15 @@
 # Architecture
 
+## Local dependency pair review (Phase 2B)
+
+`alignment/dependency.py` validates frozen alignment references and builds a bounded
+pair bundle. `dependency_contract.py` describes the versioned pair schema.
+`dependency_store.py` binds each append-only SQLite ledger to manifest and reviewer
+role; reviewer 2 sees only assigned pairs and its own decisions. Adjudication uses
+two read-only source ledgers and a third history. `dependency_ui.html` reuses the
+loopback server with explicit consulted-evidence confirmation. Original datasets,
+alignment reviews and historical audit ledger are never written by this path.
+
 ## External visual-variant ingestion (2026-10-08)
 
 `data/video_variant_contract.py` defines explicit logical collections/series,

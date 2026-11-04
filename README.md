@@ -17,9 +17,16 @@ Automatic output remains candidate/ambiguous/not_found; human verification is a
 separate explicit action. See [Phase 2A operation](docs/runbooks/phase2a_multisplit_alignment.md).
 
 `sequences alignment pilot` prepares and serves the 24-case human alignment pilot
-on loopback, with separate versioned judgments and JSON/CSV exports. All delivered
-FAC cases remain pending. See the [human review runbook](docs/runbooks/phase2a1_human_alignment_review.md).
+on loopback, with separate versioned judgments and JSON/CSV exports. The subsequently
+received human export contains 24 accepted alignments and 27 historical decisions.
+See the [human review runbook](docs/runbooks/phase2a1_human_alignment_review.md).
 No sequences, partitions or detector runs are created by this module.
+
+`sequences alignment dependencies` prepares and serves the Phase 2B pair pilot:
+24 directed pairs with separate continuity/spatial judgments, explicit evidence
+confirmation, independent reviewer ledgers and append-only adjudication. All pair
+decisions remain pending. See the [pair review runbook](docs/runbooks/phase2b_dependency_pilot.md)
+and [actual validation and limitations](docs/analysis/phase2b_dependency_validation.md).
 
 `flir-pipeline data video-variant-ingestion build/verify/summary` audits external
 image variants directly from ZIP shards with bounded reads and immutable evidence.

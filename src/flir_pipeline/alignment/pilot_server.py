@@ -6,7 +6,9 @@ from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
 
-def make_server(store, port=8766):
+def make_server(store, port=8766, ui_name="pilot_ui.html"):
+    if ui_name not in {"pilot_ui.html", "dependency_ui.html"}:
+        raise ValueError("Unknown review surface")
     class Handler(BaseHTTPRequestHandler):
         def log_message(self, *_args):
             pass
@@ -39,7 +41,7 @@ def make_server(store, port=8766):
                 if path == "/":
                     return self.respond(
                         200,
-                        Path(__file__).with_name("pilot_ui.html").read_bytes(),
+                        Path(__file__).with_name(ui_name).read_bytes(),
                         "text/html; charset=utf-8",
                     )
                 if path == "/api/pilot":
