@@ -1,5 +1,14 @@
 # Pipeline traceability
 
+## Sequence grouping admission boundary (2026-11-04)
+
+The accepted 950-content BASE preserves S3 relation components. It is not a
+sequence-complete partition: 923 of its 928 groups are singleton contents.
+Reviewed sequence/visual-dependency memberships must be joined through verified
+labeled linkage before constructing another split; whole-video identity and name
+families cannot substitute for the extracted sequence unit. Keep common protected
+test identity fixed and recheck development closure before comparing populations.
+
 ## Expanded NO-HUD candidate evidence (2026-11-04)
 
 Immutable accepted BASE + receipt-bound reverse candidates/native index -> 2,624

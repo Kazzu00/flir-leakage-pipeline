@@ -1,5 +1,17 @@
 # Project status
 
+## Leakage experiment priority (2026-11-04)
+
+Bounded provenance review: BASE has 442 video_11min, 460 video_13min, 40 scene-720p
+and eight scene-1080p sources. Only the last eight are plausible for the available
+NO-HUD clip. Seven pending pairs checked against local native-frame windows;
+zero transfers certified. NO-HUD investigation closed for now. BASE's existing
+S3 has 928 groups (923 singletons, five groups containing 27 images), no train/val
+group overlap or exact protected-content overlap. This does not establish sequence
+atomicity. Historical remote paths for reviewed sequences/VDGs/linkage were supplied
+by the user but not accessed. Next step: retrieve metadata for coverage/identity
+checks, not training. See [bounded findings](runbooks/leakage_priority.md).
+
 ## Expanded NO-HUD recovery (2026-11-04)
 
 BASE job 791494 was submitted by the user; its package/executor remain unchanged.
