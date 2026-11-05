@@ -1,5 +1,14 @@
 # Pipeline traceability
 
+## Expanded NO-HUD candidate evidence (2026-11-04)
+
+Immutable accepted BASE + receipt-bound reverse candidates/native index -> 2,624
+development-only comparisons -> geometry and object-region diagnostics -> native
+neighbor cross-check -> static review. Eight geometrical source candidates become
+seven pending after ambiguity rejection; none becomes a training annotation.
+Upstream code/config establish an attributed ProPainter processing recipe, not
+per-image execution provenance. Source and processed-raster hashes stay distinct.
+
 ## Explicit preliminary acceptance (2026-11-04)
 
 Receipt-bound curated source -> user acceptance of original nonempty annotations

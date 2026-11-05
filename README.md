@@ -16,6 +16,10 @@ provides a separate user-accepted positive-only pilot: 883 train / 67 val, origi
 annotations with visual review pending, 185 empty labels excluded. It is locally
 prepared and validated, not trained. NO-HUD has no verified box-transfer population.
 
+The operator subsequently submitted BASE job 791494 (remote completion unverified).
+[Expanded NO-HUD recovery](docs/runbooks/no_hud_expansion.md) evaluated all 950
+sources and 2,624 candidate pairs; no paired training population is admitted.
+
 Curated development preparation is implemented as
 `detection common-executor prepare-curated-development`. It preserves the supplied
 manifest and assignments, verifies exact protected-reference exclusion when metadata

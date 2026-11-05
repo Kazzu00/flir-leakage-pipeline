@@ -1,5 +1,16 @@
 # Project status
 
+## Expanded NO-HUD recovery (2026-11-04)
+
+BASE job 791494 was submitted by the user; its package/executor remain unchanged.
+Evaluated 2,624 pairs covering all 950 accepted sources. Eight source images / 12
+boxes pass the provisional geometry screen; one source is rejected as ambiguous.
+Seven sources / ten boxes remain pending, with no verified transfer and no paired
+training population. The supplied upstream repository documents ProPainter and
+resizing, consistent with local PNG counts/dimensions, but lacks a checksum binding
+to received images/masks. 31 focused tests and Ruff pass. See
+[results and provenance limits](runbooks/no_hud_expansion.md).
+
 ## Accepted positive-only BASE pilot (2026-11-04)
 
 User explicitly accepted original nonempty labels for preliminary training with

@@ -1,5 +1,13 @@
 # Design decisions
 
+## Processed NO-HUD is a distinct treatment (2026-11-04)
+
+The user-supplied upstream repository reports ProPainter inpainting and full-frame
+resizing. Treat the delivered PNGs as a processed variant with incomplete execution
+binding, never as authentic overlay-free captures. Score/PSNR and native rank-one
+agreement cannot approve object labels. Missing masks, ambiguous temporal identity
+and absent class coverage block paired training. The running BASE remains intact.
+
 ## Original nonempty pilot acceptance (2026-11-04)
 
 The user explicitly accepts original nonempty annotations only for a preliminary
