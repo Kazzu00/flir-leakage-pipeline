@@ -1,5 +1,40 @@
 # Architecture
 
+## General dependency pipeline (2026-11-06)
+
+`general/contract.py` defines a versioned occurrence/class/evidence manifest.
+`ingestion.py` reuses local path safety and YOLO QA; `localization.py` optionally
+reuses full-raster hashing with actual PyAV PTS. `analysis.py` builds accepted
+components, detects cannot-link contradictions and invokes the existing MILP with
+explicit balance columns/weights. Historical defaults remain compatible.
+`publication.py` binds sources, code and environment, publishes immutable outputs
+and replays full analysis. `timeline.py` renders only confirmed decoded positions.
+`fac_adapter.py` alone interprets the audited FAC delivery. No detector training
+or external publication is invoked. See [contract](../PIPELINE_CONTRACT.md).
+
+Legacy five-class contracts remain in `data/classes.py`, historical
+`record_statistics`/`aggregate_groups`, `splitting/metrics.py` and its visualization.
+They are not invoked by the generic path; changing their meaning would invalidate
+older publications. New variable-class metrics live in the general analysis.
+
+## Content-only video localization review
+
+`alignment/visual_localization.py` supplies content retrieval keys, full-raster
+digests, interior descriptors, diverse candidate selection and conservative
+temporal states. It has no nominal-index or splitting input. An external runner
+binds original videos and records decoded PTS without changing published datasets.
+The review sidecar retains candidate groups and decision templates separately from
+scientifically accepted relations. See [review contract](runbooks/jp_video_grounded_review.md).
+
+## JP paired delivery adapter
+
+`explorer/paired_inputs.py` binds an existing external inventory and historical
+evidence. `paired_timeline.py` reuses timeline ordering/figures and emits standalone
+HTML. `splitting/paired.py` closes exact/accepted units and uses the existing seeded
+record-cut allocator for both policies. `paired_delivery.py` exposes timeline,
+split and independent verify stages. It writes only to a new external directory;
+no source store, frontend service or training package is modified.
+
 ## Local dependency pair review (Phase 2B)
 
 `alignment/dependency.py` validates frozen alignment references and builds a bounded

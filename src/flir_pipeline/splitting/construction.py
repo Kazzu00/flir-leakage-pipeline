@@ -17,6 +17,14 @@ from flir_pipeline.splitting.base import (
 )
 
 
+class AssignmentError(ValueError):
+    """Preserve an unsuccessful solver result for auditable policy comparisons."""
+
+    def __init__(self, status: int, message: str):
+        self.solver_result = {"status": int(status), "message": str(message), "heuristic_substituted": False}
+        super().__init__(f"MILP has no incumbent (status {status}: {message}); no heuristic substituted")
+
+
 def record_statistics(manifest: pd.DataFrame, instances: pd.DataFrame) -> pd.DataFrame:
     """Preserve conflicting annotations per occurrence; never choose a representative label."""
     if manifest.frame_id.isna().any() or not manifest.frame_id.is_unique or manifest.content_id.isna().any():
@@ -69,6 +77,21 @@ def random_assignment(units: pd.DataFrame, ratios: np.ndarray, seed: int) -> tup
     """Permute contents and cut near cumulative record targets; classes are unused."""
     if len(units) < 3 or not units.content_count.eq(1).all():
         raise ValueError("Random baseline needs at least three singleton contents")
+    return atomic_random_assignment(units, ratios, seed)
+
+
+def atomic_random_assignment(units: pd.DataFrame, ratios: np.ndarray, seed: int) -> tuple[dict, dict]:
+    """Same seeded record cuts for arbitrary indivisible units, without class tuning.
+
+    Holding this allocator fixed isolates the grouping policy in paired proposals.
+    Unlike random_assignment, content_count may exceed one per accepted unit.
+    """
+    if (len(units) < 3 or not units.group_id.is_unique
+            or not np.isfinite(units.record_count).all() or not units.record_count.gt(0).all()
+            or len(ratios) != 3 or not np.isfinite(ratios).all()
+            or np.any(np.asarray(ratios) <= 0) or not np.isclose(sum(ratios), 1)
+            or type(seed) is not int or seed < 0):
+        raise ValueError("Invalid atomic units, ratios or seed")
     rng = np.random.default_rng(seed)
     ordered = units.sort_values("group_id").iloc[rng.permutation(len(units))]
     split_order = rng.permutation(3)
@@ -86,7 +109,9 @@ def random_assignment(units: pd.DataFrame, ratios: np.ndarray, seed: int) -> tup
     return assignments, {"method": "seeded_content_permutation_record_cuts", "seed": seed, "class_balancing": False}
 
 
-def milp_assignment(units: pd.DataFrame, ratios: np.ndarray, seed: int, config: SplitConfig) -> tuple[dict, dict]:
+def milp_assignment(units: pd.DataFrame, ratios: np.ndarray, seed: int, config: SplitConfig,
+                    *, balance_columns: tuple[str, ...] = BALANCE_COLUMNS,
+                    family_weights: tuple[float, ...] | None = None) -> tuple[dict, dict]:
     """Integer counts of exchangeable groups per split, with normalized L1 slack.
 
     Aggregating identical balance vectors is lossless: their coefficients are equal
@@ -97,7 +122,12 @@ def milp_assignment(units: pd.DataFrame, ratios: np.ndarray, seed: int, config: 
     if len(units) < 3:
         raise ValueError("At least three atomic groups are needed for nonempty splits")
     ordered = units.sort_values("group_id").reset_index(drop=True)
-    vectors = ordered[list(BALANCE_COLUMNS)].to_numpy(dtype=float)
+    vectors = ordered[list(balance_columns)].to_numpy(dtype=float)
+    if (not ordered.group_id.is_unique or not np.isfinite(vectors).all()
+            or (vectors < 0).any() or not ordered.record_count.gt(0).all()
+            or len(ratios) != 3 or not np.isfinite(ratios).all()
+            or np.any(np.asarray(ratios) <= 0) or not np.isclose(sum(ratios), 1)):
+        raise ValueError("Invalid balance vectors or target ratios")
     profiles, inverse, counts = np.unique(vectors, axis=0, return_inverse=True, return_counts=True)
     rng = np.random.default_rng(seed)
     permutation = rng.permutation(len(profiles))
@@ -107,7 +137,12 @@ def milp_assignment(units: pd.DataFrame, ratios: np.ndarray, seed: int, config: 
     nx, nd = p*3, 3*d
     nvars = nx + 2*nd
     targets = ratios[:, None] * vectors.sum(axis=0)[None, :]
-    family_weights = np.array([config.record_weight, *([config.class_weight/5]*5), config.empty_weight])
+    # Defaults preserve the historical five-class objective byte-for-byte. New
+    # schemas supply explicit columns/weights without changing the MILP itself.
+    family_weights = np.asarray(family_weights if family_weights is not None else
+                              [config.record_weight, *([config.class_weight/5]*5), config.empty_weight])
+    if family_weights.shape != (d,) or not np.isfinite(family_weights).all() or (family_weights <= 0).any():
+        raise ValueError("Every balance column requires a positive finite weight")
     weights = (family_weights[None, :] / (3*np.maximum(targets, 1))).ravel()
     objective = np.r_[np.zeros(nx), weights, weights]
     a = lil_matrix((p+nd+3, nvars), dtype=float)
@@ -132,7 +167,7 @@ def milp_assignment(units: pd.DataFrame, ratios: np.ndarray, seed: int, config: 
                   options={"node_limit": config.node_limit, "mip_rel_gap": config.mip_rel_gap, "presolve": True})
     elapsed = time.perf_counter()-started
     if result.x is None:
-        raise ValueError(f"MILP has no incumbent (status {result.status}: {result.message}); no heuristic substituted")
+        raise AssignmentError(result.status, result.message)
     # SciPy may map newer HiGHS stopping codes (e.g. Solution limit reached)
     # to status=4 despite returning a feasible incumbent. Validate the actual
     # primal solution rather than interpreting a status label as feasibility.

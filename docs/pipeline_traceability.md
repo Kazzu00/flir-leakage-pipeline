@@ -1,5 +1,47 @@
 # Pipeline traceability
 
+## Functional freeze and scientific evidence
+
+Frozen 175 Python sources → paired organization regression (same 34 failures)
+→ preregistered synthetic dependency truth → independent crossing counts and
+replay → separate historical FAC byte audit and provisional delivery proposals
+→ explicit closure criteria and pending detector comparison. No product changes,
+new empirical detector results or promoted candidate dependencies.
+See [scientific closure](../SCIENTIFIC_CLOSURE.md) and
+[reproduction commands](../REPRODUCE.md).
+
+## General closure (2026-11-06)
+
+Explicit image/label/video catalog or audited adapter → versioned canonical
+occurrences and original class IDs → checksummed relation/temporal evidence →
+accepted content components + rejected-edge conflict report → common eligibility
+→ exact-content/dependency-group policies through the same MILP → full coverage,
+crossing and distribution diagnostics → immutable publication → source-bound replay.
+Four independent synthetic populations and the existing FAC case exercise this
+path. Detector evaluation remains outside this technical closure.
+See [tests](../GENERALIZATION_TESTS.md), [FAC observations](../FAC_CASE_STUDY.md)
+and [reproduction](../REPRODUCE.md).
+
+## JP temporal correction supersedes nominal placement
+
+Frozen published artifacts → separate review sidecar → checksummed source videos
+→ sequential decoded ordinal/PTS → content-only retrieval → full-raster identity
+or explicit approximate candidates → original/NO-HUD binding review → contextual
+and continuity review. Nominal supplier fields remain auxiliary metadata only.
+Existing nominal axes cannot authorize temporal placement or dependency decisions.
+See [current contract](runbooks/jp_video_grounded_review.md).
+
+## JP paired delivery
+
+Checksummed prior inventory → exact reference-content historical joins →
+supplier-reported temporal lanes per video → deterministic visual QA sample →
+shared provisional eligibility → exact/pair units versus accepted-relation closure
+→ identical seeded allocator → independent membership and source-identity checks.
+Recovered sequence sample indices are not equated with supplier native frame
+indices. Historical support remains historical. Protected references are excluded,
+not reassigned or silently adopted as an approved test. See the
+[paired-delivery contract](runbooks/jp_paired_delivery.md).
+
 ## Dependency pair pilot (Phase 2B)
 
 Frozen alignment review export (24 final accepted top-1, 27 historical entries)
