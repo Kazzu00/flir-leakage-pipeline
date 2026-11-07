@@ -1,5 +1,14 @@
 # Pipeline traceability
 
+## Adjudication and conservative exclusion (2026-11-07)
+
+Owner-communicated eight B selections → separate immutable annotation layer →
+full-population automatic QA → exact accepted groups plus a distinct uncertain-edge
+protection graph → common internal candidate test and explicit reserve/quarantine
+→ unchanged two-destination MILP and A/B adapter. Unknown semantics, temporal origin
+and statistical independence remain UNVERIFIED. The technical freeze does not
+satisfy signed scientific admission. See the [operating policy](runbooks/adjudicated_internal_evaluation.md).
+
 ## Explicit general A/B handoff (2026-11-07)
 
 Bound upstream occurrence identities + explicit policy assignments + declared

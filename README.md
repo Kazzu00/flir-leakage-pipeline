@@ -1,5 +1,11 @@
 # FLIR Leakage-Aware Clustering Pipeline
 
+The new private adjudicated evaluation candidate applies eight authorized existing-B
+annotations and conservative isolation of uncertain dependencies. Automatic checks
+and unchanged-MILP replay pass; the test is technically frozen only as an internal
+retrospective candidate. A/B memberships are identical, remote preflight is pending,
+and no detector training is authorized. See the [scope and limitations](docs/runbooks/adjudicated_internal_evaluation.md).
+
 An explicit general A/B assignment adapter is implemented on a separate integration
 branch, with the scientific pipeline frozen at `df3452f`. It preserves occurrence
 identities, prepares development only and retains the signed admission gates.

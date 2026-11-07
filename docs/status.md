@@ -1,5 +1,17 @@
 # Project status
 
+## Adjudicated internal candidate (2026-11-07)
+
+Applied the responsible's explicit existing-B selections to eight conflicts in a
+new private annotation layer; originals and prior publications are unchanged.
+Automatic checks retain all 372 test anchors (991 annotated instances). Conservative
+candidate-component exclusion leaves 487 reserve, 141 quarantine and 657 development
+occurrences. Ten unchanged-MILP solutions and shuffled-input replays pass; A and B
+are still identical. A technical internal-test freeze is not signed training
+admission or evidence of external independence. Unverifiable semantics and coverage
+remain UNVERIFIED; no additional human data review is requested. Hypatia SSH remains
+blocked; no detector training occurred. See the [scope and rules](runbooks/adjudicated_internal_evaluation.md).
+
 ## General A/B executor integration (2026-11-07)
 
 Implemented the explicit `general_ab_assignments_v1` bridge on a separate branch
