@@ -32,18 +32,20 @@ def _prime_cuda_import_order() -> None:
 @common_executor_app.command("dry-run")
 def common_executor_plan(publication: Path, output: Path,
                          config: Path = Path("configs/detection/common_test_yolo11m_v2.yaml"),
-                         checkpoint_sha256: str | None = None) -> None:
+                         checkpoint_sha256: str | None = None,
+                         input_format: str = "legacy_fixed_test") -> None:
     import json
 
     from flir_pipeline.detection.common_executor import dry_run
-    typer.echo(json.dumps(dry_run(publication, config, output, checkpoint_sha256), indent=2))
+    typer.echo(json.dumps(dry_run(publication, config, output, checkpoint_sha256, input_format), indent=2))
 
 
 @common_executor_app.command("prepare")
 def common_executor_prepare(publication: Path, source_root: Path, output: Path,
-                            evidence: Path | None = None) -> None:
+                            evidence: Path | None = None,
+                            input_format: str = "legacy_fixed_test") -> None:
     from flir_pipeline.detection.common_executor import prepare
-    result = prepare(publication, source_root, output, evidence)
+    result = prepare(publication, source_root, output, evidence, input_format)
     typer.echo(f"Prepared {len(result['views'])} development views; training blocked")
 
 

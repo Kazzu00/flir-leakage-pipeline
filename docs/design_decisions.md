@@ -1,5 +1,14 @@
 # Design decisions
 
+## Preserve general A/B identities at the executor boundary (2026-11-07)
+
+The general pipeline's population and policies must not be renamed as expanded
+S1/S2/S3 merely to satisfy an older loader. An opt-in versioned adapter binds exact
+occurrence metadata and assignments, keeps the common worker and authorization
+boundary, and retains aliases when memberships coincide. A wholly identical A/B
+matrix cannot authorize redundant comparison training. Scientific code and
+previous publications remain frozen; see the [contract](runbooks/general_ab_executor.md).
+
 ## Curated content is a new experimental population (2026-10-27)
 
 Deduplicating development occurrences changes sample weighting even when all

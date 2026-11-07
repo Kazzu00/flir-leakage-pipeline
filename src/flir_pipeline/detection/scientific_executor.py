@@ -44,6 +44,13 @@ def context(document: Path, signature: Path, plan_path: Path, output: Path) -> d
     config = load_executor_config(bound_file(admission["config"]))
     if receipt["source_id"] != plan["source_id"]:
         raise ValueError("Plan/preparation publication mismatch")
+    is_ab = admission.get("input_format") == "general_ab_assignments_v1"
+    if is_ab:
+        from flir_pipeline.detection.general_ab import validate_context_contract
+
+        validate_context_contract(admission, plan, receipt)
+    elif "input_contract" in plan or "input_contract" in receipt:
+        raise ValueError("Explicit A/B signed admission required")
     selected = []
     for run in plan["runs"]:
         if run["identity"]["configuration"] != config:
@@ -65,7 +72,7 @@ def context(document: Path, signature: Path, plan_path: Path, output: Path) -> d
         ]
         if not aliases:
             continue
-        if len(aliases) != 1:
+        if len(aliases) != 1 and not is_ab:
             raise ValueError("Primary matrix requires distinct strategy identities")
         identity = run["identity"]["records_id"]
         if (
@@ -73,7 +80,7 @@ def context(document: Path, signature: Path, plan_path: Path, output: Path) -> d
             or receipt["views"][identity]["test_id"] != admission["test"]["records_id"]
         ):
             raise ValueError("Approved test or prepared membership differs")
-        if aliases[0]["arm"] not in receipt["views"][identity]["aliases"]:
+        if any(a["arm"] not in receipt["views"][identity]["aliases"] for a in aliases):
             raise ValueError("Strategy alias not bound to preparation")
         selected.append(
             {
@@ -81,6 +88,7 @@ def context(document: Path, signature: Path, plan_path: Path, output: Path) -> d
                 "records_id": identity,
                 "detector_seed": run["identity"]["detector_seed"],
                 **aliases[0],
+                **({"aliases": aliases} if is_ab else {}),
             }
         )
     expected = {
@@ -89,12 +97,16 @@ def context(document: Path, signature: Path, plan_path: Path, output: Path) -> d
         for s in admission["split_seeds"]
         for d in admission["detector_seeds"]
     }
-    if (
-        len(selected) != admission["max_runs"]
-        or {(r["policy"], r["split_seed"], r["detector_seed"]) for r in selected}
+    if len(selected) != admission["max_runs"] or (
+        not is_ab
+        and {(r["policy"], r["split_seed"], r["detector_seed"]) for r in selected}
         != expected
     ):
         raise ValueError("Incomplete or duplicated admitted matrix")
+    if is_ab:
+        from flir_pipeline.detection.general_ab import validate_selected
+
+        validate_selected(selected, expected)
     config["train"]["batch"] = admission["batch"]
     # Identity binds the signed protocol, including all variants and operational freeze.
     for run in selected:
@@ -134,6 +146,7 @@ def context(document: Path, signature: Path, plan_path: Path, output: Path) -> d
         "prepared": prepared,
         "config": config,
         "runs": selected,
+        **({"input_contract": plan["input_contract"]} if is_ab else {}),
     }
 
 
@@ -265,7 +278,12 @@ def verify_execution(directory: Path, expected: dict | None = None) -> dict:
 
 def verify_test_view(test_root: Path, permission: dict, ctx: dict) -> None:
     """A self-receipted test view is insufficient: rebind it to signed originals."""
-    expected = pd.read_parquet(bound_file(permission["test_sources"]["records"]))
+    if ctx["admission"].get("input_format") == "general_ab_assignments_v1":
+        from flir_pipeline.detection.general_ab import released_test_records
+
+        _, _, expected = released_test_records(permission, ctx)
+    else:
+        expected = pd.read_parquet(bound_file(permission["test_sources"]["records"]))
     if records_identity(expected) != ctx["admission"]["test"]["records_id"]:
         raise ValueError("Approved test identity differs")
     actual = pd.read_parquet(test_root / "view/records.parquet")
@@ -434,6 +452,22 @@ def prepare_test(
     permission, ctx = evaluation_context(
         document, signature, training_document, training_signature
     )
+    if ctx["admission"].get("input_format") == "general_ab_assignments_v1":
+        from flir_pipeline.detection.general_ab import materialize_released_test
+
+        external_output(output, document.parent, training_document.parent)
+        rows = materialize_released_test(permission, ctx, output)
+        rows = variant_rows(rows, ctx["admission"]["variant"])
+        write_view(rows, output / "view")
+        return seal(
+            output,
+            {
+                "state": "sealed_test",
+                "admission_sha256": ctx["admission_sha256"],
+                "evaluation_sha256": file_sha256(document),
+                "test_id": ctx["admission"]["test"]["records_id"],
+            },
+        )
     test = permission["test_sources"]
     rows = pd.read_parquet(bound_file(test["records"]))
     if records_identity(rows) != ctx["admission"]["test"]["records_id"]:

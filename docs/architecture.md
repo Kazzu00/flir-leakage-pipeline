@@ -1,5 +1,12 @@
 # Architecture
 
+`detection/general_ab.py` is an explicit input adapter to the common executor.
+It validates occurrence-bound assignments, common protected test and accepted-group
+invariants, then reuses planning, preparation verification, signed admission and
+the scientific worker. It preserves long A/B policy names and all aliases for
+identical run identities. No split engine, MILP objective or detector runtime is
+introduced. See the [A/B contract](runbooks/general_ab_executor.md).
+
 `detection/curated_development.py` adds manifest-driven development materialization
 to the existing common-executor CLI. It reuses source hashing, YOLO validation,
 external-output checks and checked writes. Its versioned development receipt is

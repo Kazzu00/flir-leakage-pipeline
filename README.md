@@ -1,5 +1,11 @@
 # FLIR Leakage-Aware Clustering Pipeline
 
+An explicit general A/B assignment adapter is implemented on a separate integration
+branch, with the scientific pipeline frozen at `df3452f`. It preserves occurrence
+identities, prepares development only and retains the signed admission gates.
+Synthetic integration checks pass; real training, test approval and GPU capacity
+remain pending. See the [A/B contract and limitations](docs/runbooks/general_ab_executor.md).
+
 Curated development preparation is implemented as
 `detection common-executor prepare-curated-development`. It preserves the supplied
 manifest and assignments, verifies exact protected-reference exclusion when metadata

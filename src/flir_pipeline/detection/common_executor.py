@@ -205,14 +205,27 @@ def dry_run(
     config_path: Path,
     output: Path,
     checkpoint_sha256: str | None = None,
+    input_format: str = "legacy_fixed_test",
 ) -> dict:
     external_output(output, publication)
     if output.exists():
         raise ValueError("Plan destination exists; never overwrite evidence")
-    summary, assignments, _ = load_publication(publication)
+    if input_format == "general_ab_assignments_v1":
+        from flir_pipeline.detection.general_ab import load
+
+        _, summary, assignments, _, _, _ = load(publication)
+        binding = summary["input_contract"]["source_id"]
+    elif input_format == "legacy_fixed_test":
+        summary, assignments, _ = load_publication(publication)
+        binding = file_sha256(publication / "receipt.json")
+    else:
+        raise ValueError("Unknown explicit input format")
     config = load_executor_config(config_path)
-    binding = file_sha256(publication / "receipt.json")
     plan = plan_runs(summary, assignments, config, binding, checkpoint_sha256)
+    if "input_contract" in summary:
+        payload = {k: v for k, v in plan.items() if k != "plan_id"}
+        payload["input_contract"] = summary["input_contract"]
+        plan = {"plan_id": stable_id(payload), **payload}
     output.mkdir(parents=True)
     write_json(output / "plan.json", plan)
     write_json(output / "provenance.json", execution_provenance())
@@ -234,13 +247,27 @@ def verify_executor_plan(directory: Path) -> dict:
 
 
 def prepare(
-    publication: Path, source_root: Path, output: Path, evidence: Path | None = None
+    publication: Path,
+    source_root: Path,
+    output: Path,
+    evidence: Path | None = None,
+    input_format: str = "legacy_fixed_test",
 ) -> dict:
     """Materialize development only; test remains bound in metadata, never in YAML.
 
     Occurrence labels may conflict. Shared storage reuses each occurrence across
     all arms, without merging its annotations with another occurrence.
     """
+    if input_format == "general_ab_assignments_v1":
+        from flir_pipeline.detection.general_ab import prepare as prepare_ab
+
+        if evidence is not None:
+            raise ValueError(
+                "A/B uses explicitly bound sources, not legacy evidence inference"
+            )
+        return prepare_ab(publication, source_root, output)
+    if input_format != "legacy_fixed_test":
+        raise ValueError("Unknown explicit input format")
     external_output(output, publication, source_root)
     if output.exists():
         raise ValueError("Preparation destination exists; inspect partial output")
@@ -343,6 +370,13 @@ def verify_preparation(output: Path) -> dict:
         ):
             raise ValueError("Prepared membership identity mismatch")
         active_records(rows, test)
+        if (
+            receipt.get("input_contract", {}).get("format")
+            == "general_ab_assignments_v1"
+        ):
+            from flir_pipeline.detection.general_ab import verify_prepared_rows
+
+            verify_prepared_rows(rows, receipt, entry)
         records = pd.read_parquet(view / "records.parquet")
         expected = (
             rows.loc[rows.new_split.isin(["train", "val"])]

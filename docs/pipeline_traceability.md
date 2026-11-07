@@ -1,5 +1,14 @@
 # Pipeline traceability
 
+## Explicit general A/B handoff (2026-11-07)
+
+Bound upstream occurrence identities + explicit policy assignments + declared
+accepted groups → protected/common-test validation → unchanged development bytes
+and deduplicated plan → existing signed admission → existing worker. The adapter
+does not generate groups, adjudicate candidates, solve MILP or authorize the test.
+Equivalent A/B memberships are not an experimental contrast. See the
+[integration contract](runbooks/general_ab_executor.md).
+
 ## Curated development boundary (2026-10-27)
 
 Curated manifest bytes + proposed matrix/provenance + optional receipt-bound

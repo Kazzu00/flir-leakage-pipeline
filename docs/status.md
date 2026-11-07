@@ -1,5 +1,17 @@
 # Project status
 
+## General A/B executor integration (2026-11-07)
+
+Implemented the explicit `general_ab_assignments_v1` bridge on a separate branch
+based on executor `6f349c5`; scientific reference `df3452f` is unchanged. It reuses
+the common worker, retains all policy aliases, binds original occurrence/content
+and annotation identities, and rejects unapproved tests and wholly equivalent
+A/B comparisons. Focused synthetic validation: 68 passed; global Ruff passed.
+Local runtime preflight is blocked by absent vision runtime dependencies; Hypatia
+authentication requires user intervention. No scientific training or test approval.
+This does not supersede global failure evidence on other branches or assert green
+CI. See [contract, commands and limits](runbooks/general_ab_executor.md).
+
 ## Curated development preparation (2026-10-27)
 
 Implemented a manifest-driven, non-admitted preparation with deterministic receipts
