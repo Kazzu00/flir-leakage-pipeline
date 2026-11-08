@@ -6,6 +6,63 @@ solicitar 32G de RAM al scheduler. La intervención causal y el smoke oficial GP
 a 640 **todavía no se han ejecutado**. No cambia el protocolo, la admisión ni el
 código experimental. No se declara recuperada la GPU antes de esa comprobación.
 
+## Auditoría íntegra del arnés — 2026-11-08
+
+Se revisaron los seis JSON completos (647 valores hoja cada uno), sus trazas,
+stdout, stderr y códigos de salida. Los 23 archivos recibidos conservan sus
+hashes. No hay errores de captura `unavailable`; nvidia-smi y scontrol retornaron
+0. Los stderr vacíos son consecuencia del except que escribe diagnosis.json y
+retorna 1, no una omisión de errores ni prueba de éxito.
+
+El defecto encontrado es **de etiquetado de etapa**: phase=before_forward era
+el último checkpoint, no la ubicación del fallo. Se separan ahora last_checkpoint
+y phase activa (forward/backward/optimizer, además de setup/smoke). El código
+computacional es idéntico por comparación AST excluyendo únicamente esas
+asignaciones de etiquetas. No se cambian tensores, sincronizaciones, imports,
+semillas, pérdida, optimizador ni llamadas CUDA.
+
+| Variante | Punto donde se notificó el error | Memoria CUDA asignada antes → al fallar |
+|---|---|---:|
+| inherited-forward-640 | SiLU, forward sin criterio de pérdida | 81.71 → 525.30 MiB |
+| inherited-loss-640 | SiLU, forward invocado desde loss | 81.71 → 525.30 MiB |
+| configured-loss-640 | BatchNorm, forward de C2f/Conv | 81.71 → 209.71 MiB |
+| configured-loss-160 | Atención C2PSA: producto matricial, cublasCreate | 77.31 → 109.46 MiB |
+| configured-loss-320 | SiLU, forward de C2f/Conv | 78.19 → 152.10 MiB |
+| october-modules-loss-640 | BatchNorm, forward de C2f/Conv | 81.71 → 209.71 MiB |
+
+La inicialización CUDA, transferencia del modelo y creación de tensores sí se
+ejecutaron. Las trazas recorren capas del modelo y la memoria asignada aumenta
+durante forward. Ninguno alcanzó la reducción de pérdida, backward o SGD.step.
+No hay evidencia de un fallo compartido de parser, imports, versiones o tipos
+del arnés. Como CUDA es asíncrono, la traza identifica dónde se notificó el
+error, no demuestra por sí sola qué kernel anterior lo originó.
+
+### Comparación honesta del control a 160 con octubre
+
+| Aspecto | Octubre, según evidencia comunicada | Job 792984 |
+|---|---|---|
+| Construcción | YOLO("yolo11m.yaml") | DetectionModel("yolo11m.yaml", ch=3, nc=5) |
+| Tensor | randn(2,3,160,160), distribución normal | rand(1,3,160,160), uniforme |
+| Objetivo | Forward/backward reportados; fórmula de pérdida no disponible | Pérdida nativa de detección, cinco cajas, reducción sum |
+| Optimización | No consta código ni llamada SGD verificable | SGD se construye antes del forward; step no se alcanza |
+| Torch/Ultralytics | 2.7.1+cu118 / 8.3.203 reportados | Mismas versiones observadas |
+| cuDNN, TF32, determinismo | No constan flags efectivos históricos | cuDNN 90100, TF32 desactivado en configurado, determinismo activo |
+| Módulos | python/3.11 y cuda/11.8 reportados | Ninguno heredado; control adicional carga ambos y falla |
+| Límites del proceso | No disponibles en el antecedente | RLIMIT_AS soft=hard=13.2 GiB |
+
+No se encontró el script/log original de esa ejecución de octubre en los
+artefactos locales consultados. El control actual a 160 es una microprueba de
+pérdida, **no una reproducción exacta** de aquel tensor-smoke. La diferencia de
+memoria efectiva frente a octubre aún no puede cuantificarse. Por ello no se
+atribuye una regresión a PyTorch, CUDA o al cluster. El import-order de 756cdc0
+se conserva y precede a common_runtime; su corrección no elimina el límite AS.
+
+Se mantiene la única intervención ya preparada: reserva de 32G por Slurm y
+microstep 640, seguida como máximo por un smoke oficial. No se repiten las seis
+variantes ni se añade una reconstrucción ficticia del ensayo de octubre. El
+script auditado tendrá SHA distinto por las etiquetas, diferencia documentada
+que no cambia la computación del control.
+
 ## Resultado de los seis diagnósticos
 
 Todos devuelven exit code 1 y estado failed. Los stderr están vacíos porque el

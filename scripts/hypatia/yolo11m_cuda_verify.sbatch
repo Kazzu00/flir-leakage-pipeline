@@ -14,7 +14,7 @@ set -euo pipefail
 umask 077
 : "${SLURM_JOB_ID:?Submit once through Slurm}"
 : "${FLIR_REPO:?Existing unchanged executor checkout}"
-: "${FLIR_DIAGNOSTIC_SCRIPT:?Diagnostic script used in job 792984}"
+: "${FLIR_DIAGNOSTIC_SCRIPT:?Audited diagnostic script; computation unchanged from job 792984}"
 : "${FLIR_PYTHON:?Existing detection venv Python}"
 : "${FLIR_CUDA_OUTPUT:?Fresh external verification directory}"
 cd "$FLIR_REPO"
@@ -41,7 +41,8 @@ run_case() {
         return "$rc"
     fi
 }
-# Same script, seed, targets, size and configured path as the failed baseline.
+# Same computation, seed, targets, size and configured path as the failed baseline.
+# The audited script only distinguishes active phase from last checkpoint.
 # A new interpreter is used for the subsequent full smoke.
 if ! run_case configured-loss-640 --case loss --size 640 --profile configured; then
     printf '%s\n' 'SKIPPED: paired microstep failed; no smoke retry' > "$FLIR_CUDA_OUTPUT/smoke-status.txt"

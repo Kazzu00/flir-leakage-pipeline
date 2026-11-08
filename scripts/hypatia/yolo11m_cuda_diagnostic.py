@@ -131,6 +131,7 @@ def run(args):
 
     def checkpoint(phase):
         report["phase"] = phase
+        report["last_checkpoint"] = phase
         report["snapshots"].append({"phase": phase, "cuda": cuda_snapshot(torch)})
         save_report(path, report)
 
@@ -168,14 +169,17 @@ def run(args):
         checkpoint("runtime_ready")
         if args.case == "smoke":
             from flir_pipeline.detection.common_runtime import synthetic_smoke
+            report["phase"] = "synthetic_smoke"
             synthetic_smoke(args.config, output / "official-smoke", batch=1, cpu=False)
         else:
             from types import SimpleNamespace
 
             from ultralytics.nn.tasks import DetectionModel
+            report["phase"] = "model_setup"
             model = DetectionModel("yolo11m.yaml", ch=3, nc=5).cuda().train()
             model.args = SimpleNamespace(box=7.5, cls=0.5, dfl=1.5)
             optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.937, weight_decay=0.0005)
+            report["phase"] = "batch_setup"
             batch = {
                 "img": torch.rand(1, 3, args.size, args.size, device="cuda"),
                 "batch_idx": torch.zeros(5, device="cuda"),
@@ -184,6 +188,8 @@ def run(args):
             }
             optimizer.zero_grad(set_to_none=True)
             checkpoint("before_forward")
+            # The checkpoint precedes the call; a failure inside it is forward.
+            report["phase"] = "forward"
             if args.case == "forward":
                 prediction = model(batch["img"])
                 report["prediction_requires_grad"] = [x.requires_grad for x in prediction]
@@ -202,9 +208,11 @@ def run(args):
                 report["loss_items"] = items.detach().cpu().tolist()
                 report["loss_total"] = total.detach().item()
                 checkpoint("before_backward")
+                report["phase"] = "backward"
                 total.backward()
                 torch.cuda.synchronize()
                 checkpoint("before_optimizer")
+                report["phase"] = "optimizer"
                 optimizer.step()
                 torch.cuda.synchronize()
                 checkpoint("optimizer_completed")

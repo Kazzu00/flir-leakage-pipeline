@@ -1,5 +1,15 @@
 # Project status
 
+## CUDA harness audit (2026-11-08)
+
+Full traces from job 792984 confirm real CUDA activity and failures during network
+forward; the 160px control reached attention/cuBLAS initialization. Corrected a
+reporting ambiguity: active phase is now separate from the last checkpoint.
+Computation is unchanged by AST comparison excluding stage labels. October's
+reported tensor-smoke is not an exact match for the current 160px loss probe;
+its original code and effective limits are unavailable. The same single 32G
+resource verification remains prepared, not submitted; no additional GPU sweep.
+
 ## CUDA diagnostic recovery (2026-11-07)
 
 Job 792984 failed in all six isolated cases, including 160px and explicit October

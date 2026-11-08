@@ -74,12 +74,18 @@ def test_uninitialized_snapshot_does_not_initialize_cuda():
     assert result == {"initialized": False}
 
 
-@pytest.mark.parametrize("fail_forward", [False, True])
-def test_loss_vector_and_failure_stage_with_synthetic_backend(tmp_path, monkeypatch, fail_forward):
+@pytest.mark.parametrize("failure_stage", [None, "forward", "backward", "optimizer"])
+def test_loss_vector_and_failure_stage_with_synthetic_backend(tmp_path, monkeypatch, failure_stage):
     events = []
+
+    def operation(stage, event):
+        events.append(event)
+        if failure_stage == stage:
+            raise RuntimeError(f"synthetic CUDA failure during {stage}")
+
     scalar = MagicMock()
     scalar.detach.return_value.item.return_value = 6.0
-    scalar.backward.side_effect = lambda: events.append("backward")
+    scalar.backward.side_effect = lambda: operation("backward", "backward")
     vector = MagicMock()
     vector.sum.side_effect = lambda: (events.append("sum"), scalar)[1]
     vector.item.side_effect = AssertionError("loss has three components")
@@ -88,7 +94,7 @@ def test_loss_vector_and_failure_stage_with_synthetic_backend(tmp_path, monkeypa
     items.detach.return_value.cpu.return_value.tolist.return_value = [1.0, 2.0, 3.0]
     model = MagicMock()
     model.cuda.return_value.train.return_value = model
-    if fail_forward:
+    if failure_stage == "forward":
         model.side_effect = RuntimeError("synthetic CUDA failure during forward")
     else:
         model.return_value = (vector, items)
@@ -104,7 +110,7 @@ def test_loss_vector_and_failure_stage_with_synthetic_backend(tmp_path, monkeypa
     torch.are_deterministic_algorithms_enabled.return_value = True
     torch.cuda.is_available.return_value = True
     torch.isfinite.return_value.item.return_value = True
-    torch.optim.SGD.return_value.step.side_effect = lambda: events.append("step")
+    torch.optim.SGD.return_value.step.side_effect = lambda: operation("optimizer", "step")
     for name, module in {
         "torch": torch,
         "ultralytics": SimpleNamespace(__version__="8.3.203", settings={}),
@@ -118,12 +124,16 @@ def test_loss_vector_and_failure_stage_with_synthetic_backend(tmp_path, monkeypa
     output = tmp_path / "attempt"
     result = diagnostic.run(diagnostic.parse_args([str(output), "--profile", "bare"]))
     report = json.loads((output / "diagnosis.json").read_text())
-    if fail_forward:
+    if failure_stage:
         assert result == 1 and report["state"] == "failed"
-        assert report["phase"] == "before_forward"
+        assert report["phase"] == failure_stage
+        assert report["last_checkpoint"] == f"before_{failure_stage}"
         assert report["failure_cuda"] == {"fixture": True}
         assert "synthetic CUDA failure" in report["traceback"]
-        assert events == []
+        assert events == {
+            "forward": [], "backward": ["sum", "backward"],
+            "optimizer": ["sum", "backward", "step"],
+        }[failure_stage]
     else:
         assert result == 0 and report["state"] == "completed"
         assert report["loss_total"] == 6.0
