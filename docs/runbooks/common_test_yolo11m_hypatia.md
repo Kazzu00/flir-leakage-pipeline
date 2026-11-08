@@ -1,5 +1,12 @@
 # YOLO11m v2 con test común provisional
 
+Actualización CUDA 2026-11-07: el worker solicita 32G de RAM por defecto como
+corrección operacional candidata al límite virtual observado con 12G. No altera
+el protocolo ni anula límites del sistema. La verificación GPU sigue pendiente;
+usar el [único job preparado y sus criterios](yolo11m_cuda_diagnosis.md) antes de
+considerar recuperada la ejecución. `--mem` explícito al enviar el job sobrescribe
+ese valor; la reserva efectiva debe comprobarse en Slurm y `/proc/self/limits`.
+
 Actualización 2026-10-21: existe una ruta separada de admisión firmada, entrenamiento,
 resume y evaluación descrita en [ejecución científica](scientific_yolo11m.md).
 Las órdenes sin esa admisión siguen bloqueadas. Las secciones siguientes registran

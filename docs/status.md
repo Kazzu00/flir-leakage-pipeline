@@ -2,12 +2,16 @@
 
 ## CUDA diagnostic recovery (2026-11-07)
 
-Isolated operational correction: reduce the three-component detection loss in
-the supplied microprobe and capture same-process CUDA/host memory evidence.
-The experimental source, 640px configuration and signed admission are unchanged.
-The six supplied GPU failures occur in standalone network forward before loss;
-the scalar-loss correction is not claimed to resolve that OOM. Root cause and
-official GPU smoke remain pending. See the [comparison and bounded diagnosis](runbooks/yolo11m_cuda_diagnosis.md).
+Job 792984 failed in all six isolated cases, including 160px and explicit October
+modules. Effective RLIMIT_AS was 13.2 GiB; post-error virtual size approached it
+within 23.3–55.9 MiB while more than 20 GiB VRAM remained free and PyTorch's
+fraction was 1.0. Host address-space exhaustion is the best-supported explanation,
+pending the resource intervention. The worker now requests 32G host RAM through
+Slurm by default; no process limit is removed. One verification job is prepared:
+paired 640px microstep, then one official synthetic epoch only if it passes.
+Experimental source, 640px configuration, admission and test remain unchanged.
+No verification job or FAC training was launched in this intervention. See the
+[comparison and verification gates](runbooks/yolo11m_cuda_diagnosis.md).
 
 ## Adjudicated internal candidate (2026-11-07)
 

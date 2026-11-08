@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
-# Request partition, memory, CPUs, walltime and GPU explicitly at submission.
+# Request partition, CPUs, walltime and GPU explicitly at submission.
+# Provisional host-memory request: 12G yielded RLIMIT_AS=13.2GiB on Hypatia.
+# This requests resources through Slurm; it does not remove process limits.
+#SBATCH --mem=32G
 #SBATCH --job-name=flir-common-yolo11m
 #SBATCH --output=common-yolo11m-%A_%a.log
 #SBATCH --signal=TERM@120

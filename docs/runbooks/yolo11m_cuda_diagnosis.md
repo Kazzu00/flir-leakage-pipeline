@@ -1,8 +1,104 @@
 # Diagnóstico CUDA de YOLO11m — 2026-11-07
 
-Estado: corrección del probe y diagnóstico implementados; causa raíz del OOM y
-smoke oficial GPU a 640 **pendientes de comprobación remota**. No cambia el
-protocolo científico, la admisión firmada ni el ejecutor experimental.
+Estado tras job 792984: **agotamiento del espacio de direcciones virtuales del
+proceso es la explicación mejor sustentada**. Corrección operacional preparada:
+solicitar 32G de RAM al scheduler. La intervención causal y el smoke oficial GPU
+a 640 **todavía no se han ejecutado**. No cambia el protocolo, la admisión ni el
+código experimental. No se declara recuperada la GPU antes de esa comprobación.
+
+## Resultado de los seis diagnósticos
+
+Todos devuelven exit code 1 y estado failed. Los stderr están vacíos porque el
+script conserva la excepción en diagnosis.json; no indican éxito. Los stdout
+son idénticos y contienen la descripción del modelo, sin resultados de pérdida.
+Los seis recibos identifican el mismo script y executor 1480852, sin diff de
+fuente reportado. Ninguno completó forward, backward o SGD.
+
+| Caso | Error | VRAM libre GiB | VmSize GiB | Margen hasta RLIMIT_AS MiB |
+|---|---|---:|---:|---:|
+| Forward 640, sin configure_runtime | CUDA OOM | 20.551 | 13.147816 | 53.437 |
+| Loss 640, sin configure_runtime | CUDA OOM | 20.551 | 13.145420 | 55.890 |
+| Loss 640, configurado | CUDA OOM | 20.891 | 13.149662 | 51.546 |
+| Loss 160, configurado | CUBLAS_STATUS_NOT_INITIALIZED | 20.953 | 13.156631 | 44.409 |
+| Loss 320, configurado | CUDA OOM | 20.928 | 13.163509 | 37.366 |
+| Loss 640, módulos octubre | CUDA OOM | 20.891 | 13.177235 | 23.312 |
+
+VmSize se captura tras el error, no durante la llamada fallida; no permite
+identificar el mmap concreto rechazado. El límite soft y hard de RLIMIT_AS es
+14,173,392,076 bytes (13.2 GiB) en todos los casos. RLIMIT_RSS y la reserva del
+job son 12 GiB; RSS observado es 2.93–3.08 GiB. Los límites de datos y memoria
+bloqueada son ilimitados. No confundir espacio virtual, RAM residente y VRAM.
+
+El allocator es native, fracción efectiva 1.0, sin configuración personalizada.
+Los cinco OOM tienen num_ooms=1; el fallo cuBLAS tiene num_ooms=0. La memoria GPU
+asignada por PyTorch es 109–525 MiB. Los cgroups de memoria accesibles pertenecen
+a slurmd/system.slice, no a un límite de memoria por job; sus failcnt permanecen
+en cero. Esto no prueba ausencia de toda restricción del sistema.
+
+Versiones iguales: torch 2.7.1+cu118, CUDA 11.8, cuDNN 90100, Ultralytics 8.3.203.
+En todos: autograd y algoritmos deterministas activos, cudnn.benchmark=False,
+matmul TF32=False. El perfil sin configure_runtime conserva cudnn TF32=True;
+el configurado usa False. Ambos fallan. CUDA_MODULE_LOADING termina en LAZY y
+CUBLAS_WORKSPACE_CONFIG en :4096:8; LD_PRELOAD está ausente.
+
+El entorno heredado no tenía módulos. La última prueba cargó anaconda,
+python/3.11 y cuda/11.8 y amplió LD_LIBRARY_PATH, pero cuBLAS, cudart y cuDNN
+continuaron cargándose desde los paquetes nvidia del mismo venv y libcuda desde
+el driver 520.61.05. El resultado no mejoró. No hay evidencia para cambiar
+torch/cuDNN, reinstalar CUDA, alterar determinismo o reordenar los imports.
+
+## Interpretación causal y corrección operacional
+
+[RLIMIT_AS](https://man7.org/linux/man-pages/man2/getrlimit.2.html) limita las
+reservas de espacio virtual y puede causar ENOMEM aun con memoria física libre.
+La concentración de seis fallos cerca del mismo techo, incluso a 160px, favorece
+esta explicación frente a falta de VRAM o al cálculo de la pérdida. El techo es
+exactamente 110% de la RAM solicitada: compatible con una política como
+[VSizeFactor de Slurm](https://slurm.schedmd.com/slurm.conf.html#OPT_VSizeFactor),
+pero aún falta consultar la configuración efectiva del scheduler. No se afirma
+que ese parámetro esté confirmado ni que las seis observaciones prueben por sí
+solas la causalidad.
+
+La corrección del worker es una directiva `#SBATCH --mem=32G`, provisional y
+sobrescribible al enviar el job. Solicita recursos legítimamente a Slurm; no
+ejecuta setrlimit, ulimit de escritura ni cambia la fracción CUDA. No equivale
+a pedir 32G de VRAM ni a demostrar que esa RAM sea el mínimo necesario.
+
+El éxito comunicado de octubre a 160px no incluye límites efectivos ni log
+original. No se puede afirmar que tuviera el mismo RLIMIT_AS. La corrección de
+importación 756cdc0 ya estaba preservada en los seis procesos fallidos. Se
+conserva sin repetirla ni atribuirle una regresión que Git no muestra.
+
+## Único job de verificación preparado, no enviado
+
+Usar `scripts/hypatia/yolo11m_cuda_verify.sbatch`, con las mismas variables de
+ruta del diagnóstico. Solicita una GPU en el mismo nodo, dos CPU, 32G de RAM y
+20 minutos. No añade módulos ni modifica límites. Registra la política Slurm
+accesible y ejecuta el mismo microstep configured-loss-640 en un proceso nuevo.
+Solo si pasa inicia **una** epoch del smoke oficial a 640, batch 1, AMP=False,
+inicialización aleatoria, sin FAC, sin test y sin reintentos.
+
+```bash
+sbatch /path/to/yolo11m_cuda_verify.sbatch
+```
+
+Condiciones para evaluar la intervención:
+
+1. Verificar reserva efectiva de 32G y nuevo RLIMIT_AS en ambos diagnosis.json.
+   Si sigue en 13.2 GiB, la intervención no quedó aplicada; no anular el límite.
+2. Comparar versiones, script, entorno, bibliotecas, flags y seed con el caso
+   configurado de 792984. Cualquier otra diferencia limita la inferencia causal.
+3. Exigir microstep completo (loss/backward/SGD), luego smoke completed con una
+   epoch, batch observado 1 y recibo del ejecutor válido. Stderr vacío no basta.
+4. Si alguno falla, preservar evidencia y detenerse; no repetir jobs ni cambiar
+   automáticamente resolución, modelo, AMP, CPU, límites o protocolo.
+5. Un éxito sintético no admite entrenamiento FAC ni congela el batch científico.
+
+Las pruebas locales verifican el flujo con sustitutos offline: una sola llamada
+al smoke tras un microstep exitoso, propagación del fallo y rechazo de salida
+preexistente. La capacidad CUDA y la causalidad requieren esta ejecución Hypatia.
+
+## Antecedentes conservados del diagnóstico inicial
 
 ## Comparación que ya se puede sostener
 
