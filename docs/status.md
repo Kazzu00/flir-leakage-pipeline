@@ -1,5 +1,14 @@
 # Project status
 
+## CUDA diagnostic recovery (2026-11-07)
+
+Isolated operational correction: reduce the three-component detection loss in
+the supplied microprobe and capture same-process CUDA/host memory evidence.
+The experimental source, 640px configuration and signed admission are unchanged.
+The six supplied GPU failures occur in standalone network forward before loss;
+the scalar-loss correction is not claimed to resolve that OOM. Root cause and
+official GPU smoke remain pending. See the [comparison and bounded diagnosis](runbooks/yolo11m_cuda_diagnosis.md).
+
 ## Adjudicated internal candidate (2026-11-07)
 
 Applied the responsible's explicit existing-B selections to eight conflicts in a
