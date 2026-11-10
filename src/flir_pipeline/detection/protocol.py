@@ -21,6 +21,11 @@ METRICS = ("precision", "recall", "map50", "map50_95")
 
 def load_config(path: Path) -> dict:
     config = yaml.safe_load(path.read_text(encoding="utf-8"))
+    return validate_config(config)
+
+
+def validate_config(config: dict) -> dict:
+    """Shared parameter checks; legacy protocol/model admission stays strict."""
     if config["protocol"] != "controlled_detector_v1" or config["model"] != "yolo11n.pt":
         raise ValueError("Unsupported detector protocol/model")
     train = config["train"]
