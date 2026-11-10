@@ -1,5 +1,18 @@
 # Pipeline traceability
 
+## Original-occurrence automatic execution (2026-11-10)
+
+Verified fixed-test publication and original ZIPs → reconstructed candidate plan
+and occurrence-byte development views → technical data receipt → official-weight
+byte comparison → synthetic GPU probe → development-only pilot → common batch,
+environment and source freeze → deduplicated 50-epoch matrix → complete-matrix
+release → common original test → paired descriptive comparisons. Every arrow has
+a receipt/invariant check. Implementation and offline fixtures are not execution
+of the scientific experiment. No annotation adjudication or causal interpretation
+is implied. This separately authorized route supersedes human signature gates for
+the original 30-arm protocol; earlier A/B artifacts remain unchanged. See the
+[operating contract](runbooks/automatic_yolo11m.md).
+
 ## Adjudication and conservative exclusion (2026-11-07)
 
 Owner-communicated eight B selections → separate immutable annotation layer →

@@ -1,5 +1,12 @@
 # FLIR Leakage-Aware Clustering Pipeline
 
+YOLO11m integration includes an [automatic technical admission and execution
+route](docs/runbooks/automatic_yolo11m.md) for the original common-test protocol.
+It preserves occurrence annotations and requires verified probe/pilot evidence
+before the definitive matrix. Implemented software and offline tests do not imply
+executed FLIR training, validated annotation semantics or verified GPU capacity.
+The adjudicated A/B candidate described below is a separate earlier experiment.
+
 The new private adjudicated evaluation candidate applies eight authorized existing-B
 annotations and conservative isolation of uncertain dependencies. Automatic checks
 and unchanged-MILP replay pass; the test is technically frozen only as an internal

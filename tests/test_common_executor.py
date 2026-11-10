@@ -204,7 +204,7 @@ def test_prepare_original_bytes_and_no_test_exposure(audited, tmp_path, monkeypa
 @pytest.mark.parametrize("resume", [False, True])
 def test_real_training_and_resume_fail_before_io(tmp_path, resume):
     output = tmp_path / "must-not-exist"
-    with pytest.raises(ValueError, match="admission_contract"):
+    with pytest.raises(ValueError, match="technical-freeze"):
         executor.train(tmp_path / "approved.json", output, 0, resume)
     assert not output.exists()
 

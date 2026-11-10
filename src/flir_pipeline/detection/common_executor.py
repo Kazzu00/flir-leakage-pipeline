@@ -1,4 +1,4 @@
-"""Technical handoff of provisional assignments; signed admission is separate.
+"""Technical handoff of assignments to automatic operational admission.
 
 No legacy detector plan or freeze is accepted here. Run equivalence binds full
 occurrences (including quarantine), original annotations and configuration.
@@ -29,12 +29,10 @@ VERSION = "common_test_yolo11m_v2"
 NAMES = {0: "vehicle", 1: "building", 2: "road", 3: "river", 4: "SDZI"}
 CLASS_DISCREPANCY = "Original ID 4=SDZI; internal catalogue=Heavy Machinery; equivalence NOT adjudicated"
 BLOCKERS = [
-    "verified_human_protocol_review_missing",
-    "annotation_and_class_adjudication_missing",
-    "common_test_approval_and_freeze_missing",
-    "methodological_freeze_missing",
-    "environment_and_common_batch_freeze_missing",
-    "authenticated_admission_contract_missing",
+    "original_sources_and_memberships_gate_pending",
+    "synthetic_gpu_probe_pending",
+    "development_only_pilot_pending",
+    "common_batch_environment_and_source_freeze_pending",
 ]
 
 
@@ -412,8 +410,8 @@ def verify_preparation(output: Path) -> dict:
 
 
 def require_admission() -> None:
-    """Do not interpret self-authored JSON as attributed scientific authorization."""
-    raise ValueError("Real training/resume BLOCKED: " + "; ".join(BLOCKERS))
+    """A technical operational freeze is required; signatures are legacy only."""
+    raise ValueError("Training BLOCKED: supply --technical-freeze after automatic data/probe/pilot checks")
 
 
 def train(
@@ -425,7 +423,20 @@ def train(
     signature: Path | None = None,
     resume_admission: Path | None = None,
     resume_signature: Path | None = None,
+    technical_freeze: Path | None = None,
 ) -> dict:
+    if technical_freeze is not None:
+        from flir_pipeline.detection.admission import bound_file
+        from flir_pipeline.detection.common_admission import receipt
+        from flir_pipeline.detection.common_training import train as automatic_train
+
+        if any(p is not None for p in (admission, signature, resume_admission, resume_signature)):
+            raise ValueError("Do not mix technical policy and legacy signed contracts")
+        frozen = receipt(technical_freeze, "operational_freeze")
+        gate = receipt(bound_file(frozen["gate"]), "data_gate")
+        if bound_file(gate["plan"]).parent.resolve() != plan.resolve():
+            raise ValueError("Plan differs from technical freeze")
+        return automatic_train(technical_freeze, output, index, resume)
     # Must precede imports, checkpoint loading, output creation and all GPU work.
     if admission is None or signature is None:
         require_admission()

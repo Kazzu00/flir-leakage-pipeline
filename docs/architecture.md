@@ -1,5 +1,15 @@
 # Architecture
 
+The primary historical/expanded common-test route now uses the versioned automatic
+policy in `common_admission.py`, operational orchestration in `common_training.py`
+and matrix-bound evaluation/comparison in `common_evaluation.py`. It reuses the
+existing preparer, scientific worker, receipt verifier and metrics. Original
+occurrence labels, not the adjudicated A/B layer, are its inputs. `common_checks.py`
+keeps argument/resume checks available before GPU imports; `common_resources.py`
+records operational limits outside scientific identities. Legacy signed routes
+below remain separate for historical contracts. See the
+[automatic route](runbooks/automatic_yolo11m.md).
+
 `detection/general_ab.py` is an explicit input adapter to the common executor.
 It validates occurrence-bound assignments, common protected test and accepted-group
 invariants, then reuses planning, preparation verification, signed admission and

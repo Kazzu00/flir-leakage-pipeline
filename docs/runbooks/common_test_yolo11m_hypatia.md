@@ -1,5 +1,10 @@
 # YOLO11m v2 con test común provisional
 
+> La operación vigente desde 2026-11-10 está en el
+> [runbook de admisión automática](automatic_yolo11m.md). Este documento conserva
+> el registro anterior; sus requisitos humanos y comandos de envío no son la
+> política actual para la publicación original de 30 brazos.
+
 Actualización CUDA 2026-11-07: el worker solicita 32G de RAM por defecto como
 corrección operacional candidata al límite virtual observado con 12G. No altera
 el protocolo ni anula límites del sistema. La verificación GPU sigue pendiente;

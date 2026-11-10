@@ -1,5 +1,12 @@
 # Primer entrenamiento YOLO11m autorizado
 
+> Registro histórico del contrato firmado. Para el protocolo original de 30
+> brazos, la instrucción de 2026-11-10 lo sustituye por la
+> [ruta técnica automática](automatic_yolo11m.md), sin nuevas revisiones humanas.
+> Los comandos siguientes documentan la versión anterior, no el submit actual.
+> Los verificadores antiguos siguen disponibles como `legacy-admission-check`,
+> `legacy-prepare-test` y `legacy-evaluate` directamente en la CLI.
+
 **Estado: BLOQUEADO para datos reales.** Código y pruebas sintéticas disponibles;
 no se ejecutó entrenamiento, materialización real ni un job Hypatia. Base `756cdc0`.
 El contrato, esquema de firmas, disponibilidad inspeccionada de A/B/C y límites

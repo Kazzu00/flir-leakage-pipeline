@@ -1,5 +1,19 @@
 # Design decisions
 
+## Technical admission using existing annotations (2026-11-10)
+
+The responsible explicitly requested replacing human approval/signature blockers
+for the original common-test YOLO11m experiment. A new versioned technical policy
+checks bytes, identities, isolation, official initialization and operational
+evidence without fabricating human review or rewriting historical receipts.
+Conflicting annotations remain per-occurrence originals; class 4 remains SDZI.
+Geometry anomalies are preserved when syntax/normalized values and class IDs are
+valid. Detector loader support must still agree with source labels. The one-epoch
+development pilot cannot become a matrix execution. All definitive cells must
+finish before test materialization/evaluation. Exact-content paired bootstrap is
+conditional on incomplete dependence knowledge, never a causal leakage estimate.
+See the [policy](runbooks/automatic_yolo11m.md).
+
 ## Preserve general A/B identities at the executor boundary (2026-11-07)
 
 The general pipeline's population and policies must not be renamed as expanded

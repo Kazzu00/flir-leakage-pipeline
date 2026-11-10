@@ -1,5 +1,29 @@
 # Project status
 
+## Automatic YOLO11m technical policy (2026-11-10)
+
+Implemented on an isolated integration branch: original-occurrence admission
+without signatures or new human review, official-release byte verification,
+development-only pilot, operational freeze, immutable/resumable attempts and
+whole-matrix common-test release with paired descriptive comparisons. The original
+publication verifies 30 arms, 25 memberships, 90 aliases and 75 derived executions.
+Global quarantine has 142 occurrences; historical arms contain its 141-member
+intersection. No prior publication or adjudicated label layer is overwritten.
+The 372-image test is not declared scientifically approved by these checks.
+GPU probe, FLIR pilot/training and real-test evaluation remain unexecuted for this
+version. This does not assert green CI. See the
+[policy, exact commands and limitations](runbooks/automatic_yolo11m.md).
+
+Local focused closure: 98 offline tests passed, including the unchanged historical
+and A/B interfaces; Ruff, Bash syntax and checkout-specific CLI resolution passed.
+Global regression: 1,415 passed. Later targeted compatibility checks also passed;
+the successful suites cover all 1,420 cases collected in the final tree. This is
+combined local evidence, not a single final-tree CI run. Actual original-source
+admission passed for 25 prepared development views, with zero test lists exposed.
+The original test annotations contain 983 instances, distinct from the earlier
+adjudicated layer's 991. Private receipts and exact run scope are recorded outside
+Git in the verification package.
+
 ## CUDA harness audit (2026-11-08)
 
 Full traces from job 792984 confirm real CUDA activity and failures during network

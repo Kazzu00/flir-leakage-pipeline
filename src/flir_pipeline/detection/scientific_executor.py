@@ -184,7 +184,7 @@ def variant_rows(rows: pd.DataFrame, variant: dict) -> pd.DataFrame:
     return result
 
 
-def write_view(rows: pd.DataFrame, output: Path) -> Path:
+def write_view(rows: pd.DataFrame, output: Path, strict_geometry: bool = True) -> Path:
     """Isolated writable runtime view; immutable prepare output never receives caches."""
     if output.exists() or not rows.frame_id.is_unique or not rows.image_path.is_unique:
         raise ValueError("Fresh view and unique occurrences required")
@@ -200,7 +200,8 @@ def write_view(rows: pd.DataFrame, output: Path) -> Path:
         label = Path(row.label_path)
         raw = label.read_bytes()
         parsed = validate_label_bytes(raw)
-        if not parsed.label_valid or any(
+        if (not parsed.syntax_valid or not parsed.normalized_values_valid
+                or (strict_geometry and not parsed.geometry_valid)) or any(
             c not in NAMES for c in parsed.classes_present
         ):
             raise ValueError("Unapproved annotation syntax/ontology")
@@ -447,7 +448,6 @@ def prepare_test(
     output: Path,
 ) -> dict:
     """Custodian-only test materialization after the complete matrix is released."""
-    from flir_pipeline.detection.annotation_review import source_bytes
 
     permission, ctx = evaluation_context(
         document, signature, training_document, training_signature
@@ -468,6 +468,15 @@ def prepare_test(
                 "test_id": ctx["admission"]["test"]["records_id"],
             },
         )
+    return materialize_original_test(permission, ctx, output, document, training_document)
+
+
+def materialize_original_test(
+    permission: dict, ctx: dict, output: Path, *sources: Path
+) -> dict:
+    """Byte-preserving test view shared by legacy release and automatic matrix gate."""
+    from flir_pipeline.detection.annotation_review import source_bytes
+
     test = permission["test_sources"]
     rows = pd.read_parquet(bound_file(test["records"]))
     if records_identity(rows) != ctx["admission"]["test"]["records_id"]:
@@ -476,7 +485,7 @@ def prepare_test(
         r["label_id"]: r for r in read_json(bound_file(test["annotations"]))["records"]
     }
     source_root = Path(test["source_root"])
-    external_output(output, source_root, document.parent, training_document.parent)
+    external_output(output, source_root, *sources)
     if output.exists():
         raise ValueError("Test destination exists")
     output.mkdir(parents=True)
@@ -508,13 +517,14 @@ def prepare_test(
         "test",
     )
     rows = variant_rows(rows, ctx["admission"]["variant"])
-    write_view(rows, output / "view")
+    write_view(rows, output / "view", strict_geometry=not bool(ctx["admission"].get("policy")))
     return seal(
         output,
         {
             "state": "sealed_test",
             "admission_sha256": ctx["admission_sha256"],
-            "evaluation_sha256": file_sha256(document),
+            "evaluation_sha256": permission.get("release_id")
+            or file_sha256(sources[0]),
             "test_id": ctx["admission"]["test"]["records_id"],
         },
     )
