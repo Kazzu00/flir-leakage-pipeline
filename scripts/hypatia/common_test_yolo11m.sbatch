@@ -17,5 +17,21 @@ case "$mode" in
     args=("$FLIR_EXECUTOR_PLAN" "$FLIR_EXECUTOR_OUTPUT" --index "${SLURM_ARRAY_TASK_ID:?Array index required}")
     if [[ "${FLIR_EXECUTOR_RESUME:-0}" == 1 ]]; then args+=(--resume); fi
     bash scripts/hypatia/common_test_yolo11m.sh train "${args[@]}" ;;
+  train-approved)
+    : "${FLIR_EXECUTOR_PLAN:?}"
+    : "${FLIR_EXECUTOR_PREPARATION:?}"
+    : "${FLIR_EXECUTOR_CHECKPOINT:?}"
+    : "${FLIR_EXECUTOR_AUTHORIZATION:?}"
+    : "${FLIR_EXECUTOR_SIGNATURE:?}"
+    : "${FLIR_EXECUTOR_SIGNERS:?}"
+    : "${FLIR_EXECUTOR_REVIEWER:?}"
+    args=(
+      "$FLIR_EXECUTOR_PLAN" "$FLIR_EXECUTOR_PREPARATION"
+      "$FLIR_EXECUTOR_OUTPUT" "$FLIR_EXECUTOR_CHECKPOINT"
+      "$FLIR_EXECUTOR_AUTHORIZATION" "$FLIR_EXECUTOR_SIGNATURE"
+      "$FLIR_EXECUTOR_SIGNERS" "$FLIR_EXECUTOR_REVIEWER"
+      --index "${SLURM_ARRAY_TASK_ID:?Array index required}"
+    )
+    bash scripts/hypatia/common_test_yolo11m.sh train-approved "${args[@]}" ;;
   *) echo "Invalid mode" >&2; exit 2 ;;
 esac
