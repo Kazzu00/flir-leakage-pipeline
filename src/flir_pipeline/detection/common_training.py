@@ -6,9 +6,6 @@ historical YOLO11n protocol. No test image is materialized or scored here.
 
 from __future__ import annotations
 
-import importlib.metadata
-import json
-import os
 import time
 from pathlib import Path
 
