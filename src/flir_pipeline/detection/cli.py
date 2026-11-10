@@ -72,6 +72,54 @@ def common_executor_train(plan: Path, output: Path, index: int = 0, resume: bool
         raise typer.Exit(1) from exc
 
 
+
+@common_executor_app.command("train-approved")
+def common_executor_train_approved(
+    plan: Path,
+    preparation: Path,
+    output: Path,
+    checkpoint: Path,
+    authorization: Path,
+    signature: Path,
+    signers: Path,
+    reviewer: str,
+    index: int = 0,
+    resume: bool = False,
+) -> None:
+    """Real, development-only training requires independently signed admission."""
+    from flir_pipeline.detection.common_training import train_one
+
+    receipt = train_one(
+        plan, preparation, output, index, checkpoint, authorization,
+        signature, signers, reviewer, resume,
+    )
+    typer.echo(f"Training {receipt['state']}: {receipt['run_id']}")
+
+
+@common_executor_app.command("verify-approved-run")
+def common_executor_verify_approved_run(
+    plan: Path,
+    preparation: Path,
+    directory: Path,
+    checkpoint: Path,
+    authorization: Path,
+    signature: Path,
+    signers: Path,
+    reviewer: str,
+    index: int = 0,
+) -> None:
+    """Rebuild signature and checksum validation without loading checkpoints."""
+    from flir_pipeline.detection.common_admission import verify_admission
+    from flir_pipeline.detection.common_training import verify_training_run
+
+    approval = verify_admission(
+        plan, preparation, checkpoint, authorization, signature, signers, reviewer,
+    )
+    entry = approval["plan"]["runs"][index]
+    receipt = verify_training_run(directory, approval, entry)
+    typer.echo(f"Verified real run {receipt['run_id']}")
+
+
 @common_executor_app.command("status")
 def common_executor_status(plan: Path) -> None:
     from flir_pipeline.detection.common_executor import verify_executor_plan
