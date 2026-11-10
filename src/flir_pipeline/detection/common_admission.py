@@ -60,8 +60,7 @@ def verify_signature(
                 "-I", identity, "-n", NAMESPACE, "-s", str(signature.resolve()),
             ],
             input=signed,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            capture_output=True,
             check=False,
         )
     except OSError as exc:
