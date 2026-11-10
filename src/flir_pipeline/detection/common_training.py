@@ -140,7 +140,9 @@ def train_one(
     expected_frames = expected.set_index("frame_id")
     if expected_frames.index.has_duplicates:
         raise ValueError("Repeated frame identity in prepared dataset")
-    expected_counts = expected_frames.num_objects.to_dict() if "num_objects" in expected else None
+    if "num_objects" not in expected or expected.num_objects.isna().any():
+        raise ValueError("Canonical per-frame annotation counts are required")
+    expected_counts = expected_frames.num_objects.to_dict()
     batch_seen: list[int] = []
     directory.mkdir(parents=True)
     identity = {
@@ -166,8 +168,6 @@ def train_one(
                 raise ValueError("Effective batch changed or non-validation split used")
 
         def check_annotations(trainer) -> None:
-            if expected_counts is None:
-                return
             from flir_pipeline.detection.runtime import check_loader_annotations
             check_loader_annotations(trainer, expected_counts)
 
