@@ -17,6 +17,12 @@ import pandas as pd
 import yaml
 
 from flir_pipeline.detection.admission import bound_file
+from flir_pipeline.detection.common_checks import (
+    check_arguments as check_arguments,
+)
+from flir_pipeline.detection.common_checks import (
+    check_resume_state as check_resume_state,
+)
 from flir_pipeline.detection.common_executor import NAMES
 from flir_pipeline.detection.metrics import evaluate, save_image_stats
 from flir_pipeline.detection.runtime import (
@@ -60,37 +66,24 @@ def termination_receipt():
 def frozen_environment(ctx: dict) -> dict:
     configure_runtime()
     env = environment()
+    if ctx["admission"].get("policy"):
+        env["python"] = platform.python_version()
     expected = ctx["admission"]["environment"]
     if not env["cuda_available"] or platform.python_version() != expected["python"]:
-        raise ValueError("Approved Python/CUDA runtime required; no CPU fallback")
+        raise ValueError("Frozen Python/CUDA runtime required; no CPU fallback")
     if environment_signature(env) != expected["signature"]:
-        raise ValueError("Runtime differs from signed environment freeze")
+        raise ValueError("Runtime differs from environment freeze")
     for package in ("torch", "ultralytics"):
         if (
             env["packages"][package].split("+")[0]
             != ctx["config"][f"{package}_version"]
         ):
             raise ValueError("Runtime version differs from protocol")
+    if ctx["admission"].get("policy"):
+        from flir_pipeline.detection.common_training import compatible_environment
+
+        compatible_environment(env)
     return env
-
-
-def check_arguments(args: dict, config: dict, seed: int, dataset: Path) -> None:
-    required = {**config["train"], "seed": seed, "split": "val"}
-    if any(args.get(key) != value for key, value in required.items()):
-        raise ValueError("Effective training configuration changed")
-    if Path(args["data"]).resolve() != dataset.resolve():
-        raise ValueError("Training dataset locator changed")
-
-
-def check_resume_state(checkpoint: dict, csv: Path, epochs: int) -> None:
-    history = pd.read_csv(csv)
-    if (
-        not 0 < len(history) < epochs
-        or history.epoch.tolist() != list(range(1, len(history) + 1))
-        or checkpoint.get("epoch") != len(history) - 1
-        or checkpoint.get("optimizer") is None
-    ):
-        raise ValueError("Checkpoint epoch/optimizer differs from interrupted history")
 
 
 def run_training(ctx: dict, run: dict, directory: Path, previous: Path | None) -> dict:
@@ -111,6 +104,13 @@ def run_training(ctx: dict, run: dict, directory: Path, previous: Path | None) -
         else None,
         "resume_limitation": "Optimizer/EMA restored; bitwise RNG continuity is not claimed",
     }
+    if ctx["admission"].get("policy"):
+        import torch
+
+        from flir_pipeline.detection.common_resources import snapshot
+
+        torch.cuda.reset_peak_memory_stats()
+        state["resources_start"] = snapshot()
     config = ctx["config"]
     train_dir = directory / "train"
     try:
@@ -121,7 +121,8 @@ def run_training(ctx: dict, run: dict, directory: Path, previous: Path | None) -
             lambda p: str(Path(p).parent.parent / "labels" / (Path(p).stem + ".txt"))
         )
         rows = variant_rows(rows, ctx["admission"]["variant"])
-        dataset = write_view(rows, directory / "development")
+        dataset = write_view(rows, directory / "development",
+                             strict_geometry=not bool(ctx["admission"].get("policy")))
         input_hashes = {
             p: file_sha256(p)
             for p in (directory / "development").rglob("*")
@@ -266,8 +267,12 @@ def run_training(ctx: dict, run: dict, directory: Path, previous: Path | None) -
             error_type=type(exc).__name__,
             error=str(exc),
         )
+        if ctx["admission"].get("policy"):
+            state["resources_end"] = snapshot()
         seal(directory, state)
         raise
+    if ctx["admission"].get("policy"):
+        state["resources_end"] = snapshot()
     return seal(directory, state)
 
 
@@ -288,13 +293,26 @@ def run_evaluation(
         "test_tuning": False,
     }
     try:
+        evaluation_dataset = test_root / "view/dataset.yaml"
+        if ctx["admission"].get("policy"):
+            # Ultralytics writes label caches. Each evaluator gets a private
+            # byte-identical view so shared sealed test artifacts never change.
+            rows = pd.read_parquet(test_root / "view/records.parquet")
+            rows["label_path"] = rows.frame_id.map(
+                lambda frame: str(test_root / "view/labels" / f"{frame}.txt")
+            )
+            evaluation_dataset = write_view(rows, output / "test", strict_geometry=False)
         evaluation = ctx["config"]["evaluation"]
         validator_type = capture_validator(evaluation["precision_recall_confidence"])
+        if ctx["admission"].get("policy"):
+            from flir_pipeline.detection.common_evaluation import detailed_validator
+
+            validator_type = detailed_validator(validator_type)
         with offline_runtime(), termination_receipt():
             validator = validator_type(
                 args={
                     "model": str((directory / "train/weights/best.pt").resolve()),
-                    "data": str((test_root / "view/dataset.yaml").resolve()),
+                    "data": str(evaluation_dataset.resolve()),
                     "split": "test",
                     "mode": "val",
                     "task": "detect",
@@ -334,6 +352,10 @@ def run_evaluation(
             raise ValueError("Metric parity with pinned validator failed")
         save_image_stats(images, output / "test_image_stats.npz")
         classes.to_parquet(output / "metrics_per_class.parquet", index=False)
+        if ctx["admission"].get("policy"):
+            from flir_pipeline.detection.common_evaluation import export_details
+
+            export_details(output, run, images, validator.prediction_rows)
         write_json(
             output / "metrics.json",
             {

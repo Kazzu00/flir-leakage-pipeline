@@ -19,6 +19,24 @@ prepared and validated, not trained. NO-HUD has no verified box-transfer populat
 The operator subsequently submitted BASE job 791494 (remote completion unverified).
 [Expanded NO-HUD recovery](docs/runbooks/no_hud_expansion.md) evaluated all 950
 sources and 2,624 candidate pairs; no paired training population is admitted.
+YOLO11m integration includes an [automatic technical admission and execution
+route](docs/runbooks/automatic_yolo11m.md) for the original common-test protocol.
+It preserves occurrence annotations and requires verified probe/pilot evidence
+before the definitive matrix. Implemented software and offline tests do not imply
+executed FLIR training, validated annotation semantics or verified GPU capacity.
+The adjudicated A/B candidate described below is a separate earlier experiment.
+
+The new private adjudicated evaluation candidate applies eight authorized existing-B
+annotations and conservative isolation of uncertain dependencies. Automatic checks
+and unchanged-MILP replay pass; the test is technically frozen only as an internal
+retrospective candidate. A/B memberships are identical, remote preflight is pending,
+and no detector training is authorized. See the [scope and limitations](docs/runbooks/adjudicated_internal_evaluation.md).
+
+An explicit general A/B assignment adapter is implemented on a separate integration
+branch, with the scientific pipeline frozen at `df3452f`. It preserves occurrence
+identities, prepares development only and retains the signed admission gates.
+Synthetic integration checks pass; real training, test approval and GPU capacity
+remain pending. See the [A/B contract and limitations](docs/runbooks/general_ab_executor.md).
 
 Curated development preparation is implemented as
 `detection common-executor prepare-curated-development`. It preserves the supplied

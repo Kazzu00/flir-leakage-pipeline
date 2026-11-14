@@ -132,20 +132,38 @@ def training_admission(document: Path | None, signature: Path | None) -> dict:
         bound_file(binding)
     if payload["test"]["status"] != "APPROVED" or not payload["test"]["records_id"]:
         raise ValueError("Provisional test cannot be trained/evaluated")
-    if payload["population"] != "expanded" or payload["split_seeds"] not in (
-        [0],
-        [0, 1, 2, 3, 4],
+    is_ab = payload.get("input_format") == "general_ab_assignments_v1"
+    if payload.get("input_format", "legacy_fixed_test") not in (
+        "legacy_fixed_test",
+        "general_ab_assignments_v1",
+    ):
+        raise ValueError("Unknown signed input format")
+    if is_ab:
+        from flir_pipeline.detection.general_ab import validate_admission
+
+        validate_admission(payload)
+    if not is_ab and (
+        payload["population"] != "expanded"
+        or payload["split_seeds"]
+        not in (
+            [0],
+            [0, 1, 2, 3, 4],
+        )
     ):
         raise ValueError(
             "Only the explicit primary matrix or approved extension is supported"
         )
-    if payload["detector_seeds"] != [42, 43, 44] or payload["policies"] != [
-        "S1",
-        "S2",
-        "S3",
-    ]:
+    if not is_ab and (
+        payload["detector_seeds"] != [42, 43, 44]
+        or payload["policies"]
+        != [
+            "S1",
+            "S2",
+            "S3",
+        ]
+    ):
         raise ValueError("Unbalanced proposed detector matrix")
-    if payload["max_runs"] != 9 * len(payload["split_seeds"]):
+    if not is_ab and payload["max_runs"] != 9 * len(payload["split_seeds"]):
         raise ValueError("Budget does not match matrix")
     if type(payload["batch"]) is not int or payload["batch"] < 1:
         raise ValueError("Positive common batch must be frozen")

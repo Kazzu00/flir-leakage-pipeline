@@ -24,6 +24,28 @@ Never assign equal content hashes to altered rasters for experimental parity.
 Pending empty labels and accepted temporal matches do not certify ground truth.
 The existing nine-run signed protocol is not relabeled as a two-run curated
 experiment. No final-test approval is inferred from development preparation.
+## Technical admission using existing annotations (2026-11-10)
+
+The responsible explicitly requested replacing human approval/signature blockers
+for the original common-test YOLO11m experiment. A new versioned technical policy
+checks bytes, identities, isolation, official initialization and operational
+evidence without fabricating human review or rewriting historical receipts.
+Conflicting annotations remain per-occurrence originals; class 4 remains SDZI.
+Geometry anomalies are preserved when syntax/normalized values and class IDs are
+valid. Detector loader support must still agree with source labels. The one-epoch
+development pilot cannot become a matrix execution. All definitive cells must
+finish before test materialization/evaluation. Exact-content paired bootstrap is
+conditional on incomplete dependence knowledge, never a causal leakage estimate.
+See the [policy](runbooks/automatic_yolo11m.md).
+
+## Preserve general A/B identities at the executor boundary (2026-11-07)
+
+The general pipeline's population and policies must not be renamed as expanded
+S1/S2/S3 merely to satisfy an older loader. An opt-in versioned adapter binds exact
+occurrence metadata and assignments, keeps the common worker and authorization
+boundary, and retains aliases when memberships coincide. A wholly identical A/B
+matrix cannot authorize redundant comparison training. Scientific code and
+previous publications remain frozen; see the [contract](runbooks/general_ab_executor.md).
 
 ## Curated content is a new experimental population (2026-10-27)
 

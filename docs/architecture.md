@@ -17,6 +17,22 @@ subtree retaining frontend history. Root GitHub Actions activates its quality
 workflow with the frontend working directory. Data stays external. The standalone
 handoff checksum verifier uses only the standard library and cannot grant training
 admission. Recovered no-HUD transfer code reuses existing data validation.
+The primary historical/expanded common-test route now uses the versioned automatic
+policy in `common_admission.py`, operational orchestration in `common_training.py`
+and matrix-bound evaluation/comparison in `common_evaluation.py`. It reuses the
+existing preparer, scientific worker, receipt verifier and metrics. Original
+occurrence labels, not the adjudicated A/B layer, are its inputs. `common_checks.py`
+keeps argument/resume checks available before GPU imports; `common_resources.py`
+records operational limits outside scientific identities. Legacy signed routes
+below remain separate for historical contracts. See the
+[automatic route](runbooks/automatic_yolo11m.md).
+
+`detection/general_ab.py` is an explicit input adapter to the common executor.
+It validates occurrence-bound assignments, common protected test and accepted-group
+invariants, then reuses planning, preparation verification, signed admission and
+the scientific worker. It preserves long A/B policy names and all aliases for
+identical run identities. No split engine, MILP objective or detector runtime is
+introduced. See the [A/B contract](runbooks/general_ab_executor.md).
 
 `detection/curated_development.py` adds manifest-driven development materialization
 to the existing common-executor CLI. It reuses source hashing, YOLO validation,

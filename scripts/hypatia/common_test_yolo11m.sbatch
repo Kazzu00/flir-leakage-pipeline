@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
-# Request partition, memory, CPUs, walltime and GPU explicitly at submission.
+# Request partition, CPUs, walltime and GPU explicitly at submission.
+# Provisional host-memory request: 12G yielded RLIMIT_AS=13.2GiB on Hypatia.
+# This requests resources through Slurm; it does not remove process limits.
+#SBATCH --mem=32G
 #SBATCH --job-name=flir-common-yolo11m
 #SBATCH --output=common-yolo11m-%A_%a.log
 #SBATCH --signal=TERM@120
@@ -15,15 +18,20 @@ case "$mode" in
       "$FLIR_EXECUTOR_OUTPUT/${SLURM_ARRAY_JOB_ID:-$SLURM_JOB_ID}-${SLURM_ARRAY_TASK_ID:-0}" ;;
   train)
     : "${FLIR_EXECUTOR_PLAN:?Export verified executor plan directory}"
-    : "${FLIR_ADMISSION:?Signed scientific admission required}"
-    : "${FLIR_ADMISSION_SIGNATURE:?Signature required}"
+    : "${FLIR_TECHNICAL_FREEZE:?Technical operational freeze required}"
     args=("$FLIR_EXECUTOR_PLAN" "$FLIR_EXECUTOR_OUTPUT" --index "${SLURM_ARRAY_TASK_ID:?Array index required}"
-      --admission "$FLIR_ADMISSION" --signature "$FLIR_ADMISSION_SIGNATURE")
+      --technical-freeze "$FLIR_TECHNICAL_FREEZE")
     if [[ "${FLIR_EXECUTOR_RESUME:-0}" == 1 ]]; then
-      : "${FLIR_RESUME_ADMISSION:?Signed interrupted execution release required}"
-      : "${FLIR_RESUME_SIGNATURE:?Resume signature required}"
-      args+=(--resume --resume-admission "$FLIR_RESUME_ADMISSION" --resume-signature "$FLIR_RESUME_SIGNATURE")
+      args+=(--resume)
     fi
     srun --ntasks=1 bash scripts/hypatia/common_test_yolo11m.sh train "${args[@]}" ;;
+  pilot)
+    : "${FLIR_DATA_GATE:?Technical data gate required}"
+    : "${FLIR_WEIGHTS_RECEIPT:?Official checkpoint receipt required}"
+    : "${FLIR_GPU_PROBE:?Completed synthetic batch operation directory required}"
+    args=("$FLIR_DATA_GATE" "$FLIR_WEIGHTS_RECEIPT" "$FLIR_GPU_PROBE" "$FLIR_EXECUTOR_OUTPUT"
+      --batch "${FLIR_COMMON_BATCH:-1}" --index "${FLIR_PILOT_INDEX:-0}")
+    [[ "${FLIR_EXECUTOR_RESUME:-0}" != 1 ]] || args+=(--resume)
+    srun --ntasks=1 bash scripts/hypatia/common_test_yolo11m.sh pilot "${args[@]}" ;;
   *) echo "Invalid mode" >&2; exit 2 ;;
 esac

@@ -65,6 +65,7 @@ artifacts/
 mlruns/
 
 # All generated reports are local, including code review and executed notebooks
+/evidence/
 reports/**
 !reports/**/
 !reports/**/.gitkeep

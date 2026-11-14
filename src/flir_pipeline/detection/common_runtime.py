@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import gc
+import platform
 import sys
 from pathlib import Path
 
 import yaml
 
+from flir_pipeline.detection.common_checks import verify_operation as verify_operation
 from flir_pipeline.detection.common_executor import (
     NAMES,
     VERSION,
@@ -23,7 +25,6 @@ from flir_pipeline.detection.runtime import (
 )
 from flir_pipeline.similarity.storage import (
     file_sha256,
-    read_json,
     stable_id,
     write_json,
 )
@@ -35,7 +36,7 @@ def preflight(config_path: Path, output: Path, cpu: bool = False) -> dict:
         raise ValueError("Preflight output exists")
     config = load_executor_config(config_path)
     configure_runtime()
-    env = environment()
+    env = {**environment(), "python": platform.python_version()}
     blockers = []
     if sys.version_info[:2] != (3, 11):
         blockers.append("python_3_11_required")
@@ -55,6 +56,12 @@ def preflight(config_path: Path, output: Path, cpu: bool = False) -> dict:
         "state": "failed" if blockers else "completed",
         "device": "cpu" if cpu else "0",
     }
+    from flir_pipeline.detection.common_resources import snapshot
+
+    report["resources"] = snapshot()
+    if not cpu and env.get("cuda") != "11.8":
+        blockers.append("cuda_11_8_required")
+        report["state"] = "failed"
     output.parent.mkdir(parents=True, exist_ok=True)
     write_json(output, report)
     if blockers:
@@ -162,36 +169,22 @@ def synthetic_smoke(
             peak_memory_bytes=None if cpu else int(torch.cuda.max_memory_allocated()),
         )
     except BaseException as exc:
+        from flir_pipeline.detection.common_resources import snapshot
+
         state.update(
             state="interrupted" if isinstance(exc, KeyboardInterrupt) else "failed",
             error_type=type(exc).__name__,
             error=str(exc),
+            resources_end=snapshot(),
         )
         write_json(output / "state.json", state)
         write_json(output / "receipt.json", {"artifacts": signatures(output)})
         raise
+    from flir_pipeline.detection.common_resources import snapshot
+
+    state["resources_end"] = snapshot()
     write_json(output / "state.json", state)
     write_json(output / "receipt.json", {"artifacts": signatures(output)})
-    return state
-
-
-def verify_operation(output: Path) -> dict:
-    expected = read_json(output / "receipt.json")["artifacts"]
-    actual = signatures(output)
-    actual.pop("receipt.json", None)
-    if actual != expected:
-        raise ValueError("Operation/checkpoint checksum mismatch")
-    state = read_json(output / "state.json")
-    if state["schema_version"] != VERSION or state["mode"] != "synthetic-smoke":
-        raise ValueError("Not a synthetic executor operation")
-    if state["state"] == "completed":
-        parse_training_history(output / "training/results.csv", 1)
-        for name in ("best.pt", "last.pt"):
-            if (
-                file_sha256(output / "training/weights" / name)
-                != state["checkpoint_sha256"][name]
-            ):
-                raise ValueError("Output checkpoint provenance mismatch")
     return state
 
 
@@ -227,7 +220,7 @@ def probe(config_path: Path, output: Path) -> dict:
         "candidate_batch": max(passed) if passed else None,
         "batch_frozen": False,
         "ready_for_training": False,
-        "limitation": "Synthetic only; common batch requires approved non-test pilot and freeze",
+        "limitation": "Synthetic only; common batch requires development-only pilot and technical freeze",
     }
     write_json(output / "probe.json", result)
     if not passed:

@@ -1,4 +1,4 @@
-"""Technical handoff of provisional assignments; signed admission is separate.
+"""Technical handoff of assignments to automatic operational admission.
 
 No legacy detector plan or freeze is accepted here. Run equivalence binds full
 occurrences (including quarantine), original annotations and configuration.
@@ -29,12 +29,10 @@ VERSION = "common_test_yolo11m_v2"
 NAMES = {0: "vehicle", 1: "building", 2: "road", 3: "river", 4: "SDZI"}
 CLASS_DISCREPANCY = "Original ID 4=SDZI; internal catalogue=Heavy Machinery; equivalence NOT adjudicated"
 BLOCKERS = [
-    "verified_human_protocol_review_missing",
-    "annotation_and_class_adjudication_missing",
-    "common_test_approval_and_freeze_missing",
-    "methodological_freeze_missing",
-    "environment_and_common_batch_freeze_missing",
-    "authenticated_admission_contract_missing",
+    "original_sources_and_memberships_gate_pending",
+    "synthetic_gpu_probe_pending",
+    "development_only_pilot_pending",
+    "common_batch_environment_and_source_freeze_pending",
 ]
 
 
@@ -205,14 +203,27 @@ def dry_run(
     config_path: Path,
     output: Path,
     checkpoint_sha256: str | None = None,
+    input_format: str = "legacy_fixed_test",
 ) -> dict:
     external_output(output, publication)
     if output.exists():
         raise ValueError("Plan destination exists; never overwrite evidence")
-    summary, assignments, _ = load_publication(publication)
+    if input_format == "general_ab_assignments_v1":
+        from flir_pipeline.detection.general_ab import load
+
+        _, summary, assignments, _, _, _ = load(publication)
+        binding = summary["input_contract"]["source_id"]
+    elif input_format == "legacy_fixed_test":
+        summary, assignments, _ = load_publication(publication)
+        binding = file_sha256(publication / "receipt.json")
+    else:
+        raise ValueError("Unknown explicit input format")
     config = load_executor_config(config_path)
-    binding = file_sha256(publication / "receipt.json")
     plan = plan_runs(summary, assignments, config, binding, checkpoint_sha256)
+    if "input_contract" in summary:
+        payload = {k: v for k, v in plan.items() if k != "plan_id"}
+        payload["input_contract"] = summary["input_contract"]
+        plan = {"plan_id": stable_id(payload), **payload}
     output.mkdir(parents=True)
     write_json(output / "plan.json", plan)
     write_json(output / "provenance.json", execution_provenance())
@@ -234,13 +245,27 @@ def verify_executor_plan(directory: Path) -> dict:
 
 
 def prepare(
-    publication: Path, source_root: Path, output: Path, evidence: Path | None = None
+    publication: Path,
+    source_root: Path,
+    output: Path,
+    evidence: Path | None = None,
+    input_format: str = "legacy_fixed_test",
 ) -> dict:
     """Materialize development only; test remains bound in metadata, never in YAML.
 
     Occurrence labels may conflict. Shared storage reuses each occurrence across
     all arms, without merging its annotations with another occurrence.
     """
+    if input_format == "general_ab_assignments_v1":
+        from flir_pipeline.detection.general_ab import prepare as prepare_ab
+
+        if evidence is not None:
+            raise ValueError(
+                "A/B uses explicitly bound sources, not legacy evidence inference"
+            )
+        return prepare_ab(publication, source_root, output)
+    if input_format != "legacy_fixed_test":
+        raise ValueError("Unknown explicit input format")
     external_output(output, publication, source_root)
     if output.exists():
         raise ValueError("Preparation destination exists; inspect partial output")
@@ -343,6 +368,13 @@ def verify_preparation(output: Path) -> dict:
         ):
             raise ValueError("Prepared membership identity mismatch")
         active_records(rows, test)
+        if (
+            receipt.get("input_contract", {}).get("format")
+            == "general_ab_assignments_v1"
+        ):
+            from flir_pipeline.detection.general_ab import verify_prepared_rows
+
+            verify_prepared_rows(rows, receipt, entry)
         records = pd.read_parquet(view / "records.parquet")
         expected = (
             rows.loc[rows.new_split.isin(["train", "val"])]
@@ -378,8 +410,8 @@ def verify_preparation(output: Path) -> dict:
 
 
 def require_admission() -> None:
-    """Do not interpret self-authored JSON as attributed scientific authorization."""
-    raise ValueError("Real training/resume BLOCKED: " + "; ".join(BLOCKERS))
+    """A technical operational freeze is required; signatures are legacy only."""
+    raise ValueError("Training BLOCKED: supply --technical-freeze after automatic data/probe/pilot checks")
 
 
 def train(
@@ -391,7 +423,20 @@ def train(
     signature: Path | None = None,
     resume_admission: Path | None = None,
     resume_signature: Path | None = None,
+    technical_freeze: Path | None = None,
 ) -> dict:
+    if technical_freeze is not None:
+        from flir_pipeline.detection.admission import bound_file
+        from flir_pipeline.detection.common_admission import receipt
+        from flir_pipeline.detection.common_training import train as automatic_train
+
+        if any(p is not None for p in (admission, signature, resume_admission, resume_signature)):
+            raise ValueError("Do not mix technical policy and legacy signed contracts")
+        frozen = receipt(technical_freeze, "operational_freeze")
+        gate = receipt(bound_file(frozen["gate"]), "data_gate")
+        if bound_file(gate["plan"]).parent.resolve() != plan.resolve():
+            raise ValueError("Plan differs from technical freeze")
+        return automatic_train(technical_freeze, output, index, resume)
     # Must precede imports, checkpoint loading, output creation and all GPU work.
     if admission is None or signature is None:
         require_admission()

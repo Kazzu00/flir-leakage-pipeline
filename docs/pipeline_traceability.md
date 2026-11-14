@@ -33,6 +33,36 @@ Existing curated membership -> verified original image/label pairs -> transfer T
 with checksums. This is technical preparation, not detector evidence. NO-HUD
 correspondence candidates remain separate from geometry/box verification. No paired
 population or final detector comparison exists. See the [handoff](runbooks/hud_hypatia_handoff.md).
+## Original-occurrence automatic execution (2026-11-10)
+
+Verified fixed-test publication and original ZIPs → reconstructed candidate plan
+and occurrence-byte development views → technical data receipt → official-weight
+byte comparison → synthetic GPU probe → development-only pilot → common batch,
+environment and source freeze → deduplicated 50-epoch matrix → complete-matrix
+release → common original test → paired descriptive comparisons. Every arrow has
+a receipt/invariant check. Implementation and offline fixtures are not execution
+of the scientific experiment. No annotation adjudication or causal interpretation
+is implied. This separately authorized route supersedes human signature gates for
+the original 30-arm protocol; earlier A/B artifacts remain unchanged. See the
+[operating contract](runbooks/automatic_yolo11m.md).
+
+## Adjudication and conservative exclusion (2026-11-07)
+
+Owner-communicated eight B selections → separate immutable annotation layer →
+full-population automatic QA → exact accepted groups plus a distinct uncertain-edge
+protection graph → common internal candidate test and explicit reserve/quarantine
+→ unchanged two-destination MILP and A/B adapter. Unknown semantics, temporal origin
+and statistical independence remain UNVERIFIED. The technical freeze does not
+satisfy signed scientific admission. See the [operating policy](runbooks/adjudicated_internal_evaluation.md).
+
+## Explicit general A/B handoff (2026-11-07)
+
+Bound upstream occurrence identities + explicit policy assignments + declared
+accepted groups → protected/common-test validation → unchanged development bytes
+and deduplicated plan → existing signed admission → existing worker. The adapter
+does not generate groups, adjudicate candidates, solve MILP or authorize the test.
+Equivalent A/B memberships are not an experimental contrast. See the
+[integration contract](runbooks/general_ab_executor.md).
 
 ## Curated development boundary (2026-10-27)
 

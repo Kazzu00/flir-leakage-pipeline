@@ -48,6 +48,76 @@ Ruff and notebook-source checks passed. Frontend lint retains three warnings.
 The interrupted monolithic pytest attempt is not counted as completed. Local CPU
 preflight failed because the core environment lacks torch; no CUDA validation,
 training, protected-test evaluation or remote job was executed.
+## Automatic YOLO11m technical policy (2026-11-10)
+
+Implemented on an isolated integration branch: original-occurrence admission
+without signatures or new human review, official-release byte verification,
+development-only pilot, operational freeze, immutable/resumable attempts and
+whole-matrix common-test release with paired descriptive comparisons. The original
+publication verifies 30 arms, 25 memberships, 90 aliases and 75 derived executions.
+Global quarantine has 142 occurrences; historical arms contain its 141-member
+intersection. No prior publication or adjudicated label layer is overwritten.
+The 372-image test is not declared scientifically approved by these checks.
+GPU probe, FLIR pilot/training and real-test evaluation remain unexecuted for this
+version. This does not assert green CI. See the
+[policy, exact commands and limitations](runbooks/automatic_yolo11m.md).
+
+Local focused closure: 98 offline tests passed, including the unchanged historical
+and A/B interfaces; Ruff, Bash syntax and checkout-specific CLI resolution passed.
+Global regression: 1,415 passed. Later targeted compatibility checks also passed;
+the successful suites cover all 1,420 cases collected in the final tree. This is
+combined local evidence, not a single final-tree CI run. Actual original-source
+admission passed for 25 prepared development views, with zero test lists exposed.
+The original test annotations contain 983 instances, distinct from the earlier
+adjudicated layer's 991. Private receipts and exact run scope are recorded outside
+Git in the verification package.
+
+## CUDA harness audit (2026-11-08)
+
+Full traces from job 792984 confirm real CUDA activity and failures during network
+forward; the 160px control reached attention/cuBLAS initialization. Corrected a
+reporting ambiguity: active phase is now separate from the last checkpoint.
+Computation is unchanged by AST comparison excluding stage labels. October's
+reported tensor-smoke is not an exact match for the current 160px loss probe;
+its original code and effective limits are unavailable. The same single 32G
+resource verification remains prepared, not submitted; no additional GPU sweep.
+
+## CUDA diagnostic recovery (2026-11-07)
+
+Job 792984 failed in all six isolated cases, including 160px and explicit October
+modules. Effective RLIMIT_AS was 13.2 GiB; post-error virtual size approached it
+within 23.3–55.9 MiB while more than 20 GiB VRAM remained free and PyTorch's
+fraction was 1.0. Host address-space exhaustion is the best-supported explanation,
+pending the resource intervention. The worker now requests 32G host RAM through
+Slurm by default; no process limit is removed. One verification job is prepared:
+paired 640px microstep, then one official synthetic epoch only if it passes.
+Experimental source, 640px configuration, admission and test remain unchanged.
+No verification job or FAC training was launched in this intervention. See the
+[comparison and verification gates](runbooks/yolo11m_cuda_diagnosis.md).
+
+## Adjudicated internal candidate (2026-11-07)
+
+Applied the responsible's explicit existing-B selections to eight conflicts in a
+new private annotation layer; originals and prior publications are unchanged.
+Automatic checks retain all 372 test anchors (991 annotated instances). Conservative
+candidate-component exclusion leaves 487 reserve, 141 quarantine and 657 development
+occurrences. Ten unchanged-MILP solutions and shuffled-input replays pass; A and B
+are still identical. A technical internal-test freeze is not signed training
+admission or evidence of external independence. Unverifiable semantics and coverage
+remain UNVERIFIED; no additional human data review is requested. Hypatia SSH remains
+blocked; no detector training occurred. See the [scope and rules](runbooks/adjudicated_internal_evaluation.md).
+
+## General A/B executor integration (2026-11-07)
+
+Implemented the explicit `general_ab_assignments_v1` bridge on a separate branch
+based on executor `6f349c5`; scientific reference `df3452f` is unchanged. It reuses
+the common worker, retains all policy aliases, binds original occurrence/content
+and annotation identities, and rejects unapproved tests and wholly equivalent
+A/B comparisons. Focused synthetic validation: 68 passed; global Ruff passed.
+Local runtime preflight is blocked by absent vision runtime dependencies; Hypatia
+authentication requires user intervention. No scientific training or test approval.
+This does not supersede global failure evidence on other branches or assert green
+CI. See [contract, commands and limits](runbooks/general_ab_executor.md).
 
 ## Curated development preparation (2026-10-27)
 
