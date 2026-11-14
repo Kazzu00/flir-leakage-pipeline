@@ -1,12 +1,7 @@
 ﻿import { z } from 'zod'
 
 export type JsonValue =
-  | null
-  | boolean
-  | number
-  | string
-  | JsonValue[]
-  | { [key: string]: JsonValue }
+  null | boolean | number | string | JsonValue[] | { [key: string]: JsonValue }
 
 export const JsonValueSchema: z.ZodType<JsonValue> = z.lazy(() =>
   z.union([
@@ -79,11 +74,9 @@ export const SemanticsSchema = z
     clusters_are_sequences: z.literal(false).default(false),
     ground_truth_clusters: z.literal(false).default(false),
     ground_truth_sequences: z.literal(false).default(false),
-    partition_vocabulary: z.array(PartitionSchema).default([
-      'train',
-      'val',
-      'test',
-    ]),
+    partition_vocabulary: z
+      .array(PartitionSchema)
+      .default(['train', 'val', 'test']),
     sequence_instances_created: z.literal(false).default(false),
   })
   .strict()
@@ -242,11 +235,7 @@ export const SplitSchema = z
     split_seed: NonNegativeInt,
     split_space_id: z.string(),
     artifact_id: z.string(),
-    source_strategy: z.enum([
-      'historical',
-      'random_content',
-      'cluster_aware',
-    ]),
+    source_strategy: z.enum(['historical', 'random_content', 'cluster_aware']),
     cluster_run_id: z.string().nullable(),
     partitions: z.record(z.string(), PartitionSummarySchema),
     class_support: z.array(ClassSupportSchema).nullable(),
@@ -275,6 +264,15 @@ export const ClusteringConfigurationSchema = z
     membership_consistency_verified: z.boolean(),
     source_split_ids: z.array(z.string()),
     source_membership_checksums: z.record(z.string(), z.string()),
+    configuration_provenance: z
+      .object({
+        source_kind: z.literal('clustering_run_table'),
+        source_sha256: z.string().regex(/^[a-f0-9]{64}$/),
+        configuration_identity_verified: z.literal(true),
+      })
+      .strict()
+      .nullable()
+      .optional(),
 
     dataset_id: z.string(),
     feature_space_id: z.string().nullable(),
@@ -287,12 +285,8 @@ export const ClusteringConfigurationSchema = z
     extractor: z.string().nullable(),
     algorithm: z.enum(['dbscan', 'optics', 'hdbscan']).nullable(),
 
-    parameters: z
-      .record(z.string(), JsonValueSchema)
-      .nullable(),
-    effective_parameters: z
-      .record(z.string(), JsonValueSchema)
-      .nullable(),
+    parameters: z.record(z.string(), JsonValueSchema).nullable(),
+    effective_parameters: z.record(z.string(), JsonValueSchema).nullable(),
 
     n_clusters: NonNegativeInt,
     n_noise: NonNegativeInt,
@@ -301,6 +295,31 @@ export const ClusteringConfigurationSchema = z
     ground_truth: z.literal(false).default(false),
   })
   .strict()
+  .superRefine((configuration, context) => {
+    if (!configuration.configuration_provenance) return
+    // Recovered metadata does not supply the missing full artifact or identities.
+    if (
+      configuration.source_kind !== 'frozen_split_membership' ||
+      configuration.full_clustering_artifact_available ||
+      configuration.feature_space_id !== null ||
+      configuration.model_id !== null ||
+      [
+        configuration.configuration_id,
+        configuration.representation,
+        configuration.reduction_seed,
+        configuration.extractor,
+        configuration.algorithm,
+        configuration.parameters,
+        configuration.effective_parameters,
+      ].some((value) => value === null)
+    )
+      context.addIssue({
+        code: 'custom',
+        path: ['configuration_provenance'],
+        message:
+          'Recovered configuration must preserve unavailable artifact identities',
+      })
+  })
 
 export const ClusterSchema = z
   .object({
@@ -390,12 +409,7 @@ export const BoundaryZoneSchema = z
     timeline_ids: z.array(z.string()),
     start: NonNegativeInt,
     end: NonNegativeInt,
-    decision: z.enum([
-      'supported',
-      'ambiguous',
-      'unsupported',
-      'candidate',
-    ]),
+    decision: z.enum(['supported', 'ambiguous', 'unsupported', 'candidate']),
     notes: z.string(),
 
     exact_cut: z.literal(false).default(false),
@@ -475,9 +489,7 @@ export type OrganizationManifest = z.infer<typeof ManifestSchema>
 export type OrganizationContent = z.infer<typeof ContentSchema>
 export type OrganizationRecord = z.infer<typeof RecordSchema>
 export type OrganizationSplit = z.infer<typeof SplitSchema>
-export type OrganizationSplitMembership = z.infer<
-  typeof SplitMembershipSchema
->
+export type OrganizationSplitMembership = z.infer<typeof SplitMembershipSchema>
 export type OrganizationClusteringConfiguration = z.infer<
   typeof ClusteringConfigurationSchema
 >
@@ -499,5 +511,3 @@ export type OrganizationEvidenceBundle = z.infer<
 >
 export type OrganizationEvidenceResource =
   keyof typeof OrganizationEvidenceResourceSchemas
-
-

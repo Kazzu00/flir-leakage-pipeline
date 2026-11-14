@@ -1,5 +1,15 @@
 # Pipeline traceability
 
+## Historical linkage reconciliation (2026-11-05)
+
+Recovered linkage checksums -> source-bound sequence assignments -> internally
+consistent sequence/VDG mapping -> reproduced shared encoder group candidates ->
+historical manual CSV decisions -> BASE and receipt-verified protected metadata.
+Candidate coverage, reported support and current split authorization are distinct.
+No automatic promotions: six historically supported BASE links have conditional
+protected-group conflicts; current sequence assignment authorization remains zero.
+Missing historical linkage covers 48 BASE contents; no singleton fallback is valid.
+
 ## Sequence grouping admission boundary (2026-11-04)
 
 The accepted 950-content BASE preserves S3 relation components. It is not a

@@ -36,7 +36,13 @@ from flir_pipeline.sequences.experiments.artifacts import (
     tables as artifact_tables,
 )
 from flir_pipeline.similarity.storage import stable_id
-from flir_pipeline.splitting.base import SplitConfig, identity_payload, split_space_id
+from flir_pipeline.splitting.base import (
+    CLASS_COLUMNS,
+    SplitConfig,
+    identity_payload,
+    split_space_id,
+)
+from flir_pipeline.splitting.metrics import balance_metrics
 
 
 def rebind(directory, name):
@@ -149,6 +155,14 @@ def evidence(tmp_path):
                     directory / "record_split_assignments.parquet", index=False
                 )
                 rebind(directory, "record_split_assignments.parquet")
+            # Complete synthetic support rows exercise the actual browser contract.
+            statistics = manifest[["frame_id", "content_id"]].copy()
+            for class_id, column in enumerate(CLASS_COLUMNS):
+                statistics[column] = int(class_id in (0, 2))
+            statistics["empty_annotation_count"] = 0
+            _, class_counts = balance_metrics(
+                records, statistics, np.array([0.5, 0.25, 0.25])
+            )
             contents = pd.read_parquet(directory / "source_groups.parquet")
             memberships = records.groupby("content_id").new_split.agg(
                 lambda x: sorted(set(x))
@@ -173,7 +187,7 @@ def evidence(tmp_path):
                         s: int(records.new_split.eq(s).sum())
                         for s in ("train", "val", "test")
                     },
-                    class_counts=[{"split": "train", "class_id": 0, "instances": 2}],
+                    class_counts=class_counts.to_dict(orient="records"),
                 )
             )
     plan = root / "plan"
@@ -300,7 +314,7 @@ def snapshot(root):
 
 
 def test_export_preserves_records_contents_splits_and_selected_clusters(evidence):
-    args, manifest, _, _, _ = evidence
+    args, manifest, specs, _, _ = evidence
     before = {
         key: snapshot(args[key])
         for key in ("plan_directory", "split_root", "clustering_root", "linkage_root")
@@ -336,6 +350,21 @@ def test_export_preserves_records_contents_splits_and_selected_clusters(evidence
         and c["algorithm"] is not None
         for c in data["clustering_configurations"]
     )
+    for configuration in data["clustering_configurations"]:
+        selected = [
+            s for s in specs
+            if s["clustering_space_id"] == configuration["cluster_run_id"]
+        ]
+        assert configuration["membership_consistency_verified"] is True
+        assert configuration["source_split_ids"] == sorted(
+            s["split_space_id"] for s in selected
+        )
+        assert configuration["source_membership_checksums"] == {
+            s["split_space_id"]: sha256(
+                args["split_root"] / s["split_space_id"] / "source_groups.parquet"
+            )
+            for s in selected
+        }
     assert any(
         c["annotation_consensus"] == "different_label_bytes" and c["class_ids"] is None
         for c in data["contents"]

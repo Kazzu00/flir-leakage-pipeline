@@ -4,6 +4,8 @@ Interfaz de investigación para explorar tres pipelines independientes de visió
 
 ## Estado
 
+- **Línea temporal científica:** `/organization/sequences` admite solo correspondencias exactas y únicas con tres vídeos autorizados; abre la asignación histórica S2-3 de la entrega y permite comparar políticas/semillas sin mezclar membresías. La evidencia local actual no vincula las imágenes canónicas: muestra cobertura cero y exclusiones completas, sin dibujar familias nominales como vídeos. Clúster compatible no disponible. No crea secuencias ni cambia splits o admisión del test. [Contrato, reproducción y límites](docs/VERIFIED_VIDEO_TIMELINE.md).
+
 - **Human Review v1.1:** evidencia trazable obligatoria para conclusiones, registro visual externo explícito, filtros de disponibilidad, orden temporal y siguiente pendiente. Conserva historias y muestra anomalías sin inferir leakage. [Operación y resultados de pruebas](docs/AUDIT_REVIEW.md).
 
 - **Aceptación local M02: ACCEPTED_WITH_LIMITATIONS.** Explorador de 16 splits históricos y 30 particiones candidatas S1/S2/S3, filtros, miniaturas existentes y comparación lateral. El test nuevo permanece PROPOSED y no hay resultados YOLO11m. Antecedentes y variantes se distinguen por disponibilidad y procedencia. [Pruebas, evidencia y pendientes](docs/M02_ACCEPTANCE.md).

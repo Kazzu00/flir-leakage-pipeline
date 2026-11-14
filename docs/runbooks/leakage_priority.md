@@ -1,5 +1,42 @@
 # Prioridad: experimento por secuencias, NO-HUD cerrado por ahora
 
+## Evidencia recuperada: 2026-11-05
+
+Se verificaron los cuatro checksums de salida del linkage y el hash de las
+asignaciones que registra su metadata. Las 9.648 ocurrencias cubren 16 secuencias
+y 11 grupos visuales, sin romper dependencias exactas en esa tabla. Seis secuencias
+forman un grupo históricamente confirmado; las otras diez son grupos unitarios
+sin enlace confirmado, lo que no demuestra independencia. Falta la metadata del
+productor VDG y las publicaciones/eventos vinculados de revisión para validar su
+procedencia completa. No se reconstruyeron agrupamientos.
+
+De BASE, 902 fuentes tienen candidatos históricos y 48 carecen de linkage; 787
+tienen candidatos de grupo compartidos por ambos encoders. Las 1.568 asociaciones
+del resumen global se reprodujeron desde las tablas originales. Las decisiones
+manuales cubren 12 fuentes BASE: seis supported, cinco ambiguous y una unsupported.
+Las 938 restantes no están revisadas, incluidas las 67 de val.
+
+Los seis supported de train pertenecen a dos grupos que también tienen cinco
+contenidos supported del test fijo. Esto requiere adjudicación antes de convertir
+el soporte histórico en restricciones de partición; no confirma leakage por sí
+solo. El enlace histórico video_11min requiere además reconciliar su procedencia.
+Las revisiones históricas no sustituyen las decisiones de octubre. Cero nuevas
+asignaciones autorizadas, ningún split ni entrenamiento adicional generado.
+
+Reproducción (rutas externas suministradas por el operador; salida nueva):
+
+```powershell
+uv run --offline --no-sync python scripts/assess_sequence_evidence.py --evidence $evidence --base $base --fixed-publication $fixedPublication --output $newOutput
+```
+
+Siguiente paso metodológico: recuperar metadata del VDG y publicaciones de revisión
+vinculadas, reconciliar decisiones de octubre y resolver enlaces pendientes y
+conflictos con test. Si el cierre obliga a excluir contenidos, preparar dos brazos
+con población común sin modificar el BASE ya enviado. La evidencia local queda
+fuera de Git, en summary.json, base_link_assessment.csv e input_checksums.json.
+
+## Registro previo (2026-11-04)
+
 Comprobación acotada del 2026-11-04 sobre las 950 imágenes BASE; sin búsquedas
 globales nuevas, nuevo split, entrenamiento ni cambios al job 791494.
 

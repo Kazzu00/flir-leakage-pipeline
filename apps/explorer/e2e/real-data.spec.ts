@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from './synthetic-fixture'
 import AxeBuilder from '@axe-core/playwright'
 import fixture from '../src/test/fixtures/leakage-synthetic.json' with { type: 'json' }
 import { largeSyntheticSnapshot } from '../src/test/artifact-fixtures'

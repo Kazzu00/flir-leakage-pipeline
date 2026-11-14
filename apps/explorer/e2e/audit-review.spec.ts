@@ -1,22 +1,28 @@
 import { test, expect } from '@playwright/test'
 import AxeBuilder from '@axe-core/playwright'
 import { spawn, execFileSync, type ChildProcess } from 'node:child_process'
-import { mkdtempSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { resolve, join } from 'node:path'
 
 test.describe.configure({ mode: 'serial' })
 
 // A real backend and SQLite ledger, not intercepted/mock HTTP responses.
-// Run after `uv sync --extra dev` in the sibling backend checkout.
+// Prefer the monorepo root; keep the explicit override and standalone layout.
+const monorepo = resolve('../..')
 const backend = resolve(
-  process.env.FLIR_AUDIT_BACKEND ?? '../flir-leakage-pipeline',
+  process.env.FLIR_AUDIT_BACKEND ??
+    (existsSync(join(monorepo, 'pyproject.toml'))
+      ? monorepo
+      : '../flir-leakage-pipeline'),
 )
-const python = join(
-  backend,
-  '.venv',
-  process.platform === 'win32' ? 'Scripts/python.exe' : 'bin/python',
-)
+const python =
+  process.env.FLIR_AUDIT_PYTHON ??
+  join(
+    backend,
+    '.venv',
+    process.platform === 'win32' ? 'Scripts/python.exe' : 'bin/python',
+  )
 const workspace = mkdtempSync(join(tmpdir(), 'flir-audit-SYNTHETIC-e2e-'))
 const db = join(workspace, 'audit.sqlite3')
 const entry = [

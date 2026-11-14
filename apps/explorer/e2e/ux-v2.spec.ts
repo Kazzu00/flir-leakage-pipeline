@@ -1,7 +1,7 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from './synthetic-fixture'
 
 // Local evidence is large; await observable readiness, never a fixed sleep.
-test.use({ actionTimeout: 20000 })
+test.use({ actionTimeout: 20000, organizationScenario: 'with_candidates' })
 test.setTimeout(120000)
 const evidenceExpect = expect.configure({ timeout: 20000 })
 import AxeBuilder from '@axe-core/playwright'
@@ -45,6 +45,9 @@ test('runtime V2 overview, exported temporal evidence, linkage and keyboard disc
   await evidenceExpect(details).toBeFocused()
   await page
     .getByRole('link', { name: 'Sequences & linkage', exact: true })
+    .click()
+  await page
+    .getByRole('button', { name: 'Temporal evidence', exact: true })
     .click()
   await evidenceExpect(
     page.getByRole('heading', {
@@ -222,6 +225,9 @@ test('legacy redirects and active exported temporal evidence', async ({
     )
   }
   await page.goto('/organization/sequences')
+  await page
+    .getByRole('button', { name: 'Temporal evidence', exact: true })
+    .click()
   await evidenceExpect(
     page.getByRole('heading', {
       name: 'Temporal structure and boundary evidence',

@@ -138,6 +138,9 @@ test('real overview, visual selection, temporal playback, linkage and detector n
     .getByRole('link', { name: 'Sequences & linkage', exact: true })
     .click()
   const player = page.getByRole('region', { name: 'Timeline frame playback' })
+  await page
+    .getByRole('button', { name: 'Temporal evidence', exact: true })
+    .click()
   await evidenceExpect(player.getByRole('img')).toBeVisible()
   await page.getByRole('button', { name: 'Next frame', exact: true }).click()
   await evidenceExpect(player).toContainText('Point 2 /')
@@ -191,6 +194,9 @@ test('real sequences do not require the legacy workspace snapshot', async ({
     }
   })
   await page.goto('/organization/sequences')
+  await page
+    .getByRole('button', { name: 'Temporal evidence', exact: true })
+    .click()
   await evidenceExpect(
     page.getByLabel('Timeline', { exact: true }),
   ).toBeVisible()
@@ -203,7 +209,7 @@ test('real sequences do not require the legacy workspace snapshot', async ({
 for (const [resource, url, message] of [
   [
     'timelines',
-    '/organization/sequences',
+    '/organization/sequences?mode=sequences',
     'temporal evidence could not be loaded',
   ],
   [

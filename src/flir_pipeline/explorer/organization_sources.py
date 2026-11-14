@@ -285,9 +285,11 @@ def selected_runs(plan_directory, manifest_path, split_root, clustering_root, so
                     raise ValueError(
                         f"Frozen memberships differ across selected splits: {cid}"
                     ) from error
-                evidence.source_membership_checksums[run.space_id] = run.metadata[
-                    "output_sha256"
-                ]["source_groups.parquet"]
+            # Both paths above verify stored membership against every selected
+            # split. Retain that binding also when the full clustering exists.
+            evidence.source_membership_checksums[run.space_id] = run.metadata[
+                "output_sha256"
+            ]["source_groups.parquet"]
         splits.append((spec, split))
     sources.unchanged()
     return manifest, plan, splits, clusters

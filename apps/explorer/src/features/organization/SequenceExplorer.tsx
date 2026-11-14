@@ -1,4 +1,4 @@
-﻿import { useMemo, useState } from 'react'
+﻿import { lazy, Suspense, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import {
   useOrganizationBoundaryZones,
@@ -19,18 +19,30 @@ import { OrganizationLinkageExplorer } from './OrganizationLinkageExplorer'
 import { TimelinePlayer } from './TimelinePlayer'
 import { Pager } from './evidence-views/Pager'
 import { AuditReview } from './AuditReview'
+const ScientificTimeline = lazy(() =>
+  import('./ScientificTimeline').then((module) => ({
+    default: module.ScientificTimeline,
+  })),
+)
 
 export function SequenceExplorer() {
   const [params, setParams] = useSearchParams()
   const linkage = params.get('mode') === 'linkage'
   const audit = params.get('mode') === 'audit'
+  const temporal = params.get('mode') === 'sequences'
 
   return (
     <>
       <div className="toolbar">
         <div className="split-toggle" aria-label="Sequence and linkage views">
           <button
-            aria-pressed={!linkage && !audit}
+            aria-pressed={!linkage && !audit && !temporal}
+            onClick={() => setParams({ mode: 'timeline' })}
+          >
+            Línea temporal científica
+          </button>
+          <button
+            aria-pressed={temporal}
             onClick={() => setParams({ mode: 'sequences' })}
           >
             Temporal evidence
@@ -54,8 +66,14 @@ export function SequenceExplorer() {
         <AuditReview />
       ) : linkage ? (
         <OrganizationLinkageExplorer />
-      ) : (
+      ) : temporal ? (
         <TemporalEvidence />
+      ) : (
+        <Suspense
+          fallback={<p role="status">Cargando línea temporal científica…</p>}
+        >
+          <ScientificTimeline />
+        </Suspense>
       )}
     </>
   )
@@ -184,14 +202,11 @@ function TemporalEvidence() {
               </p>
             ) : mediaQuery.isError ? (
               <Notice>
-                Frame preview metadata could not be loaded. Temporal and boundary
-                evidence remain available.
+                Frame preview metadata could not be loaded. Temporal and
+                boundary evidence remain available.
               </Notice>
             ) : (
-              <TimelinePlayer
-                timeline={active}
-                media={mediaQuery.data ?? []}
-              />
+              <TimelinePlayer timeline={active} media={mediaQuery.data ?? []} />
             )}
 
             <div
@@ -203,18 +218,16 @@ function TemporalEvidence() {
                 <span>{frameMax ?? '—'}</span>
               </div>
 
-              {zones
-                .slice(page * 20, page * 20 + 20)
-                .map((zone) => (
-                  <BoundaryLane
-                    key={zone.element_id}
-                    zone={zone}
-                    frameMin={frameMin}
-                    frameMax={frameMax}
-                    selected={selectedZone?.element_id === zone.element_id}
-                    onSelect={() => setSelectedZoneId(zone.element_id)}
-                  />
-                ))}
+              {zones.slice(page * 20, page * 20 + 20).map((zone) => (
+                <BoundaryLane
+                  key={zone.element_id}
+                  zone={zone}
+                  frameMin={frameMin}
+                  frameMax={frameMax}
+                  selected={selectedZone?.element_id === zone.element_id}
+                  onSelect={() => setSelectedZoneId(zone.element_id)}
+                />
+              ))}
 
               {!zones.length && (
                 <p className="panel-body muted">
@@ -368,4 +381,3 @@ function timelineLabel(timeline: OrganizationTimeline) {
 
   return `${identity} · ${timeline.temporal_source.replaceAll('_', ' ')}`
 }
-

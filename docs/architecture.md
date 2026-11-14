@@ -1,5 +1,13 @@
 # Architecture
 
+## Consolidated reference — 2026-11-14
+
+`src/flir_pipeline` remains the scientific/CLI boundary; `apps/explorer` reuses
+the existing frontend subtree and subsequent recovered working code. The two
+Streamlit explorers remain available. Real artifacts are external and immutable;
+the UI consumes versioned exports without fitting or reassigning science.
+See [integration decisions and recovery boundaries](final_integration.md).
+
 ## Independent preliminary BASE runtime (2026-11-04)
 
 `detection/preliminary.py` and `preliminary_cli.py` implement explicit user-accepted

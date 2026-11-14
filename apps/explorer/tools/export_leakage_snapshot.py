@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib.util
 import json
 import math
 import os
@@ -934,11 +935,15 @@ def export(args):
         )
     )
     if args.schema_version == "v2" or research_inputs:
-        try:
-            from tools.export_research import ResearchExporter
-        except ModuleNotFoundError:
-            from export_research import ResearchExporter
-        research = ResearchExporter(exporter, require, read_json, digest)
+        # Resolve the sibling from this script, not an unrelated top-level
+        # "tools" package or the caller's CWD in a monorepo test invocation.
+        spec = importlib.util.spec_from_file_location(
+            "flir_explorer_export_research",
+            Path(__file__).with_name("export_research.py"),
+        )
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        research = module.ResearchExporter(exporter, require, read_json, digest)
         for key, method in (
             ("sequences", research.sequences),
             ("sequence_experiment", research.experiments),

@@ -1,5 +1,19 @@
 # FLIR Leakage-Aware Clustering Pipeline
 
+## Referencia de integración local — 2026-11-14
+
+Este checkout consolida el backend y el frontend existente en `apps/explorer/`,
+conservando su historial. Los datasets, modelos y resultados reales permanecen
+externos. Véanse [estado actual](docs/current_status.md),
+[integración y reproducción](docs/final_integration.md) y
+[cinco objetivos definitivos](docs/methodology_traceability.md).
+
+Los registros fechados siguientes describen sus etapas originales. No se
+interpreta B-S2/S3 como clustering CLIP/DINOv2 ni se mezclan las 75 corridas B con
+el contrato detector histórico. SIFT/RANSAC se conserva como exploratorio y
+queda fuera del camino crítico por decisión de JP. Esta candidata local no
+autoriza nuevos entrenamientos, evaluación del test o publicación.
+
 ## Consolidated workspace
 
 The persistent integration branch contains the backend at `src/` and the explorer

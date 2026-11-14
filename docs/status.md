@@ -1,5 +1,38 @@
 # Project status
 
+## Consolidación local y alcance vigente — 2026-11-14
+
+Backend y frontend consolidados en una rama de integración separada, con las
+fuentes originales preservadas. El detalle actual y las limitaciones están en
+[final_integration](final_integration.md); los cinco objetivos definitivos en
+[methodology_traceability](methodology_traceability.md).
+
+Los 414 clusterings y 60 splits cluster-aware existen fuera de Git. C10 sigue
+siendo una referencia documentada, no un nuevo split autorizado con el test fijo.
+Los 75 entrenamientos B completados se distinguen del contrato histórico que
+declara 48 corridas. Las verificaciones del export no recertifican artefactos
+nativos ausentes. No se ejecutan entrenamientos ni se consulta el test protegido.
+
+SIFT/RANSAC queda fuera del camino crítico; se conserva como exploratorio.
+El Comité de Ética está aprobado según confirmación del investigador, con
+constancia y condiciones pendientes de archivo/verificación. Laura permanece
+separada y en NO-GO. El ensamblaje panóptico conjunto no se declara completado.
+Los pasajes posteriores conservan su fecha y alcance históricos.
+
+## Recovered sequence evidence (2026-11-05)
+
+Local linkage output hashes and its sequence-assignment source hash verified;
+9,648 occurrences cover 16 sequences / 11 historical visual dependency groups.
+The shared encoder group support table was reproduced (1,568 pairs). BASE coverage:
+902/950 have historical candidates, 787 have shared group candidates. Manual CSVs
+cover 12 BASE contents: six supported, five ambiguous, one unsupported; 938 remain
+unreviewed, including all 67 validation contents. Both groups supporting the six
+BASE contents also support five protected test contents: conditional dependency
+conflict, not established leakage. No associations authorized for a new split.
+VDG producer/review provenance and reconciliation with October decisions remain
+pending. BASE and the fixed test remain unchanged; no training launched. See
+[assessment and next step](runbooks/leakage_priority.md).
+
 ## Leakage experiment priority (2026-11-04)
 
 Bounded provenance review: BASE has 442 video_11min, 460 video_13min, 40 scene-720p

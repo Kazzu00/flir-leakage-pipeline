@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from './synthetic-fixture'
 import AxeBuilder from '@axe-core/playwright'
 test('home, module navigation and core clustering interaction', async ({
   page,

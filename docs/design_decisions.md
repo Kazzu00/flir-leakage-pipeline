@@ -1,5 +1,16 @@
 # Design decisions
 
+## Reuse the existing subtree and versioned execution boundaries — 2026-11-14
+
+Keep `apps/explorer`, whose subtree already preserves frontend history, rather
+than importing or renaming it again to `apps/web-explorer`. Recover later local
+source changes without runtime data. Preserve both three-destination general
+and two-destination fixed-test allocation APIs; combine compatibility parameters
+without changing either objective. Automatic technical receipts, signed scientific
+authorization and historical published admission formats retain their distinct
+scope; integration must not reinterpret existing receipts or reidentify B.
+See [the final integration record](final_integration.md).
+
 ## Processed NO-HUD is a distinct treatment (2026-11-04)
 
 The user-supplied upstream repository reports ProPainter inpainting and full-frame
