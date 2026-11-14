@@ -1,0 +1,2 @@
+scripts/hypatia/*.sh text eol=lf
+scripts/hypatia/*.sbatch text eol=lf

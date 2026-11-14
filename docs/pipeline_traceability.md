@@ -1,5 +1,58 @@
 # Pipeline traceability
 
+## Sequence grouping admission boundary (2026-11-04)
+
+The accepted 950-content BASE preserves S3 relation components. It is not a
+sequence-complete partition: 923 of its 928 groups are singleton contents.
+Reviewed sequence/visual-dependency memberships must be joined through verified
+labeled linkage before constructing another split; whole-video identity and name
+families cannot substitute for the extracted sequence unit. Keep common protected
+test identity fixed and recheck development closure before comparing populations.
+
+## Expanded NO-HUD candidate evidence (2026-11-04)
+
+Immutable accepted BASE + receipt-bound reverse candidates/native index -> 2,624
+development-only comparisons -> geometry and object-region diagnostics -> native
+neighbor cross-check -> static review. Eight geometrical source candidates become
+seven pending after ambiguity rejection; none becomes a training annotation.
+Upstream code/config establish an attributed ProPainter processing recipe, not
+per-image execution provenance. Source and processed-raster hashes stay distinct.
+
+## Explicit preliminary acceptance (2026-11-04)
+
+Receipt-bound curated source -> user acceptance of original nonempty annotations
+-> unchanged S3 subset (883/67), exclusions and class impact -> immutable receipt
+-> independent preliminary runtime with loader-membership checks and no test.
+No original annotation is silently repaired. Cached NO-HUD retrieval -> masked
+registration -> inverse box transform -> JSON-only proposals; temporal/object
+adjudication is still required. No candidate enters a training label file.
+
+## HUD ablation preparation (2026-11-04)
+
+Existing curated membership -> verified original image/label pairs -> transfer TAR
+with checksums. This is technical preparation, not detector evidence. NO-HUD
+correspondence candidates remain separate from geometry/box verification. No paired
+population or final detector comparison exists. See the [handoff](runbooks/hud_hypatia_handoff.md).
+
+## Curated development boundary (2026-10-27)
+
+Curated manifest bytes + proposed matrix/provenance + optional receipt-bound
+protected metadata → validated unchanged image/label copies and existing assignments
+→ Linux development views + deterministic receipt → NOT ADMITTED. The manifest
+identity is separate from full-occurrence records_id. Exact reference exclusion
+does not approve the test or establish OS isolation. The historical signed
+executor remains unchanged; see [contract](runbooks/curated_development.md).
+
+## Signed YOLO11m execution boundary (2026-10-21)
+
+Existing candidate publication and prepared membership receipts → attributed
+decisions plus signed protocol/code/environment/weight freeze → nine admitted
+expanded S1/S2/S3 runs → development-only checkpoint selection → separately signed
+release of the complete matrix → fixed-test metrics. Every attempt retains its
+run/variant/seeds, input and checkpoint hashes. Synthetic tests cover the bridge;
+no real run, test approval or scientific validation was performed. A/B label reuse
+requires reviewed identity geometry; unannotated videos remain outside supervision.
+
 ## Ground-truth quality and sufficiency (2026-10-14)
 
 Verified source publications and original ZIP/member SHA-256 → unchanged test
@@ -68,6 +121,40 @@ candidates, even where the current screening also finds them. No correspondence,
 scene identity, group constraint or new split is inferred. Real local audit and
 synthetic regressions were executed; downstream adjudication remains pending.
 See the [contract and evidence states](runbooks/adendo.md).
+
+## Dependency pair pilot (Phase 2B)
+
+Frozen alignment review export (24 final accepted top-1, 27 historical entries)
+→ 276 bounded masked geometric comparisons → 24 directed, exclusive-category pairs
+→ independent continuity/spatial annotations → separate reviewer ledgers and optional
+append-only adjudication. Pair annotations remain pending. Accepted alignment is
+not converted into continuity, region, independence, or leakage labels. No graph or
+new split is produced. Earlier pending counts below describe original delivery time.
+
+## Alignment review pilot (Phase 2A.1)
+
+Existing image-to-video candidates → frozen 24-case sample → exact-PTS evidence
+reconstruction → explicitly consulted human top-1 judgments → versioned exports
+and descriptive analysis. The pipeline never substitutes scores for human labels,
+infers independence from incorrect matches, or recalibrates thresholds using test.
+The delivered real sample has no human annotations yet.
+
+## Multisplit visual provenance alignment (Phase 2A)
+
+Original occurrence (archive/member/ordinal, split, index, SHA-256) → seeded temporal
+stratum → image-to-video candidate rankings with media PTS and independent support
+metrics → checksummed visual evidence → optional explicit human identity review.
+This is data understanding/preparation and provenance QA, not a clustering/splitting
+decision. Historical `TemporalObservation.verification` is unchanged. See
+[implementation and operational boundaries](runbooks/phase2a_multisplit_alignment.md).
+
+## Human review evidence policy 1.1 (2026-11-03)
+
+Conclusive reviews require explicitly consulted, event-bound image evidence.
+Pending and fully undetermined reviews remain possible. Legacy decisions retain
+their original policy and history. Sample intervals retain nominal provenance;
+shared historical indices are anomalies, not proof of semantic leakage.
+See [policy and limitations](runbooks/audit_human_review_v11.md).
 
 ## External visual variants (2026-10-08)
 
@@ -279,3 +366,12 @@ and the assistant-review mode survive without asserting truth, exact provenance,
 sequence instances, dependency groups or splits. The normalized source retains
 the unspecified variant and is verified against the canonical source identities;
 any modified original invalidates verification even if its snapshot is intact.
+
+## Local exploratory audit trace (2026-11-02)
+
+Legacy artifact bytes + SHA256 + original locator → normalized observations and
+candidate events → explicitly consulted image references → versioned human
+continuity/dependence judgments → lossless JSON/CSV history. Review does not
+promote candidates to sequences, links, ground truth or split constraints.
+Real priority ingestion and a synthetic browser smoke are distinct evidence.
+See [commands and limitations](runbooks/audit_human_review.md).

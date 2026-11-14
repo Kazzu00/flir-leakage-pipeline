@@ -1,6 +1,40 @@
 # FLIR Leakage-Aware Clustering Pipeline
 
+## Consolidated workspace
+
+The persistent integration branch contains the backend at `src/` and the explorer
+at `apps/explorer/` (Git subtree with preserved history). Run frontend commands
+from that directory: `npm ci`, `npm run build`, `npm test`. Existing backend imports
+and CLI names are preserved. Original worktrees and repositories are retained.
+
+The [HUD/no-HUD operational report](docs/runbooks/hud_hypatia_handoff.md) separates
+the validated BASE preparation from pending annotation review, missing verified
+NO-HUD transfers, and training that has **not** run.
+
+The [preliminary BASE runbook](docs/runbooks/preliminary_base_hypatia.md) now
+provides a separate user-accepted positive-only pilot: 883 train / 67 val, original
+annotations with visual review pending, 185 empty labels excluded. It is locally
+prepared and validated, not trained. NO-HUD has no verified box-transfer population.
+
+The operator subsequently submitted BASE job 791494 (remote completion unverified).
+[Expanded NO-HUD recovery](docs/runbooks/no_hud_expansion.md) evaluated all 950
+sources and 2,624 candidate pairs; no paired training population is admitted.
+
+Curated development preparation is implemented as
+`detection common-executor prepare-curated-development`. It preserves the supplied
+manifest and assignments, verifies exact protected-reference exclusion when metadata
+is available, and produces Linux YOLO views explicitly **NOT ADMITTED**. The signed
+training boundary is unchanged. See the [audit and contract](docs/runbooks/curated_development.md).
+
 ## Overview
+
+YOLO11m common-test execution now has a **signed, default-deny admission route**
+for existing prepared splits, checkpoint resume and separate final evaluation.
+No real training has been executed; final scientific training is not approved. Test/annotation decisions,
+administrator trust and end-to-end signed execution acceptance remain pending.
+The operator reported a successful GPU/model preflight on Hypatia; this does not
+admit the curated population and was not repeated in this integration. See the
+[scientific execution runbook](docs/runbooks/scientific_yolo11m.md).
 
 `flir-pipeline detection ground-truth-quality` audits the original proposed test
 and support in existing train/validation arms, producing external static galleries,
@@ -42,6 +76,32 @@ separating exact-byte identity from perceptual/review evidence. Implemented and
 executed locally on the three source ZIPs; evidence adjudication remains pending.
 It creates no splits or training runs. See the [contract and CLI](docs/runbooks/adendo.md)
 and [observed audit results](docs/status.md).
+
+`flir-pipeline sequences audit` provides **FLIR Audit & Human Review v1.1**:
+read-only legacy JSON/CSV/ZIP ingestion, `audit-evidence-v1`, a local SQLite
+ledger, versioned human decisions and JSON/CSV exports. The reviewer is integrated
+in `flir-pipeline-explorer` → Sequences & linkage → Human audit review.
+An audiovisual cut and visual-region dependence are separate judgments;
+neither a cut nor a whole video defines an independent split group.
+See [installation, synthetic smoke, commands, semantics and limitations](docs/runbooks/audit_human_review.md).
+See [v1.1 evidence policy, canonical imports and validation](docs/runbooks/audit_human_review_v11.md).
+
+`flir-pipeline sequences alignment` adds bounded CPU multisplit image-to-video
+retrieval with media timestamps, explicit alternatives and local visual evidence.
+Automatic output remains candidate/ambiguous/not_found; human verification is a
+separate explicit action. See [Phase 2A operation](docs/runbooks/phase2a_multisplit_alignment.md).
+
+`sequences alignment pilot` prepares and serves the 24-case human alignment pilot
+on loopback, with separate versioned judgments and JSON/CSV exports. The subsequently
+received human export contains 24 accepted alignments and 27 historical decisions.
+See the [human review runbook](docs/runbooks/phase2a1_human_alignment_review.md).
+No sequences, partitions or detector runs are created by this module.
+
+`sequences alignment dependencies` prepares and serves the Phase 2B pair pilot:
+24 directed pairs with separate continuity/spatial judgments, explicit evidence
+confirmation, independent reviewer ledgers and append-only adjudication. All pair
+decisions remain pending. See the [pair review runbook](docs/runbooks/phase2b_dependency_pilot.md)
+and [actual validation and limitations](docs/analysis/phase2b_dependency_validation.md).
 
 `flir-pipeline data video-variant-ingestion build/verify/summary` audits external
 image variants directly from ZIP shards with bounded reads and immutable evidence.

@@ -1,5 +1,91 @@
 # Project status
 
+## Leakage experiment priority (2026-11-04)
+
+Bounded provenance review: BASE has 442 video_11min, 460 video_13min, 40 scene-720p
+and eight scene-1080p sources. Only the last eight are plausible for the available
+NO-HUD clip. Seven pending pairs checked against local native-frame windows;
+zero transfers certified. NO-HUD investigation closed for now. BASE's existing
+S3 has 928 groups (923 singletons, five groups containing 27 images), no train/val
+group overlap or exact protected-content overlap. This does not establish sequence
+atomicity. Historical remote paths for reviewed sequences/VDGs/linkage were supplied
+by the user but not accessed. Next step: retrieve metadata for coverage/identity
+checks, not training. See [bounded findings](runbooks/leakage_priority.md).
+
+## Expanded NO-HUD recovery (2026-11-04)
+
+BASE job 791494 was submitted by the user; its package/executor remain unchanged.
+Evaluated 2,624 pairs covering all 950 accepted sources. Eight source images / 12
+boxes pass the provisional geometry screen; one source is rejected as ambiguous.
+Seven sources / ten boxes remain pending, with no verified transfer and no paired
+training population. The supplied upstream repository documents ProPainter and
+resizing, consistent with local PNG counts/dimensions, but lacks a checksum binding
+to received images/masks. 31 focused tests and Ruff pass. See
+[results and provenance limits](runbooks/no_hud_expansion.md).
+
+## Accepted positive-only BASE pilot (2026-11-04)
+
+User explicitly accepted original nonempty labels for preliminary training with
+visual review pending. A separate immutable package retains S3: 883 train / 67 val;
+185 pending empty labels excluded. Exact cross-split overlap is zero; temporal
+dependence remains unresolved. Separate CLI/SLURM executor preserves final gates.
+112 focused offline tests and global Ruff pass. No actual training/CUDA validation.
+NO-HUD pilot: 13 pairs inspected geometrically, seven candidate pairs / 11 proposed
+boxes, zero verified transfers; paired training remains blocked. See the
+[current operational commands](runbooks/preliminary_base_hypatia.md).
+
+## HUD/no-HUD handoff and monorepo (2026-11-04)
+
+BASE: 1,135 pairs revalidated and packaged; 185 empty labels still pending review.
+NO-HUD: zero verified annotation transfers in the inspected publication; no paired
+training population. No training or protected payload access. The persistent
+integration branch now includes the executor, alignment, recovered transfer code
+and the explorer subtree. See the [single operational report](runbooks/hud_hypatia_handoff.md).
+
+Validation: 1,475 backend tests passed across all 62 test files in three isolated
+processes (zero failures/errors/skips); 94 frontend unit tests, TypeScript, build,
+Ruff and notebook-source checks passed. Frontend lint retains three warnings.
+The interrupted monolithic pytest attempt is not counted as completed. Local CPU
+preflight failed because the core environment lacks torch; no CUDA validation,
+training, protected-test evaluation or remote job was executed.
+
+## Curated development preparation (2026-10-27)
+
+Implemented a manifest-driven, non-admitted preparation with deterministic receipts
+and idempotent verification. Local real-data preparation verified 1135 canonical
+contents and preserved S1 1044/91, S2 1065/70, S3 1052/83. Selected original
+metadata checksums and assignments were compared; protected-reference intersection
+was zero (514 occurrences / 373 contents). No protected payload was opened.
+This is technical preparation, not scientific admission, training or detector
+validation. A curated-population admission extension remains a proposal requiring
+human methodological decisions. See [audit and commands](runbooks/curated_development.md).
+
+Validation closed on 2026-10-28: **1360 passed, zero failures/errors/skips**, across
+all 54 test files in isolated processes (three workers, 786.54 s wall time).
+The JUnit total matches collection and the recorded source fingerprint remained
+unchanged. Monolithic attempts were interrupted and are not claimed as passed;
+an external runner setup error and its correction are retained in the audit.
+Global Ruff, notebook-source checks and `git diff --check` pass. Real-data replay,
+idempotence, original membership and source-receipt checks were repeated successfully.
+No formal admission, model training, protected payload access, commit or deployment.
+
+## YOLO11m con admisión firmada (2026-10-21)
+
+Ruta técnica añadida sobre `756cdc0`, sin ejecutar entrenamiento real. El executor
+reutiliza planes/preparación y selecciona nueve runs ampliados S1/S2/S3 (split 0,
+detector 42/43/44) únicamente con firma OpenSSH validada contra autoridad externa.
+JSON autodeclarados, test provisional, ambiente distinto y checkpoints no vinculados
+siguen bloqueados. Train/validation y evaluación de test tienen permisos separados;
+el test se libera después de completar la matriz. Resume preserva intentos previos.
+
+Variantes: A tiene ZIP/particiones existentes; B tiene 19.800 imágenes sin HUD pero
+su publicación revisada informa cero correspondencias aprobadas; C tiene tres videos
+fuente, sin contrato supervisado admitido aquí. No se ejecutaron auditorías, prepare
+real, nuevos splits ni modelos. Resultados YOLO11n intactos. Validación nueva:
+pruebas offline/sintéticas, no aceptación operacional CUDA/SLURM. Autoridad del
+revisor, aislamiento de test, adjudicación, suficiencia y freeze siguen pendientes.
+Véase [procedimiento y contrato](runbooks/scientific_yolo11m.md).
+
 ## Ground-truth quality y suficiencia v1 (cierre 2026-10-15)
 
 Infraestructura implementada para auditar el test propuesto y los train/validation
@@ -339,6 +425,76 @@ dentro del repositorio y por extras experimentales ausentes como scikit-learn.
 No se revalidaron los 48 experimentos de Hypatia. Los artefactos y
 la evidencia importada permanecen fuera del repositorio. Véase el
 [contrato y ejecución](runbooks/adendo.md).
+
+## Fase 2B: piloto de dependencias
+
+**Implementación y ejecución técnica reales; 24 pares pendientes de revisión.**
+Cuatro fronteras, seis cercanos, seis no consecutivos, cuatro cambios candidatos y
+cuatro controles con ocho contenidos distintos. 276 comparaciones acotadas, 129
+medios y ocho pares para segundo revisor independiente. Cero decisiones humanas
+de dependencia; concordancia todavía nula. Geometría débil, sin superposición válida.
+Véanse [validación](analysis/phase2b_dependency_validation.md) y
+[runbook](runbooks/phase2b_dependency_pilot.md).
+
+**Actualización de Fase 2A.1:** el export humano recibido después de la entrega
+técnica contiene 27 revisiones históricas y 24 aceptaciones finales. Se verificaron
+sus hashes y se congeló como referencia local. No son etiquetas de continuidad o
+región; la aceptación dirigida por un revisor no estima precisión poblacional.
+Los estados pendientes descritos debajo corresponden al momento de las entregas
+anteriores, antes de recibir este export.
+
+## Fase 2A.1: piloto de validación humana de alineamiento
+
+**Preparado y comprobado técnicamente; 24 casos pendientes, cero anotaciones FAC.**
+Ocho diagnósticos, doce adicionales equilibrados por split y cuatro difíciles,
+incluido 630; 500 sigue ausente. Servicio local de revisión, historial versionado,
+exportación JSON/CSV y reporte descriptivo condicionado a referencias humanas.
+380 imágenes cargadas en Chromium; persistencia tras reinicio validada con datos
+sintéticos y ledger real sin cambios de decisiones. 76 pruebas focalizadas y Ruff
+aprobados. No hay confianza automática calibrada ni estimación de exactitud humana.
+Véanse [selección y validación](analysis/phase2a1_pilot_validation.md) y
+[runbook](runbooks/phase2a1_human_alignment_review.md).
+
+## Fase 2A: alineación multisplit (2026-11-03)
+
+**Implementada y ejecutada sobre muestra real; verificación humana pendiente.**
+Manifiesto de 3.659 ocurrencias en cinco ZIPs; fuente original seleccionada de
+747 imágenes (467/50/230). Muestra estratificada y diagnóstica de 44: 43 candidatos,
+1 sin soporte, 0 errores, 0 verificaciones humanas. Reportes locales con 88 láminas
+y cuatro comparaciones de fronteras; PTS y hashes de reextracción comprobados.
+Regresión focalizada ampliada: 214 pruebas aprobadas; Ruff aprobado. No se repitieron
+las suites globales completas. No se generaron secuencias, splits ni entrenamiento.
+Véanse [validación y límites](analysis/phase2a_multisplit_validation.md) y
+[operación](runbooks/phase2a_multisplit_alignment.md).
+
+## FLIR Human Review v1.1 (2026-11-03)
+
+Correcciones implementadas: evidencia obligatoria en conclusiones, registro externo
+explícito, compañeros CSV/JSON idempotentes, intervalos completos, esquemas raíz y
+anomalías cross-split. Historias anteriores preservadas. 49 pruebas backend focalizadas,
+94 unitarias frontend y 2 E2E del auditor aprobadas. La suite global backend quedó
+incompleta; E2E global: 16 aprobadas, 1 fallida, 8 omitidas (repetición aislada del
+fallo aprobada). No se declara validación global ni campaña científica completada.
+Véanse [validación](analysis/audit_human_review_v11_validation.md) y
+[operación](runbooks/audit_human_review_v11.md).
+
+## FLIR Audit & Human Review v1 (2026-11-02)
+
+**Infraestructura implementada; smoke sintético de navegador validado;
+importación real prioritaria validada; revisión humana real pendiente.**
+`sequences audit` importa JSON/CSV/manifiestos ZIP, conserva evidencia y SHA-256,
+valida normalización y mantiene revisiones transaccionales en SQLite. La interfaz
+se integra en `flir-pipeline-explorer` y separa continuidad audiovisual de
+dependencia visual. No crea secuencias ni splits ni confirma independencia.
+
+Se importaron ocho artefactos prioritarios: 450 registros candidatos de distintos
+tipos y 1.855 observaciones, sin duplicación en reimportación; cero decisiones
+humanas reales. Tres archivos prioritarios estaban ausentes. La suite focalizada
+pasó 133 pruebas; el módulo pasó sus 30 pruebas finales. Frontend: 91 unitarias y
+E2E propio aprobados, con persistencia tras reinicio y export exacto. La suite
+Python global quedó incompleta; E2E global conserva un problema de accesibilidad
+en splits fuera del módulo. Véanse el [registro completo de validación](analysis/audit_human_review_validation.md)
+y el [runbook](runbooks/audit_human_review.md).
 
 ## Ingesta de variantes visuales externas (2026-10-08)
 

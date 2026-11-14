@@ -1,5 +1,53 @@
 # Design decisions
 
+## Processed NO-HUD is a distinct treatment (2026-11-04)
+
+The user-supplied upstream repository reports ProPainter inpainting and full-frame
+resizing. Treat the delivered PNGs as a processed variant with incomplete execution
+binding, never as authentic overlay-free captures. Score/PSNR and native rank-one
+agreement cannot approve object labels. Missing masks, ambiguous temporal identity
+and absent class coverage block paired training. The running BASE remains intact.
+
+## Original nonempty pilot acceptance (2026-11-04)
+
+The user explicitly accepts original nonempty annotations only for a preliminary
+BASE run, with new visual review pending. Exclude all 185 unresolved empty labels;
+do not infer that they are erroneous. Preserve existing S3 assignments and disclose
+positive-only selection bias. Implement this as a separate executor/package, never
+as a bypass of final scientific admission. Geometrically plausible NO-HUD boxes
+are review proposals, not accepted annotations or a paired training population.
+
+## Paired HUD/no-HUD identity and admission (2026-11-04)
+
+Preserve distinct source/target content hashes and link them by observation identity.
+Never assign equal content hashes to altered rasters for experimental parity.
+Pending empty labels and accepted temporal matches do not certify ground truth.
+The existing nine-run signed protocol is not relabeled as a two-run curated
+experiment. No final-test approval is inferred from development preparation.
+
+## Curated content is a new experimental population (2026-10-27)
+
+Deduplicating development occurrences changes sample weighting even when all
+content assignments survive. Do not alias curated manifest identity to historical
+records_id or thirty-arm publication identity. A narrow development preparer
+reuses existing hash/YOLO utilities under the common-executor CLI, with no training
+route. Its deterministic receipt binds inputs, implementation and Linux locators;
+verification reconstructs expected output without repairing it. Approval and test
+isolation remain independent requirements. See [proposed extension](runbooks/curated_development.md).
+
+## Scientific admission is attributed, external and scope-bound (2026-10-21)
+
+Provisional receipts remain provisional. A separate OpenSSH-signed decision binds
+their exact bytes, fixed test, reviewed annotations/dependencies, configuration,
+weights origin, capacity, code and environment. A root-managed allowlist establishes
+authority; worker-provided keys and `approved=true` cannot admit a run. This is a
+proposed institutional trust policy, not scientific adjudication by software.
+Test access requires OS isolation plus a second signed release of a complete
+matrix; application checks cannot discover undeclared test copies. Resume is a
+new receipted attempt from a signed checkpoint release, not extra training budget.
+Geometry-preserving variants require reviewed one-to-one lineage and unchanged
+labels/memberships. Similarity, equal dimensions and raw video are insufficient.
+
 ## Ground-truth audit is evidence, not adjudication (2026-10-14)
 
 Count instances, positive images, exact contents and hypothetical candidate groups
@@ -84,6 +132,16 @@ edges are candidate evidence; imported provenance confirmations require attribut
 additional review evidence and remain distinct from byte-level identity. No edge
 automatically assigns a split. The consolidated candidate is not a drop-in input
 for the existing splitter. See the [limits and future joins](runbooks/adendo.md).
+
+## 2026-11-04: independent pair axes and reviewer histories
+
+Phase 2B treats audiovisual continuity and spatial relation as independent judgments.
+Accepted image-video alignment supplies provenance only. Directed selection quotas
+are mutually exclusive; uncertainty and negative-control status are preserved.
+Separate role-bound SQLite ledgers prevent accidental answer disclosure through the
+review API. Adjudication references actual decisions without replacing them.
+Mask QA uses green HUD exclusion and bounded descriptor support, with visible masks;
+low geometric support is reported rather than converted into spatial independence.
 
 ## 2026-10-08: scientific occurrence identity independent of ZIP packaging
 
@@ -960,3 +1018,38 @@ remain uncertain; `sequence_core_candidate` remains a candidate with legacy
 origin. Encoder ranks and candidate pairs are preserved, with no confirmed
 dependencies or components promoted to VDGs. The legacy assistant review mode
 is retained verbatim and is not independent visual ground truth.
+
+## Local exploratory audit decisions (2026-11-02)
+
+Phase 2A.1 alignment labels judge top-1 identity only: correct_match,
+incorrect_match or uncertain. They are not continuity/region labels. Better-rank
+preferences and proposed negative-control judgments remain separate fields.
+Implicit pending rows are exported as version 0 without fabricating a reviewer.
+Only an explicit reviewed/correct_match action with bound consulted evidence marks
+human_verified_top1. The 40-inlier display bands and five-review reporting gate are
+operational diagnostics, not calibrated confidence or statistical sufficiency.
+
+Phase 2A uses the original multisplit image archive explicitly; alternative archive
+occurrences stay separate even when names match. Nominal offset is a retrieval prior,
+not correspondence evidence. CPU SIFT/RANSAC support, normalized correlation and
+perceptual hash are separate uncalibrated diagnostics. Outside-window controls do
+not imply different geographic regions. Media timestamps identify decoded frames;
+only an explicit human review can assign `human_verified`. The local HTML is the
+bounded review surface; no React expansion is required for this phase.
+
+Revision 1.1 preserves the first accepted canonical source (JSON first only when
+both arrive together). Later companions cannot change event IDs or migrate reviews.
+Conflicting revisions require a separate ledger. Existing duplicate identities
+require explicit reconciliation with a receipt and retained histories. Evidence
+references are validated before new conclusions; legacy conclusions remain visible
+with warnings. See [policy](runbooks/audit_human_review_v11.md).
+
+Audiovisual continuity and visual/region dependence are independent dimensions.
+`shot_change + same_region` is valid; neither implies independence or a split
+constraint. Imported classifications remain original evidence, not human history.
+Missing source-video attribution stays unknown. Source revisions receive new
+identities rather than inheriting decisions based on nearby nominal times.
+JSON and equivalent CSV are retained separately but normalized once.
+SQLite transactions and optimistic revision checks support local durable review;
+this is not a multiuser service or a scientific confirmation mechanism.
+See [audit human review](runbooks/audit_human_review.md).

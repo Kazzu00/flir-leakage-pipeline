@@ -1,5 +1,39 @@
 # Architecture
 
+## Independent preliminary BASE runtime (2026-11-04)
+
+`detection/preliminary.py` and `preliminary_cli.py` implement explicit user-accepted
+positive-only preparation/verification/training. They reuse environment and loader
+guards while keeping package, receipts and outputs separate from final scientific
+admission. Runtime copies prevent cache writes to immutable transfer data.
+`data/box_transfer.py` inverts registration coordinates for review-only proposals;
+`scripts/build_hud_review.py` creates static contact sheets and traceable evidence.
+Neither module approves NO-HUD annotation transfer.
+
+## Monorepo boundary (2026-11-04)
+
+The existing backend remains under src/flir_pipeline; apps/explorer is a Git
+subtree retaining frontend history. Root GitHub Actions activates its quality
+workflow with the frontend working directory. Data stays external. The standalone
+handoff checksum verifier uses only the standard library and cannot grant training
+admission. Recovered no-HUD transfer code reuses existing data validation.
+
+`detection/curated_development.py` adds manifest-driven development materialization
+to the existing common-executor CLI. It reuses source hashing, YOLO validation,
+external-output checks and checked writes. Its versioned development receipt is
+not accepted by the existing preparation/admission contracts. No alternative
+training runtime, split engine or authority mechanism is added. See the
+[curated preparation contract](runbooks/curated_development.md).
+
+The common-test executor has a separate signed admission boundary in
+`detection/admission.py`: an administrator-owned OpenSSH allowlist, attributed
+decision hashes, expiration and clean code/environment freeze. `scientific_executor.py`
+joins existing plans/prepared memberships and verifies variants; it never solves
+splits. `scientific_runtime.py` runs development-only attempts and separately
+released test evaluation, reusing original label validation and detector metrics.
+No changes to the historical YOLO11n runtime or its admission rules. See the
+[scientific runbook](runbooks/scientific_yolo11m.md).
+
 Ground-truth evidence lives in `detection/ground_truth_quality.py` (descriptive
 metrics and human-form contract), `ground_truth_gallery.py` (static native-raster
 views) and `ground_truth_quality_storage.py` (source binding, receipts and replay).
@@ -61,6 +95,16 @@ annotation ledger and evidence edges join through occurrence/content/label IDs.
 `summary.json`, written last, binds input and output checksums. This independent
 candidate publication does not mutate historical data, splits or detector runs.
 See the [schema, identity and failure contract](runbooks/adendo.md).
+
+## Local dependency pair review (Phase 2B)
+
+`alignment/dependency.py` validates frozen alignment references and builds a bounded
+pair bundle. `dependency_contract.py` describes the versioned pair schema.
+`dependency_store.py` binds each append-only SQLite ledger to manifest and reviewer
+role; reviewer 2 sees only assigned pairs and its own decisions. Adjudication uses
+two read-only source ledgers and a third history. `dependency_ui.html` reuses the
+loopback server with explicit consulted-evidence confirmation. Original datasets,
+alignment reviews and historical audit ledger are never written by this path.
 
 ## External visual-variant ingestion (2026-10-08)
 
@@ -543,3 +587,32 @@ identity. Sequence experiment sources carry this declaration into every immutabl
 publication and SLURM run identity. Legacy undeclared stores remain `unspecified`.
 `sequences/experiments/variant_comparison.py` consumes completed frozen suites and
 optional validated occurrence correspondence; it never fits or constructs groups.
+
+## Local audit and human review (2026-11-02)
+
+Phase 2A.1 adds `alignment/pilot*`: immutable selection/media bundle → loopback
+HTML/API reviewer → separately bound SQLite append-only alignment judgments.
+The service does not write the historical audit ledger or matching evidence.
+Fixed-pair geometry is reconstructed only at existing candidate PTS; no retrieval
+or ranking is performed. Report denominators distinguish pending, uncertain and
+conclusive human labels; confidence calibration is unavailable.
+
+Phase 2A adds the separate `alignment` package: image occurrence inventory and
+stratified selection → CPU visual retrieval and native media-time refinement →
+immutable JSON/CSV, contact sheets and local HTML. Existing audit IDs are referenced
+read-only as index-based navigation candidates, never silently promoted into visual
+identity. Human correspondence reviews live in separate source-bound revision files.
+No new frontend backend endpoint or dependency graph is introduced.
+
+Revision 1.1 adds persistent canonical companion mappings, explicit reconciliation
+receipts, frozen external image evidence and complete document schemas. Legacy
+normalizers verify original rows; current snapshots project compatible temporal
+metadata without rewriting history. See [v1.1](runbooks/audit_human_review_v11.md).
+
+`sequences audit` → bounded read-only legacy adapters → immutable raw evidence
+and normalized `audit-evidence-v1` rows in SQLite → loopback HTTP API → existing
+React `SequenceExplorer` reviewer. Human decisions are append-only revisions,
+separate from automatic metrics, with optimistic version checks and evidence
+hash bindings. JSON/CSV exports round-trip the full history. This local annotation
+service does not change the existing immutable organization/scientific contracts.
+See the [architecture, contract and operational guide](runbooks/audit_human_review.md).

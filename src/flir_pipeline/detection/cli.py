@@ -4,7 +4,131 @@ from pathlib import Path
 
 import typer
 
+from flir_pipeline.detection.preliminary_cli import app as preliminary_app
+
 app = typer.Typer(help="Frozen historical/random/cluster detector comparison.")
+app.add_typer(preliminary_app, name="preliminary-base")
+common_executor_app = typer.Typer(help="YOLO11m common-test operations; scientific execution requires signed admission.")
+app.add_typer(common_executor_app, name="common-executor")
+
+
+@common_executor_app.command("prepare-curated-development")
+def common_prepare_curated_development(
+    source_root: Path, manifest: Path, matrix: Path, provenance: Path,
+    output: Path, linux_root: str = typer.Option(...),
+    protected_records: Path | None = None, protected_receipt: Path | None = None,
+) -> None:
+    """Prepare or reverify curated development only. Does not admit training."""
+    from flir_pipeline.detection.curated_development import prepare_curated
+
+    result = prepare_curated(source_root, manifest, matrix, provenance, output,
+                             linux_root, protected_records, protected_receipt)
+    typer.echo(f"{result['state']}: {result['canonical_contents']} contents; "
+               f"protection={result['protected_exclusion']['status']}")
+
+def _prime_cuda_import_order() -> None:
+    """Load GPU dependencies before the detection runtime."""
+    import torch  # noqa: F401
+    from ultralytics import settings  # noqa: F401
+
+
+@common_executor_app.command("dry-run")
+def common_executor_plan(publication: Path, output: Path,
+                         config: Path = Path("configs/detection/common_test_yolo11m_v2.yaml"),
+                         checkpoint_sha256: str | None = None) -> None:
+    import json
+
+    from flir_pipeline.detection.common_executor import dry_run
+    typer.echo(json.dumps(dry_run(publication, config, output, checkpoint_sha256), indent=2))
+
+
+@common_executor_app.command("prepare")
+def common_executor_prepare(publication: Path, source_root: Path, output: Path,
+                            evidence: Path | None = None) -> None:
+    from flir_pipeline.detection.common_executor import prepare
+    result = prepare(publication, source_root, output, evidence)
+    typer.echo(f"Prepared {len(result['views'])} development views; training blocked")
+
+
+@common_executor_app.command("verify")
+def common_executor_verify(directory: Path, kind: str = "plan") -> None:
+    from flir_pipeline.detection.common_executor import (
+        verify_executor_plan,
+        verify_preparation,
+    )
+    from flir_pipeline.detection.common_runtime import verify_operation
+    checks = {"plan": verify_executor_plan, "preparation": verify_preparation, "operation": verify_operation}
+    if kind not in checks:
+        raise typer.BadParameter("kind must be plan, preparation or operation")
+    result = checks[kind](directory)
+    typer.echo(f"Verified {kind}: {result.get('state', result.get('plan_id', 'technical_only'))}")
+
+
+@common_executor_app.command("preflight")
+def common_executor_preflight(output: Path, cpu: bool = False,
+                              config: Path = Path("configs/detection/common_test_yolo11m_v2.yaml")) -> None:
+    _prime_cuda_import_order()
+    from flir_pipeline.detection.common_runtime import preflight
+    typer.echo(preflight(config, output, cpu))
+
+
+@common_executor_app.command("synthetic-smoke")
+def common_executor_smoke(output: Path, batch: int = 1, cpu: bool = False,
+                          config: Path = Path("configs/detection/common_test_yolo11m_v2.yaml")) -> None:
+    _prime_cuda_import_order()
+    from flir_pipeline.detection.common_runtime import synthetic_smoke
+    typer.echo(synthetic_smoke(config, output, batch, cpu))
+
+
+@common_executor_app.command("probe")
+def common_executor_probe(output: Path,
+                          config: Path = Path("configs/detection/common_test_yolo11m_v2.yaml")) -> None:
+    _prime_cuda_import_order()
+    from flir_pipeline.detection.common_runtime import probe
+    typer.echo(probe(config, output))
+
+
+@common_executor_app.command("train")
+def common_executor_train(plan: Path, output: Path, index: int = 0, resume: bool = False,
+                          admission: Path | None = None, signature: Path | None = None,
+                          resume_admission: Path | None = None, resume_signature: Path | None = None) -> None:
+    from flir_pipeline.detection.common_executor import train
+    try:
+        train(plan, output, index, resume, admission, signature, resume_admission, resume_signature)
+    except ValueError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(1) from exc
+
+
+@common_executor_app.command("admission-check")
+def common_admission_check(plan: Path, output: Path, admission: Path, signature: Path) -> None:
+    """Check signed matrix and immutable inputs; no model import or training."""
+    from flir_pipeline.detection.scientific_executor import context
+    checked = context(admission, signature, plan, output)
+    typer.echo(len(checked["runs"]))
+
+
+@common_executor_app.command("prepare-test")
+def common_prepare_test(admission: Path, signature: Path, training_admission: Path,
+                        training_signature: Path, output: Path) -> None:
+    """Custodian operation after a signed release of the entire completed matrix."""
+    from flir_pipeline.detection.scientific_executor import prepare_test
+    typer.echo(prepare_test(admission, signature, training_admission, training_signature, output)["state"])
+
+
+@common_executor_app.command("evaluate")
+def common_evaluate(admission: Path, signature: Path, training_admission: Path,
+                    training_signature: Path, test_root: Path, output: Path, index: int = 0) -> None:
+    from flir_pipeline.detection.scientific_executor import evaluate_run
+    typer.echo(evaluate_run(admission, signature, training_admission, training_signature, test_root, output, index)["state"])
+
+
+@common_executor_app.command("status")
+def common_executor_status(plan: Path) -> None:
+    from flir_pipeline.detection.common_executor import verify_executor_plan
+    checked = verify_executor_plan(plan)
+    for index, run in enumerate(checked["runs"]):
+        typer.echo(f"{index}\t{run['run_id']}\t{run['state']}\t{';'.join(run['blockers'])}")
 
 
 @app.command("ground-truth-quality")

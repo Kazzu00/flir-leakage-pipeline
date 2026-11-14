@@ -1,0 +1,260 @@
+{
+  "schemaVersion": "LeakageSnapshotV2",
+  "dataset": {
+    "id": "dataset-000001",
+    "manifestVersion": "flir_video_samples_v1",
+    "origin": "artifact",
+    "occurrences": 4,
+    "uniqueContents": 3,
+    "duplicateGroups": 1
+  },
+  "contents": [
+    {
+      "contentId": "content-000001",
+      "occurrences": [
+        {
+          "frameId": "frame-000001",
+          "sourceVideo": "video-000001",
+          "sampleIndex": 0,
+          "gridSeconds": 0.0,
+          "sampleFps": 1.0,
+          "sequenceId": null,
+          "captureTimestamp": null
+        },
+        {
+          "frameId": "frame-000004",
+          "sourceVideo": "video-000002",
+          "sampleIndex": 0,
+          "gridSeconds": 0.0,
+          "sampleFps": 1.0,
+          "sequenceId": null,
+          "captureTimestamp": null
+        }
+      ]
+    },
+    {
+      "contentId": "content-000002",
+      "occurrences": [
+        {
+          "frameId": "frame-000002",
+          "sourceVideo": "video-000001",
+          "sampleIndex": 1,
+          "gridSeconds": 1.0,
+          "sampleFps": 1.0,
+          "sequenceId": null,
+          "captureTimestamp": null
+        }
+      ]
+    },
+    {
+      "contentId": "content-000003",
+      "occurrences": [
+        {
+          "frameId": "frame-000003",
+          "sourceVideo": "video-000001",
+          "sampleIndex": 2,
+          "gridSeconds": 2.0,
+          "sampleFps": 1.0,
+          "sequenceId": null,
+          "captureTimestamp": null
+        }
+      ]
+    }
+  ],
+  "runs": [
+    {
+      "id": "feature-000001",
+      "datasetId": "dataset-000001",
+      "stage": "embeddings",
+      "origin": "artifact",
+      "encoder": "CLIP",
+      "method": "CLIP",
+      "featureSpaceId": "feature-000001",
+      "similaritySpaceId": null,
+      "reductionSpaceId": null,
+      "clusteringSpaceId": null,
+      "splitSpaceId": null,
+      "configurationId": null,
+      "seed": 0,
+      "status": "complete",
+      "integrity": "export-validated",
+      "metricOrigin": "artifact",
+      "metrics": {},
+      "parameters": {},
+      "dimensions": 512,
+      "pooling": "projected_pooler_output",
+      "coverage": 3,
+      "candidate": false,
+      "contentIndex": [
+        {
+          "contentId": "content-000001",
+          "embeddingRow": 0
+        },
+        {
+          "contentId": "content-000002",
+          "embeddingRow": 1
+        },
+        {
+          "contentId": "content-000003",
+          "embeddingRow": 2
+        }
+      ],
+      "coordinates": [],
+      "pairs": [],
+      "summaries": [],
+      "labels": [],
+      "assignments": []
+    },
+    {
+      "id": "feature-000002",
+      "datasetId": "dataset-000001",
+      "stage": "embeddings",
+      "origin": "artifact",
+      "encoder": "DINOv2",
+      "method": "DINOv2",
+      "featureSpaceId": "feature-000002",
+      "similaritySpaceId": null,
+      "reductionSpaceId": null,
+      "clusteringSpaceId": null,
+      "splitSpaceId": null,
+      "configurationId": null,
+      "seed": 0,
+      "status": "complete",
+      "integrity": "export-validated",
+      "metricOrigin": "artifact",
+      "metrics": {},
+      "parameters": {},
+      "dimensions": 384,
+      "pooling": "cls_token",
+      "coverage": 3,
+      "candidate": false,
+      "contentIndex": [
+        {
+          "contentId": "content-000001",
+          "embeddingRow": 0
+        },
+        {
+          "contentId": "content-000002",
+          "embeddingRow": 1
+        },
+        {
+          "contentId": "content-000003",
+          "embeddingRow": 2
+        }
+      ],
+      "coordinates": [],
+      "pairs": [],
+      "summaries": [],
+      "labels": [],
+      "assignments": []
+    }
+  ],
+  "exportPolicy": "allowlist-v1; all contents; declared candidates; consumed checksums; no scientific recomputation",
+  "research": {
+    "sequences": {
+      "state": "artifact_available",
+      "artifact": {
+        "id": "sequence-000001",
+        "datasetId": "dataset-000001",
+        "origin": "artifact",
+        "groundTruth": false,
+        "integrity": "consumed-files-validated",
+        "zones": [
+          {
+            "id": "zone-000001",
+            "sourceVideo": "video-000001",
+            "start": 1,
+            "end": 2,
+            "kind": "candidate_zone",
+            "decision": "rejected",
+            "reviewId": "review-000001"
+          },
+          {
+            "id": "sequence-000002",
+            "sourceVideo": "video-000001",
+            "start": 0,
+            "end": 2,
+            "kind": "sequence_instance",
+            "decision": "reviewed",
+            "reviewId": null
+          },
+          {
+            "id": "sequence-000003",
+            "sourceVideo": "video-000002",
+            "start": 0,
+            "end": 0,
+            "kind": "sequence_instance",
+            "decision": "reviewed",
+            "reviewId": null
+          }
+        ],
+        "reviews": [
+          {
+            "id": "review-000001",
+            "targetId": "zone-000001",
+            "decision": "rejected",
+            "groundTruth": false
+          }
+        ],
+        "recurrence": [],
+        "instanceReviewBound": true
+      }
+    },
+    "experiments": {
+      "state": "pending",
+      "artifact": null
+    },
+    "evidence": {
+      "state": "pending",
+      "artifact": null
+    },
+    "linkage": {
+      "state": "review_required",
+      "artifact": {
+        "id": "linkage-000001",
+        "datasetId": "dataset-000001",
+        "origin": "artifact",
+        "groundTruth": false,
+        "integrity": "consumed-files-validated",
+        "labeledDatasetId": "dataset-labeled",
+        "sequenceSetId": "sequence-000001",
+        "labeledContents": ["content-labeled-000001"],
+        "labeledOccurrences": [
+          {
+            "frameId": "frame-labeled-000001",
+            "contentId": "content-labeled-000001"
+          },
+          {
+            "frameId": "frame-labeled-000002",
+            "contentId": "content-labeled-000001"
+          }
+        ],
+        "candidates": [
+          {
+            "id": "linkage-000002",
+            "labeledContentId": "content-labeled-000001",
+            "videoContentId": "content-000001",
+            "sequenceIds": ["sequence-000002", "sequence-000003"],
+            "clipCosine": 0.8,
+            "dinov2Cosine": 0.7,
+            "state": "candidate",
+            "reviewId": null
+          }
+        ]
+      }
+    },
+    "linkageReview": {
+      "state": "pending",
+      "artifact": null
+    },
+    "groupReview": {
+      "state": "pending",
+      "artifact": null
+    },
+    "reviewAggregation": {
+      "state": "pending",
+      "artifact": null
+    },
+    "variants": []
+  }
+}

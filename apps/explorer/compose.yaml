@@ -1,0 +1,11 @@
+services:
+  frontend:
+    build: .
+    ports:
+      - '127.0.0.1:8080:80'
+    environment:
+      FLIR_DATA_MODE: ${FLIR_DATA_MODE:-demo}
+      FLIR_LEAKAGE_SNAPSHOT_URL: ${FLIR_LEAKAGE_SNAPSHOT_URL:-/runtime/leakage-snapshot.json}
+    volumes:
+      - ./public/runtime:/usr/share/nginx/html/runtime:ro
+    restart: unless-stopped

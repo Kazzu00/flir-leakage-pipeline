@@ -1,0 +1,73 @@
+{
+  "$id": "urn:flir:alignment-human-review-v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Explicit later human action; not emitted by the matching pipeline.",
+  "properties": {
+    "alignment_id": {
+      "minLength": 1,
+      "title": "Alignment Id",
+      "type": "string"
+    },
+    "evidence_consulted": {
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Evidence Consulted",
+      "type": "array"
+    },
+    "justification": {
+      "minLength": 1,
+      "title": "Justification",
+      "type": "string"
+    },
+    "reviewer": {
+      "minLength": 1,
+      "title": "Reviewer",
+      "type": "string"
+    },
+    "schema": {
+      "const": "alignment-human-review-v1",
+      "title": "Schema",
+      "type": "string"
+    },
+    "selected_pts": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Selected Pts"
+    },
+    "source_locator": {
+      "minLength": 1,
+      "title": "Source Locator",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "human_verified",
+        "ambiguous",
+        "not_found"
+      ],
+      "title": "Status",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema",
+    "alignment_id",
+    "status",
+    "reviewer",
+    "justification",
+    "evidence_consulted",
+    "selected_pts",
+    "source_locator"
+  ],
+  "title": "HumanVerification",
+  "type": "object"
+}

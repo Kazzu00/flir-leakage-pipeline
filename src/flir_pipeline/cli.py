@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Any
 
 import typer
 
+from flir_pipeline.data.no_hud_cli import app as no_hud_app
 from flir_pipeline.data.video_variant_cli import app as video_variant_app
 from flir_pipeline.detection.cli import app as detection_app
 from flir_pipeline.explorer.cli import app as explorer_app
@@ -19,6 +20,7 @@ if TYPE_CHECKING:
 app = typer.Typer(help="Reproducible FLIR leakage research pipeline.")
 data_app = typer.Typer(help="Read-only dataset discovery and audit commands.")
 data_app.add_typer(video_variant_app, name="video-variant-ingestion")
+data_app.add_typer(no_hud_app, name="no-hud-label-transfer")
 features_app = typer.Typer(help="Content-level visual feature extraction commands.")
 similarity_app = typer.Typer(help="Content-level cosine and post-hoc temporal/historical analysis.")
 reduction_app = typer.Typer(help="Reproducible t-SNE/PaCMAP, preservation metrics and seed stability.")

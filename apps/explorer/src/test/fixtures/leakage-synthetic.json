@@ -1,0 +1,471 @@
+{
+  "schemaVersion": "LeakageSnapshotV1",
+  "dataset": {
+    "id": "dataset-000001",
+    "manifestVersion": "flir_video_samples_v1",
+    "origin": "artifact",
+    "occurrences": 4,
+    "uniqueContents": 3,
+    "duplicateGroups": 1
+  },
+  "contents": [
+    {
+      "contentId": "content-000001",
+      "occurrences": [
+        {
+          "frameId": "frame-000001",
+          "sourceVideo": "video-000001",
+          "sampleIndex": 0,
+          "gridSeconds": 0.0,
+          "sampleFps": 1.0,
+          "sequenceId": null,
+          "captureTimestamp": null
+        },
+        {
+          "frameId": "frame-000004",
+          "sourceVideo": "video-000002",
+          "sampleIndex": 0,
+          "gridSeconds": 0.0,
+          "sampleFps": 1.0,
+          "sequenceId": null,
+          "captureTimestamp": null
+        }
+      ]
+    },
+    {
+      "contentId": "content-000002",
+      "occurrences": [
+        {
+          "frameId": "frame-000002",
+          "sourceVideo": "video-000001",
+          "sampleIndex": 1,
+          "gridSeconds": 1.0,
+          "sampleFps": 1.0,
+          "sequenceId": null,
+          "captureTimestamp": null
+        }
+      ]
+    },
+    {
+      "contentId": "content-000003",
+      "occurrences": [
+        {
+          "frameId": "frame-000003",
+          "sourceVideo": "video-000001",
+          "sampleIndex": 2,
+          "gridSeconds": 2.0,
+          "sampleFps": 1.0,
+          "sequenceId": null,
+          "captureTimestamp": null
+        }
+      ]
+    }
+  ],
+  "runs": [
+    {
+      "id": "feature-000001",
+      "datasetId": "dataset-000001",
+      "stage": "embeddings",
+      "origin": "artifact",
+      "encoder": "DINOv2",
+      "method": "DINOv2",
+      "featureSpaceId": "feature-000001",
+      "similaritySpaceId": null,
+      "reductionSpaceId": null,
+      "clusteringSpaceId": null,
+      "splitSpaceId": null,
+      "configurationId": null,
+      "seed": 0,
+      "status": "complete",
+      "integrity": "export-validated",
+      "metricOrigin": "artifact",
+      "metrics": {},
+      "parameters": {},
+      "dimensions": 384,
+      "pooling": "cls_token",
+      "coverage": 3,
+      "candidate": false,
+      "contentIndex": [
+        {
+          "contentId": "content-000001",
+          "embeddingRow": 0
+        },
+        {
+          "contentId": "content-000002",
+          "embeddingRow": 1
+        },
+        {
+          "contentId": "content-000003",
+          "embeddingRow": 2
+        }
+      ],
+      "coordinates": [],
+      "pairs": [],
+      "summaries": [],
+      "labels": [],
+      "assignments": []
+    },
+    {
+      "id": "similarity-000001",
+      "datasetId": "dataset-000001",
+      "stage": "similarity",
+      "origin": "artifact",
+      "encoder": "DINOv2",
+      "method": "cosine",
+      "featureSpaceId": "feature-000001",
+      "similaritySpaceId": "similarity-000001",
+      "reductionSpaceId": null,
+      "clusteringSpaceId": null,
+      "splitSpaceId": null,
+      "configurationId": null,
+      "seed": null,
+      "status": "complete",
+      "integrity": "export-validated",
+      "metricOrigin": "reported",
+      "metrics": {
+        "count": 3.0,
+        "mean": 0.8,
+        "median": 0.8
+      },
+      "parameters": {
+        "top_k": 1
+      },
+      "dimensions": null,
+      "pooling": null,
+      "coverage": 3,
+      "candidate": false,
+      "contentIndex": [],
+      "coordinates": [],
+      "pairs": [
+        {
+          "a": "content-000001",
+          "b": "content-000002",
+          "rank": 1,
+          "cosine": 0.8,
+          "sameSourceVideo": true,
+          "sampleGap": 1.0,
+          "gridSecondsGap": 1.0
+        },
+        {
+          "a": "content-000002",
+          "b": "content-000003",
+          "rank": 1,
+          "cosine": 0.8,
+          "sameSourceVideo": true,
+          "sampleGap": 1.0,
+          "gridSecondsGap": 1.0
+        },
+        {
+          "a": "content-000003",
+          "b": "content-000001",
+          "rank": 1,
+          "cosine": 0.8,
+          "sameSourceVideo": true,
+          "sampleGap": 2.0,
+          "gridSecondsGap": 2.0
+        }
+      ],
+      "summaries": [
+        {
+          "scope": "source",
+          "index": 0,
+          "label": null,
+          "configurationId": null,
+          "metrics": {
+            "count": 3.0,
+            "mean": 0.8
+          }
+        },
+        {
+          "scope": "sample_gap",
+          "index": 0,
+          "label": null,
+          "configurationId": null,
+          "metrics": {
+            "count": 3.0,
+            "mean": 0.8
+          }
+        },
+        {
+          "scope": "grid_gap",
+          "index": 0,
+          "label": null,
+          "configurationId": null,
+          "metrics": {
+            "count": 3.0,
+            "mean": 0.8
+          }
+        },
+        {
+          "scope": "topk",
+          "index": 0,
+          "label": null,
+          "configurationId": null,
+          "metrics": {
+            "count": 3.0,
+            "mean": 0.8
+          }
+        }
+      ],
+      "labels": [],
+      "assignments": []
+    },
+    {
+      "id": "reduction-000001",
+      "datasetId": "dataset-000001",
+      "stage": "reduction",
+      "origin": "artifact",
+      "encoder": "DINOv2",
+      "method": "t-SNE",
+      "featureSpaceId": "feature-000001",
+      "similaritySpaceId": "similarity-000001",
+      "reductionSpaceId": "reduction-000001",
+      "clusteringSpaceId": null,
+      "splitSpaceId": null,
+      "configurationId": null,
+      "seed": 0,
+      "status": "complete",
+      "integrity": "export-validated",
+      "metricOrigin": "reported",
+      "metrics": {
+        "trustworthiness@5": 0.91,
+        "spearman_distance": 0.78
+      },
+      "parameters": {
+        "perplexity": 5.0
+      },
+      "dimensions": null,
+      "pooling": null,
+      "coverage": 3,
+      "candidate": false,
+      "contentIndex": [],
+      "coordinates": [
+        {
+          "contentId": "content-000001",
+          "embeddingRow": 0,
+          "x": -4.5,
+          "y": 12.0
+        },
+        {
+          "contentId": "content-000002",
+          "embeddingRow": 1,
+          "x": 5.0,
+          "y": -1.0
+        },
+        {
+          "contentId": "content-000003",
+          "embeddingRow": 2,
+          "x": 90.0,
+          "y": 120.0
+        }
+      ],
+      "pairs": [],
+      "summaries": [],
+      "labels": [],
+      "assignments": []
+    },
+    {
+      "id": "feature-000002",
+      "datasetId": "dataset-000001",
+      "stage": "embeddings",
+      "origin": "artifact",
+      "encoder": "CLIP",
+      "method": "CLIP",
+      "featureSpaceId": "feature-000002",
+      "similaritySpaceId": null,
+      "reductionSpaceId": null,
+      "clusteringSpaceId": null,
+      "splitSpaceId": null,
+      "configurationId": null,
+      "seed": 0,
+      "status": "complete",
+      "integrity": "export-validated",
+      "metricOrigin": "artifact",
+      "metrics": {},
+      "parameters": {},
+      "dimensions": 512,
+      "pooling": "projected_pooler_output",
+      "coverage": 3,
+      "candidate": false,
+      "contentIndex": [
+        {
+          "contentId": "content-000001",
+          "embeddingRow": 0
+        },
+        {
+          "contentId": "content-000002",
+          "embeddingRow": 1
+        },
+        {
+          "contentId": "content-000003",
+          "embeddingRow": 2
+        }
+      ],
+      "coordinates": [],
+      "pairs": [],
+      "summaries": [],
+      "labels": [],
+      "assignments": []
+    },
+    {
+      "id": "similarity-000002",
+      "datasetId": "dataset-000001",
+      "stage": "similarity",
+      "origin": "artifact",
+      "encoder": "CLIP",
+      "method": "cosine",
+      "featureSpaceId": "feature-000002",
+      "similaritySpaceId": "similarity-000002",
+      "reductionSpaceId": null,
+      "clusteringSpaceId": null,
+      "splitSpaceId": null,
+      "configurationId": null,
+      "seed": null,
+      "status": "complete",
+      "integrity": "export-validated",
+      "metricOrigin": "reported",
+      "metrics": {
+        "count": 3.0,
+        "mean": 0.8,
+        "median": 0.8
+      },
+      "parameters": {
+        "top_k": 1
+      },
+      "dimensions": null,
+      "pooling": null,
+      "coverage": 3,
+      "candidate": false,
+      "contentIndex": [],
+      "coordinates": [],
+      "pairs": [
+        {
+          "a": "content-000001",
+          "b": "content-000002",
+          "rank": 1,
+          "cosine": 0.8,
+          "sameSourceVideo": true,
+          "sampleGap": 1.0,
+          "gridSecondsGap": 1.0
+        },
+        {
+          "a": "content-000002",
+          "b": "content-000003",
+          "rank": 1,
+          "cosine": 0.8,
+          "sameSourceVideo": true,
+          "sampleGap": 1.0,
+          "gridSecondsGap": 1.0
+        },
+        {
+          "a": "content-000003",
+          "b": "content-000001",
+          "rank": 1,
+          "cosine": 0.8,
+          "sameSourceVideo": true,
+          "sampleGap": 2.0,
+          "gridSecondsGap": 2.0
+        }
+      ],
+      "summaries": [
+        {
+          "scope": "source",
+          "index": 0,
+          "label": null,
+          "configurationId": null,
+          "metrics": {
+            "count": 3.0,
+            "mean": 0.8
+          }
+        },
+        {
+          "scope": "sample_gap",
+          "index": 0,
+          "label": null,
+          "configurationId": null,
+          "metrics": {
+            "count": 3.0,
+            "mean": 0.8
+          }
+        },
+        {
+          "scope": "grid_gap",
+          "index": 0,
+          "label": null,
+          "configurationId": null,
+          "metrics": {
+            "count": 3.0,
+            "mean": 0.8
+          }
+        },
+        {
+          "scope": "topk",
+          "index": 0,
+          "label": null,
+          "configurationId": null,
+          "metrics": {
+            "count": 3.0,
+            "mean": 0.8
+          }
+        }
+      ],
+      "labels": [],
+      "assignments": []
+    },
+    {
+      "id": "reduction-000002",
+      "datasetId": "dataset-000001",
+      "stage": "reduction",
+      "origin": "artifact",
+      "encoder": "CLIP",
+      "method": "t-SNE",
+      "featureSpaceId": "feature-000002",
+      "similaritySpaceId": "similarity-000002",
+      "reductionSpaceId": "reduction-000002",
+      "clusteringSpaceId": null,
+      "splitSpaceId": null,
+      "configurationId": null,
+      "seed": 0,
+      "status": "complete",
+      "integrity": "export-validated",
+      "metricOrigin": "reported",
+      "metrics": {
+        "trustworthiness@5": 0.91,
+        "spearman_distance": 0.78
+      },
+      "parameters": {
+        "perplexity": 5.0
+      },
+      "dimensions": null,
+      "pooling": null,
+      "coverage": 3,
+      "candidate": false,
+      "contentIndex": [],
+      "coordinates": [
+        {
+          "contentId": "content-000001",
+          "embeddingRow": 0,
+          "x": -4.5,
+          "y": 12.0
+        },
+        {
+          "contentId": "content-000002",
+          "embeddingRow": 1,
+          "x": 5.0,
+          "y": -1.0
+        },
+        {
+          "contentId": "content-000003",
+          "embeddingRow": 2,
+          "x": 90.0,
+          "y": 120.0
+        }
+      ],
+      "pairs": [],
+      "summaries": [],
+      "labels": [],
+      "assignments": []
+    }
+  ],
+  "exportPolicy": "allowlist-v1; all contents; declared candidates; consumed checksums; no scientific recomputation"
+}

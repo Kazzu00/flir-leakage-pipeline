@@ -1,0 +1,178 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:flir:audit-decision-input-v1:1.1",
+  "additionalProperties": false,
+  "if": {
+    "anyOf": [
+      {
+        "properties": {
+          "continuity": {
+            "not": {
+              "const": "uncertain"
+            }
+          }
+        },
+        "required": [
+          "continuity"
+        ]
+      },
+      {
+        "properties": {
+          "dependence": {
+            "not": {
+              "const": "uncertain"
+            }
+          }
+        },
+        "required": [
+          "dependence"
+        ]
+      },
+      {
+        "properties": {
+          "confidence": {
+            "not": {
+              "const": "undetermined"
+            }
+          }
+        },
+        "required": [
+          "confidence"
+        ]
+      }
+    ],
+    "properties": {
+      "status": {
+        "const": "reviewed"
+      }
+    },
+    "required": [
+      "status"
+    ]
+  },
+  "properties": {
+    "event_id": {
+      "minLength": 1,
+      "title": "Event Id",
+      "type": "string"
+    },
+    "expected_version": {
+      "minimum": 0,
+      "title": "Expected Version",
+      "type": "integer"
+    },
+    "status": {
+      "default": "pending",
+      "enum": [
+        "pending",
+        "reviewed"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "continuity": {
+      "default": "uncertain",
+      "enum": [
+        "continuous",
+        "shot_change",
+        "uncertain"
+      ],
+      "title": "Continuity",
+      "type": "string"
+    },
+    "dependence": {
+      "default": "uncertain",
+      "enum": [
+        "same_region",
+        "different_region",
+        "uncertain"
+      ],
+      "title": "Dependence",
+      "type": "string"
+    },
+    "confidence": {
+      "default": "undetermined",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "undetermined"
+      ],
+      "title": "Confidence",
+      "type": "string"
+    },
+    "justification": {
+      "maxLength": 10000,
+      "minLength": 1,
+      "title": "Justification",
+      "type": "string"
+    },
+    "reviewer": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Reviewer",
+      "type": "string"
+    },
+    "phenomena": {
+      "items": {
+        "enum": [
+          "zoom",
+          "camera_motion",
+          "gain_change",
+          "polarity_change",
+          "signal_loss",
+          "unknown"
+        ],
+        "type": "string"
+      },
+      "title": "Phenomena",
+      "type": "array"
+    },
+    "evidence_consulted": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Evidence Consulted",
+      "type": "array"
+    },
+    "external_evidence_consulted": {
+      "items": {
+        "type": "string"
+      },
+      "title": "External Evidence Consulted",
+      "type": "array"
+    }
+  },
+  "required": [
+    "event_id",
+    "expected_version",
+    "justification",
+    "reviewer"
+  ],
+  "then": {
+    "anyOf": [
+      {
+        "properties": {
+          "evidence_consulted": {
+            "minItems": 1
+          }
+        },
+        "required": [
+          "evidence_consulted"
+        ]
+      },
+      {
+        "properties": {
+          "external_evidence_consulted": {
+            "minItems": 1
+          }
+        },
+        "required": [
+          "external_evidence_consulted"
+        ]
+      }
+    ]
+  },
+  "title": "DecisionInput",
+  "type": "object"
+}
