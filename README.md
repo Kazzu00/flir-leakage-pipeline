@@ -76,6 +76,56 @@ separating exact-byte identity from perceptual/review evidence. Implemented and
 executed locally on the three source ZIPs; evidence adjudication remains pending.
 It creates no splits or training runs. See the [contract and CLI](docs/runbooks/adendo.md)
 and [observed audit results](docs/status.md).
+**Congelamiento funcional:** producto sin cambios; comparación de organización
+55 passed / 34 failed en ambos brazos, con la misma causa previa. Las 77 pruebas
+pertinentes y el benchmark controlado aprobaron; la regresión global sigue sin
+estar limpia. El [reporte de cierre científico](SCIENTIFIC_CLOSURE.md) separa
+validación técnica, evidencia FAC y condiciones pendientes para evaluar detectores.
+
+## Pipeline general de dependencias — 2026-11-06
+
+`flir-pipeline general` incorpora ingesta de imágenes con labels/vídeos opcionales,
+catálogo de N clases, grafo de evidencia auditable y dos políticas comparables:
+`exact_content_balanced` y `dependency_group_balanced`. Reutilizan el mismo MILP,
+objetivo, ratios y seeds 0–4. FAC se integra mediante un adaptador explícito.
+No se infiere temporalidad por nombres ni se aceptan candidatos automáticamente.
+
+**Implemented / validated:** cuatro datasets sintéticos independientes, localización
+exacta opcional, métricas, publicaciones inmutables y replay; ejecución provisional
+FAC con ambas políticas equivalentes. **Pending scientific evaluation:** aceptación
+de dependencias, test común legítimo y comparación detector. No autoriza entrenamiento.
+La regresión focalizada pasó 77 pruebas; el estado global se detalla en
+[estado vigente](docs/status.md).
+
+```powershell
+uv sync --locked --extra dev --extra alignment
+uv run python scripts/general_synthetic_demo.py D:/research/general-demo-new
+uv run python -c "from flir_pipeline.cli import app; app()" general --help
+```
+
+El directorio de salida debe ser nuevo. Entradas: lista YAML de imágenes y etiquetas
+YOLO opcionales, o manifiesto canónico de adaptador; configuración genérica en
+[`configs/general_pipeline.yaml`](configs/general_pipeline.yaml) y
+[`configs/general_images.example.yaml`](configs/general_images.example.yaml).
+
+Documentación de cierre: [contrato](PIPELINE_CONTRACT.md), [método](METHOD.md),
+[reproducción desde entorno limpio](REPRODUCE.md), [tests de generalización](GENERALIZATION_TESTS.md),
+[caso FAC](FAC_CASE_STUDY.md) y [limitaciones](LIMITATIONS.md).
+Los apartados siguientes conservan antecedentes y componentes históricos;
+el contrato general es la entrada recomendada para nuevos datasets.
+
+## Overview
+
+**JP methodological correction:** filename indices and supplier timestamps are
+auxiliary metadata, never evidence of temporal position. Published nominal axes
+are superseded for scientific interpretation by a separate video-grounded review;
+no existing split is changed. See the [current review contract](docs/runbooks/jp_video_grounded_review.md).
+
+The JP paired-delivery adapter creates an offline comparative timeline and
+**provisional, non-training** reproducible assignments from an existing audited
+inventory. It preserves uncertain temporal evidence and protected references;
+historical candidate links are never promoted automatically. See
+[commands, policy comparison and scientific limits](docs/runbooks/jp_paired_delivery.md).
 
 `flir-pipeline sequences audit` provides **FLIR Audit & Human Review v1.1**:
 read-only legacy JSON/CSV/ZIP ingestion, `audit-evidence-v1`, a local SQLite

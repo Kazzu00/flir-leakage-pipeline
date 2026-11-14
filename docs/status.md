@@ -425,6 +425,118 @@ dentro del repositorio y por extras experimentales ausentes como scikit-learn.
 No se revalidaron los 48 experimentos de Hypatia. Los artefactos y
 la evidencia importada permanecen fuera del repositorio. Véase el
 [contrato y ejecución](runbooks/adendo.md).
+## Congelamiento funcional y auditoría de cierre (2026-11-06)
+
+El [reporte de cierre científico](../SCIENTIFIC_CLOSURE.md) actualiza el control
+anterior: **55 passed / 34 failed en ambos brazos**, mismos 89 tests, mismas
+causas, cero diferencias de estado. Se corrigió únicamente el harness de
+evaluación para usar raíces equivalentes y rutas temporales cortas. No se
+modificó producto: 175 fuentes Python coinciden con el snapshot anterior.
+El control final restaura el MILP desde Git: el solver del control guardado
+coincidía con el candidato y se descartó como evidencia de regresión del solver.
+Los intentos intermedios se conservan; la comparación final se identifica como
+`regression-final/` y el paquete definitivo como `sealed-final/`.
+
+Nueva ejecución: 77 tests pertinentes aprobados, Ruff global, CLI, diff y replay
+independiente de tres benchmarks y FAC. No se repitió la suite global completa
+ni se afirma CI verde. Benchmark: las relaciones aceptadas evaluables quedan
+indivisibles; desconocidos visibles; candidatos sin restricciones; políticas
+idénticas cuando no hay dependencias aceptadas adicionales.
+
+Auditoría histórica revalidada: 198 grupos exactos cross-split, 396 ocurrencias,
+57 grupos train–val y 141 train–test. Ocho grupos tienen etiquetas distintas en
+bytes; sin adjudicación semántica nueva. FAC sigue sin dependencias no exactas
+actualmente aceptadas ni evaluación detector. La población histórica y las
+propuestas de la entrega posterior se reportan por separado.
+
+Paquete nuevo: `operations/jp-scientific-freeze-20261106`. Conserva intactos los
+184 archivos previos y los 221 del cierre anterior. Incluye matriz individual,
+protocolo sintético, auditoría, recibos y reproducción. Sin entrenamiento,
+modificación del test protegido, commit, push ni merge. El cierre global y la
+conclusión científica sobre el detector siguen pendientes; véanse sus criterios
+explícitos en el reporte.
+
+## Pipeline general de dependencias: cierre técnico acotado (2026-11-06)
+
+**Implementado y validado el componente general; evaluación detector pendiente.**
+`general ingest/localize/build/verify/schema` admite catálogos variables, labels
+ausentes y vídeos opcionales. Reutiliza identidad, QA y MILP existentes, con
+objetivo configurable por N clases. Solo las relaciones expresamente aceptadas
+unen contenidos; las rechazadas bloquean cierres contradictorios. Ambas políticas
+comparten población, ratios, objetivo, solver y seeds 0–4. Véanse
+[contrato](../PIPELINE_CONTRACT.md), [método](../METHOD.md) y
+[reproducción](../REPRODUCE.md).
+
+Cuatro publicaciones sintéticas independientes completaron replay: 35 asignaciones
+factibles y cinco resultados agrupados inviables, conservados sin fallback. Se
+decodificaron vídeos FFV1 sintéticos reales. **77 pruebas focalizadas aprobadas**,
+incluidas 30 generales; estas 30 también pasaron en un entorno nuevo instalado
+offline desde `uv.lock` con core/dev/alignment. Ruff global, esquema, CLI y checks
+de diff aprobados. No hubo descargas de modelos ni GPU.
+
+La suite global terminó: **1.274 passed, 34 failed**, 17.541,38 s. Sus 34 fallos
+están en `test_organization_export.py`, por procedencia incompleta en el contrato
+local previo. Los mismos 34 se reprodujeron en una copia aislada con el solver
+anterior y sin registrar el comando general. Esa copia produjo además un fallo
+de ubicación del repositorio en la prueba de destino de medios (35 failed,
+54 passed); no se interpreta como regresión del componente. La colección global
+se inició antes de las últimas siete pruebas nuevas; la suite focalizada y el
+entorno limpio sí contienen las 30 finales. **La regresión global no está limpia.**
+El trabajo previo de organización se preserva, sin ampliar este cierre con un
+refactor ajeno. Detalle en [pruebas](../GENERALIZATION_TESTS.md).
+
+FAC ejecutado mediante adaptador: 3.377 ocurrencias preservadas, 1.400 elegibles
+provisionales; diez asignaciones y políticas idénticas por seed. Cruces candidatos
+72/80/81/64/70 sobre 700 pares evaluables; cero dependencias aceptadas, sin afirmar
+reducción universal de leakage. Seeds 3–4 conservan gaps del solver. Replay FAC
+idéntico en procesos independientes y en el entorno limpio. Se reusa el escaneo
+previo de 289.331 fotogramas, con 953 originales de posición única y 163 de
+aparición múltiple; las variantes procesadas no heredan tiempo.
+
+Publicación final local: `operations/jp-general-pipeline-closure-20261106/fac-final`.
+Los 184 archivos inventariados de las tres publicaciones anteriores conservaron
+SHA256. HTML abierto en Arc durante revisión; se corrigió después desbordamiento
+de tablas y se añadieron ticks temporales. La versión final tiene verificación
+estática y de integridad; no se declara una campaña completa de usabilidad.
+No se modificaron BASE, test protegido ni splits anteriores. Sin entrenamiento,
+commit, push o merge. El siguiente paso científico es adjudicar dependencias y
+validar/congelar el test común, no ejecutar el detector todavía.
+
+## Corrección metodológica JP: procedencia visual del vídeo (2026-11-06)
+
+Los ejes e índices nominales de la entrega anterior no son evidencia de posición
+temporal. Se preservan los artefactos publicados y se completó una revisión externa
+con cuatro estados de verificación, búsquedas por contenido y PTS decodificados.
+El nuevo código distingue igualdad del raster, recuperación aproximada y revisión
+humana; no modifica particiones ni transfiere automáticamente relaciones antiguas.
+Véase el [contrato actualizado](runbooks/jp_video_grounded_review.md).
+Ejecución completa: tres vídeos, 289.331 fotogramas con PTS; los 1.116 originales
+tienen apariciones exactas. 953 tienen posición única y 163 presentan ocho
+apariciones exactas cada uno. Se conservan ambiguos. Soporte geométrico observado
+en las 1.116 parejas y 57 láminas de contexto no implican aceptación semántica,
+continuidad ni dependencias. Cero decisiones actuales de dependencia adjudicadas.
+Dos instalaciones limpias reproducen el CSV byte por byte; 146 parejas con
+conflictos siguen excluidas. Cuatro tests sintéticos focalizados y Ruff aprobados.
+La inspección del navegador queda a cargo del usuario; la validación estática
+solo comprueba coherencia de datos, recursos, enlaces y sintaxis JavaScript.
+
+## JP: comparación de variantes y propuesta reproducible (2026-11-05)
+
+Adaptador implementado sobre inventario existente, ordenación/gráficos temporales
+y motor de splitting. HTML offline por vídeo, muestra visual estratificada y
+propuesta con estados eligible/quarantine/unresolved. Infraestructura validada
+con pruebas sintéticas; no implica aceptación científica de secuencias o test.
+Las relaciones recuperadas conservan estado histórico. Sin nuevas relaciones
+autorizadas, las dos políticas coinciden; no se afirma reducción de leakage.
+Código del productor opcional. Véase el [runbook](runbooks/jp_paired_delivery.md).
+
+Ejecución local: 1.116 pares en tres vídeos, muestra de 24; propuesta sobre 700
+pares elegibles, 386 en cuarentena y 30 sin resolver. Dos ejecuciones y replay
+independiente producen las mismas membresías. 107 pruebas focalizadas y Ruff
+global aprobados. Navegación JS validada con DOM simulado; render E2E de navegador
+real pendiente por indisponibilidad del control. No se entrenó ni publicó un split
+definitivo. Los cinco grupos candidatos que cruzan particiones no se interpretan
+como leakage confirmado.
 
 ## Fase 2B: piloto de dependencias
 

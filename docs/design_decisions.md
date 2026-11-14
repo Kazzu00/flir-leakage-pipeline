@@ -132,6 +132,58 @@ edges are candidate evidence; imported provenance confirmations require attribut
 additional review evidence and remain distinct from byte-level identity. No edge
 automatically assigns a split. The consolidated candidate is not a drop-in input
 for the existing splitter. See the [limits and future joins](runbooks/adendo.md).
+## 2026-11-06: functional freeze and bounded scientific closure
+
+Preserve product sources byte-for-byte. Add only evaluation harnesses and reports.
+Use a paired pre-general integration control that retains prior local exporter
+changes; do not equate it with pristine HEAD. Classify identical producer/validator
+failures without changing unrelated contracts. Keep candidate co-support as an
+explicit retrospective hypothesis, never a new accepted splitting constraint.
+Report historical canonical FAC and later delivery as separate populations.
+Synthetic relationship truth is fixed by construction before partitioning; it
+validates constraint handling, not relationship discovery or detector accuracy.
+See [closure criteria](../SCIENTIFIC_CLOSURE.md).
+
+## 2026-11-06: dataset-independent dependency closure
+
+Use explicit class/evidence contracts and retain the existing MILP through optional
+columns/weights, preserving historical default behavior. Exact-content and accepted
+dependency policies share population, objective, ratios, budgets and seeds 0–4.
+The new exact policy does not impose structural variant pairs; those remain
+candidates until accepted. This supersedes the earlier paired proposal's
+precautionary structural pairing for the new general comparison only.
+
+Rejected dependencies are cannot-link constraints on components. Contradictory
+accepted transitive closure blocks grouped assignment; it is never silently pruned.
+Missing labels are not empty labels. Record exclusions propagate to accepted
+components in both policies. Canonical order governs diagnostics as well as
+memberships, following an observed shuffled-edge replay failure fixed in this task.
+
+Temporal evidence comes from decoded positions or explicit imported evidence.
+Multiple exact appearances survive and processed variants do not inherit time.
+The detector comparison and test acceptance remain separate scientific gates.
+See [method and limitations](../METHOD.md).
+
+## 2026-11-05: video appearance supersedes nominal temporal provenance
+
+Preserve existing publications, invalidate nominal placement in a separate review,
+and never feed filename indices into the new localization primitives. Exact decoded
+RGB identity supports an original-to-video occurrence; repeated occurrences remain
+ambiguous. Approximate retrieval requires further verification. A structural
+NO-HUD pair and a verified original do not automatically verify the processed
+pair, continuity, a dependency, or permission to change a protected test.
+
+## 2026-11-05: paired provisional delivery, not implicit scientific admission
+
+Reuse the seeded record-cut allocator for both grouping policies, with equal
+population, seed and targets, so an allocator change cannot masquerade as a
+grouping effect. Exact contents and structural pairs form precautionary minimum
+units; only source-bound attributed accepted relations extend grouped units.
+No accepted relations means identical policies, not evidence of independence.
+Protect historical reservations by exclusion until their adoption is authorized.
+Retain empty labels and report exclusion reasons. Supplier production code is
+optional evidence, never an operational requirement. Unknown native-to-sampled
+sequence correspondence remains unresolved. See [contract](runbooks/jp_paired_delivery.md).
 
 ## 2026-11-04: independent pair axes and reviewer histories
 
