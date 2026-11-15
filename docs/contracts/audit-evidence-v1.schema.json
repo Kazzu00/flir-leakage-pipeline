@@ -1,0 +1,791 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:flir:audit-evidence-v1:1.1",
+  "$defs": {
+    "CandidateEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "title": "Event Id",
+          "type": "string"
+        },
+        "asset_id": {
+          "title": "Asset Id",
+          "type": "string"
+        },
+        "record_locator": {
+          "title": "Record Locator",
+          "type": "string"
+        },
+        "source_video": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Video"
+        },
+        "start_second": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Start Second"
+        },
+        "end_second": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "End Second"
+        },
+        "start_index": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Start Index"
+        },
+        "end_index": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "End Index"
+        },
+        "method": {
+          "title": "Method",
+          "type": "string"
+        },
+        "method_version": {
+          "default": "unreported",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "importer_version": {
+          "default": "legacy-audit-import-v1.1",
+          "enum": [
+            "legacy-audit-import-v1",
+            "legacy-audit-import-v1.1"
+          ],
+          "title": "Importer Version",
+          "type": "string"
+        },
+        "event_start_sample": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Event Start Sample"
+        },
+        "event_end_sample": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Event End Sample"
+        },
+        "representative_second": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Representative Second"
+        },
+        "sample_rate_fps": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sample Rate Fps"
+        },
+        "temporal_basis": {
+          "default": "reported_nominal",
+          "title": "Temporal Basis",
+          "type": "string"
+        },
+        "precision_seconds": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Precision Seconds"
+        },
+        "alert_type": {
+          "title": "Alert Type",
+          "type": "string"
+        },
+        "metrics": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "title": "Metrics",
+          "type": "object"
+        },
+        "evidence": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "observations": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Observations",
+          "type": "array"
+        },
+        "verification": {
+          "const": "candidate_only",
+          "default": "candidate_only",
+          "title": "Verification",
+          "type": "string"
+        }
+      },
+      "required": [
+        "event_id",
+        "asset_id",
+        "record_locator",
+        "method",
+        "alert_type"
+      ],
+      "title": "CandidateEvent",
+      "type": "object"
+    },
+    "Companion": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_id": {
+          "minLength": 1,
+          "title": "Asset Id",
+          "type": "string"
+        },
+        "canonical_asset_id": {
+          "minLength": 1,
+          "title": "Canonical Asset Id",
+          "type": "string"
+        },
+        "decisions_migrated": {
+          "const": false,
+          "title": "Decisions Migrated",
+          "type": "boolean"
+        },
+        "event_links": {
+          "items": {
+            "$ref": "#/$defs/EventLink"
+          },
+          "title": "Event Links",
+          "type": "array"
+        },
+        "receipt": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Receipt"
+        }
+      },
+      "required": [
+        "asset_id",
+        "canonical_asset_id",
+        "decisions_migrated",
+        "event_links",
+        "receipt"
+      ],
+      "title": "Companion",
+      "type": "object"
+    },
+    "EventLink": {
+      "additionalProperties": false,
+      "properties": {
+        "canonical_event_id": {
+          "minLength": 1,
+          "title": "Canonical Event Id",
+          "type": "string"
+        },
+        "companion_event_id": {
+          "minLength": 1,
+          "title": "Companion Event Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "canonical_event_id",
+        "companion_event_id"
+      ],
+      "title": "EventLink",
+      "type": "object"
+    },
+    "ExternalEvidence": {
+      "additionalProperties": false,
+      "properties": {
+        "evidence_id": {
+          "title": "Evidence Id",
+          "type": "string"
+        },
+        "event_id": {
+          "title": "Event Id",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "event_asset_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Event Asset Sha256",
+          "type": "string"
+        },
+        "filename": {
+          "title": "Filename",
+          "type": "string"
+        },
+        "locator": {
+          "minLength": 1,
+          "title": "Locator",
+          "type": "string"
+        },
+        "basis": {
+          "enum": [
+            "explicit_record_reference",
+            "manual_correspondence"
+          ],
+          "title": "Basis",
+          "type": "string"
+        },
+        "rationale": {
+          "minLength": 1,
+          "title": "Rationale",
+          "type": "string"
+        },
+        "reviewer": {
+          "minLength": 1,
+          "title": "Reviewer",
+          "type": "string"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "mime": {
+          "enum": [
+            "image/png",
+            "image/jpeg"
+          ],
+          "title": "Mime",
+          "type": "string"
+        }
+      },
+      "required": [
+        "evidence_id",
+        "event_id",
+        "sha256",
+        "event_asset_sha256",
+        "filename",
+        "locator",
+        "basis",
+        "rationale",
+        "reviewer",
+        "created_at",
+        "mime"
+      ],
+      "title": "ExternalEvidence",
+      "type": "object"
+    },
+    "HistoricalAnomaly": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "historical_index_overlap",
+          "title": "Kind",
+          "type": "string"
+        },
+        "asset_id": {
+          "minLength": 1,
+          "title": "Asset Id",
+          "type": "string"
+        },
+        "dataset_index": {
+          "minimum": 0,
+          "title": "Dataset Index",
+          "type": "number"
+        },
+        "splits": {
+          "items": {
+            "enum": [
+              "train",
+              "val",
+              "test"
+            ],
+            "type": "string"
+          },
+          "minItems": 2,
+          "title": "Splits",
+          "type": "array"
+        },
+        "observation_ids": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 2,
+          "title": "Observation Ids",
+          "type": "array"
+        },
+        "semantic_leakage_confirmed": {
+          "const": false,
+          "title": "Semantic Leakage Confirmed",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "kind",
+        "asset_id",
+        "dataset_index",
+        "splits",
+        "observation_ids",
+        "semantic_leakage_confirmed"
+      ],
+      "title": "HistoricalAnomaly",
+      "type": "object"
+    },
+    "JsonValue": {},
+    "ReviewDecision": {
+      "additionalProperties": false,
+      "if": {
+        "properties": {
+          "policy_version": {
+            "const": "1.1"
+          }
+        },
+        "required": [
+          "policy_version"
+        ]
+      },
+      "properties": {
+        "event_id": {
+          "minLength": 1,
+          "title": "Event Id",
+          "type": "string"
+        },
+        "expected_version": {
+          "minimum": 0,
+          "title": "Expected Version",
+          "type": "integer"
+        },
+        "status": {
+          "default": "pending",
+          "enum": [
+            "pending",
+            "reviewed"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "continuity": {
+          "default": "uncertain",
+          "enum": [
+            "continuous",
+            "shot_change",
+            "uncertain"
+          ],
+          "title": "Continuity",
+          "type": "string"
+        },
+        "dependence": {
+          "default": "uncertain",
+          "enum": [
+            "same_region",
+            "different_region",
+            "uncertain"
+          ],
+          "title": "Dependence",
+          "type": "string"
+        },
+        "confidence": {
+          "default": "undetermined",
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "undetermined"
+          ],
+          "title": "Confidence",
+          "type": "string"
+        },
+        "justification": {
+          "maxLength": 10000,
+          "minLength": 1,
+          "title": "Justification",
+          "type": "string"
+        },
+        "reviewer": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Reviewer",
+          "type": "string"
+        },
+        "phenomena": {
+          "items": {
+            "enum": [
+              "zoom",
+              "camera_motion",
+              "gain_change",
+              "polarity_change",
+              "signal_loss",
+              "unknown"
+            ],
+            "type": "string"
+          },
+          "title": "Phenomena",
+          "type": "array"
+        },
+        "evidence_consulted": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Consulted",
+          "type": "array"
+        },
+        "external_evidence_consulted": {
+          "items": {
+            "type": "string"
+          },
+          "title": "External Evidence Consulted",
+          "type": "array"
+        },
+        "policy_version": {
+          "default": "1.0",
+          "enum": [
+            "1.0",
+            "1.1"
+          ],
+          "title": "Policy Version",
+          "type": "string"
+        },
+        "decision_id": {
+          "title": "Decision Id",
+          "type": "string"
+        },
+        "version": {
+          "minimum": 1,
+          "title": "Version",
+          "type": "integer"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "evidence_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Evidence Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "event_id",
+        "expected_version",
+        "justification",
+        "reviewer",
+        "decision_id",
+        "version",
+        "created_at",
+        "evidence_sha256"
+      ],
+      "then": {
+        "if": {
+          "anyOf": [
+            {
+              "properties": {
+                "continuity": {
+                  "not": {
+                    "const": "uncertain"
+                  }
+                }
+              },
+              "required": [
+                "continuity"
+              ]
+            },
+            {
+              "properties": {
+                "dependence": {
+                  "not": {
+                    "const": "uncertain"
+                  }
+                }
+              },
+              "required": [
+                "dependence"
+              ]
+            },
+            {
+              "properties": {
+                "confidence": {
+                  "not": {
+                    "const": "undetermined"
+                  }
+                }
+              },
+              "required": [
+                "confidence"
+              ]
+            }
+          ],
+          "properties": {
+            "status": {
+              "const": "reviewed"
+            }
+          },
+          "required": [
+            "status"
+          ]
+        },
+        "then": {
+          "anyOf": [
+            {
+              "properties": {
+                "evidence_consulted": {
+                  "minItems": 1
+                }
+              },
+              "required": [
+                "evidence_consulted"
+              ]
+            },
+            {
+              "properties": {
+                "external_evidence_consulted": {
+                  "minItems": 1
+                }
+              },
+              "required": [
+                "external_evidence_consulted"
+              ]
+            }
+          ]
+        }
+      },
+      "title": "ReviewDecision",
+      "type": "object"
+    },
+    "SourceAsset": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_id": {
+          "title": "Asset Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "json",
+            "csv",
+            "zip"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "filename": {
+          "title": "Filename",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "provenance": {
+          "default": "user_supplied_local_artifact",
+          "title": "Provenance",
+          "type": "string"
+        },
+        "metadata": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Metadata",
+          "type": "object"
+        }
+      },
+      "required": [
+        "asset_id",
+        "kind",
+        "filename",
+        "sha256"
+      ],
+      "title": "SourceAsset",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "audit-evidence-v1",
+      "title": "Schema",
+      "type": "string"
+    },
+    "contract_revision": {
+      "const": "1.1",
+      "title": "Contract Revision",
+      "type": "string"
+    },
+    "assets": {
+      "items": {
+        "$ref": "#/$defs/SourceAsset"
+      },
+      "title": "Assets",
+      "type": "array"
+    },
+    "events": {
+      "items": {
+        "$ref": "#/$defs/CandidateEvent"
+      },
+      "title": "Events",
+      "type": "array"
+    },
+    "decisions": {
+      "items": {
+        "$ref": "#/$defs/ReviewDecision"
+      },
+      "title": "Decisions",
+      "type": "array"
+    },
+    "observation_count": {
+      "minimum": 0,
+      "title": "Observation Count",
+      "type": "integer"
+    },
+    "last_import": {
+      "anyOf": [
+        {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Last Import"
+    },
+    "external_evidence": {
+      "items": {
+        "$ref": "#/$defs/ExternalEvidence"
+      },
+      "title": "External Evidence",
+      "type": "array"
+    },
+    "companions": {
+      "items": {
+        "$ref": "#/$defs/Companion"
+      },
+      "title": "Companions",
+      "type": "array"
+    },
+    "anomalies": {
+      "items": {
+        "$ref": "#/$defs/HistoricalAnomaly"
+      },
+      "title": "Anomalies",
+      "type": "array"
+    },
+    "legacy_review_warnings": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Legacy Review Warnings",
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema",
+    "contract_revision",
+    "assets",
+    "events",
+    "decisions",
+    "observation_count",
+    "last_import",
+    "external_evidence",
+    "companions",
+    "anomalies",
+    "legacy_review_warnings"
+  ],
+  "title": "Snapshot",
+  "type": "object"
+}

@@ -198,6 +198,14 @@ class SplitMembership(Model):
     content_id: ID
 
 
+class ClusteringConfigurationProvenance(Model):
+    """Recovered run metadata; this does not make the full clustering artifact available."""
+
+    source_kind: Literal["clustering_run_table"]
+    source_sha256: Digest
+    configuration_identity_verified: Literal[True]
+
+
 class ClusteringConfiguration(Model):
     cluster_run_id: ID
     source_kind: Literal["full_clustering_artifact", "frozen_split_membership"]
@@ -221,6 +229,7 @@ class ClusteringConfiguration(Model):
     n_noise: Count
     noise_fraction: Annotated[float, Field(ge=0, le=1)]
     ground_truth: Literal[False] = False
+    configuration_provenance: ClusteringConfigurationProvenance | None = None
 
     @model_validator(mode="after")
     def evidence_authority(self):
@@ -239,7 +248,18 @@ class ClusteringConfiguration(Model):
             self.parameters,
             self.effective_parameters,
         )
+        if (
+            not self.membership_consistency_verified
+            or not self.source_split_ids
+            or len(set(self.source_split_ids)) != len(self.source_split_ids)
+            or set(self.source_split_ids) != set(self.source_membership_checksums)
+        ):
+            raise ValueError("Clustering membership provenance is incomplete")
         if full:
+            if self.configuration_provenance is not None:
+                raise ValueError(
+                    "Full clustering artifact cannot use recovered configuration provenance"
+                )
             if any(
                 v is None
                 for v in (
@@ -253,16 +273,31 @@ class ClusteringConfiguration(Model):
                 )
             ):
                 raise ValueError("Full clustering requires its existing configuration")
-        elif (
-            any(v is not None for v in fields)
-            or not self.membership_consistency_verified
-            or not self.source_split_ids
-            or len(set(self.source_split_ids)) != len(self.source_split_ids)
-            or set(self.source_split_ids) != set(self.source_membership_checksums)
-        ):
-            raise ValueError(
-                "Frozen membership needs provenance and null unavailable configuration"
-            )
+        elif self.configuration_provenance is None:
+            if any(v is not None for v in fields):
+                raise ValueError(
+                    "Frozen membership needs provenance and null unavailable configuration"
+                )
+        else:
+            if self.feature_space_id is not None or self.model_id is not None:
+                raise ValueError(
+                    "Recovered configuration cannot supply unavailable feature/model identities"
+                )
+            if any(
+                v is None
+                for v in (
+                    self.configuration_id,
+                    self.representation,
+                    self.reduction_seed,
+                    self.extractor,
+                    self.algorithm,
+                    self.parameters,
+                    self.effective_parameters,
+                )
+            ):
+                raise ValueError(
+                    "Recovered configuration provenance requires its existing configuration"
+                )
         return self
 
 

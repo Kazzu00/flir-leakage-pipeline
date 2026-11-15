@@ -17,6 +17,14 @@ from flir_pipeline.splitting.base import (
 )
 
 
+class AssignmentError(ValueError):
+    """Preserve an unsuccessful solver result for auditable policy comparisons."""
+
+    def __init__(self, status: int, message: str):
+        self.solver_result = {"status": int(status), "message": str(message), "heuristic_substituted": False}
+        super().__init__(f"MILP has no incumbent (status {status}: {message}); no heuristic substituted")
+
+
 def record_statistics(manifest: pd.DataFrame, instances: pd.DataFrame) -> pd.DataFrame:
     """Preserve conflicting annotations per occurrence; never choose a representative label."""
     if manifest.frame_id.isna().any() or not manifest.frame_id.is_unique or manifest.content_id.isna().any():
@@ -79,6 +87,10 @@ class AssignmentFailure(ValueError):
     def __init__(self, message, evidence):
         super().__init__(message)
         self.evidence = evidence
+        # Preserve the general pipeline's historical failure-receipt interface.
+        self.solver_result = {"status": evidence.get("status"),
+                              "message": evidence.get("message", message),
+                              "heuristic_substituted": False}
 
 
 def random_assignment(units: pd.DataFrame, ratios: np.ndarray, seed: int,
@@ -87,6 +99,17 @@ def random_assignment(units: pd.DataFrame, ratios: np.ndarray, seed: int,
     n = _destinations(ratios, destinations)
     if len(units) < n or not units.content_count.eq(1).all():
         raise ValueError("Random baseline needs enough singleton contents")
+    return atomic_random_assignment(units, ratios, seed, destinations=destinations)
+
+
+def atomic_random_assignment(units: pd.DataFrame, ratios: np.ndarray, seed: int,
+                             *, destinations=SPLITS) -> tuple[dict, dict]:
+    """Apply the existing seeded cuts to indivisible units and explicit destinations."""
+    n = _destinations(ratios, destinations)
+    if (len(units) < n or not units.group_id.is_unique
+            or not np.isfinite(units.record_count).all() or not units.record_count.gt(0).all()
+            or type(seed) is not int or seed < 0):
+        raise ValueError("Invalid atomic units, ratios or seed")
     rng = np.random.default_rng(seed)
     ordered = units.sort_values("group_id").iloc[rng.permutation(len(units))]
     split_order = rng.permutation(n)
@@ -105,7 +128,9 @@ def random_assignment(units: pd.DataFrame, ratios: np.ndarray, seed: int,
 
 
 def milp_assignment(units: pd.DataFrame, ratios: np.ndarray, seed: int, config: SplitConfig,
-                    *, destinations=SPLITS, require_class_coverage=False) -> tuple[dict, dict]:
+                    *, destinations=SPLITS, require_class_coverage=False,
+                    balance_columns: tuple[str, ...] = BALANCE_COLUMNS,
+                    family_weights: tuple[float, ...] | None = None) -> tuple[dict, dict]:
     """Integer counts of exchangeable groups per split, with normalized L1 slack.
 
     Aggregating identical balance vectors is lossless: their coefficients are equal
@@ -123,7 +148,12 @@ def milp_assignment(units: pd.DataFrame, ratios: np.ndarray, seed: int, config: 
         raise AssignmentFailure("Not enough atomic class support",
                                 {"failure": "INFEASIBLE_CLASS_SUPPORT", "primal_feasibility_verified": False})
     ordered = units.sort_values("group_id").reset_index(drop=True)
-    vectors = ordered[list(BALANCE_COLUMNS)].to_numpy(dtype=float)
+    vectors = ordered[list(balance_columns)].to_numpy(dtype=float)
+    if (not ordered.group_id.is_unique or not np.isfinite(vectors).all()
+            or (vectors < 0).any() or not ordered.record_count.gt(0).all()
+            or len(ratios) != n or not np.isfinite(ratios).all()
+            or np.any(np.asarray(ratios) <= 0) or not np.isclose(sum(ratios), 1)):
+        raise ValueError("Invalid balance vectors or target ratios")
     profiles, inverse, counts = np.unique(vectors, axis=0, return_inverse=True, return_counts=True)
     rng = np.random.default_rng(seed)
     permutation = rng.permutation(len(profiles))
@@ -133,7 +163,11 @@ def milp_assignment(units: pd.DataFrame, ratios: np.ndarray, seed: int, config: 
     nx, nd = p*n, n*d
     nvars = nx + 2*nd
     targets = ratios[:, None] * vectors.sum(axis=0)[None, :]
-    family_weights = np.array([config.record_weight, *([config.class_weight/5]*5), config.empty_weight])
+    # Preserve the existing three-way general and two-way fixed-test objectives.
+    family_weights = np.asarray(family_weights if family_weights is not None else
+                              [config.record_weight, *([config.class_weight/5]*5), config.empty_weight])
+    if family_weights.shape != (d,) or not np.isfinite(family_weights).all() or (family_weights <= 0).any():
+        raise ValueError("Every balance column requires a positive finite weight")
     weights = (family_weights[None, :] / (n*np.maximum(targets, 1))).ravel()
     objective = np.r_[np.zeros(nx), weights, weights]
     nc = n * len(CLASS_COLUMNS) if require_class_coverage else 0

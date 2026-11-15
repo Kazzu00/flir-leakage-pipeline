@@ -22,6 +22,10 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+alignment = [
+    "av>=14,<17",
+    "opencv-python>=4.10,<6",
+]
 explorer = [
     "streamlit>=1.64,<2",
 ]
@@ -59,6 +63,10 @@ flir-pipeline = "flir_pipeline.cli:app"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/flir_pipeline"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"src/flir_pipeline/alignment/pilot_ui.html" = "flir_pipeline/alignment/pilot_ui.html"
+"src/flir_pipeline/alignment/dependency_ui.html" = "flir_pipeline/alignment/dependency_ui.html"
 
 [tool.pytest.ini_options]
 addopts = "--strict-markers --strict-config"
