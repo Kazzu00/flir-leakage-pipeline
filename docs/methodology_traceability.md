@@ -1,5 +1,11 @@
 # Trazabilidad con los cinco objetivos definitivos
 
+Actualización local 2026-11-21: el [cierre denoised/OE4](runbooks/oe4_closeout_20261120.md)
+añade evidencia de ingesta de la variante externa (OE5), grafo/MILP candidato (OE3)
+y preparación verificable de test común y ablación AUG_OFF (OE4). No acredita un
+split denoised terminado, independencia temporal ni ejecución detector nueva.
+El algoritmo C10 original permanece separado de las sensibilidades de la variante.
+
 Referencia: `ppg_j.solorzanod_202620.pdf`, objetivos en su página impresa 2.
 El expediente privado conserva archivo, SHA y objetivos textuales. La tabla
 separa infraestructura y evidencia; no sustituye la revisión académica de JP.

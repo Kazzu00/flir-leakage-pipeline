@@ -1,5 +1,16 @@
 # Architecture
 
+## Denoised / OE4 adapter (2026-11-21)
+
+`closeout/` isolates the external TAR version contract and the new OE4 closeout
+from historical experiment APIs. It reuses `features/storage.py`, encoder wrappers,
+`splitting/construction.py`, fixed-test source verification and detector capture/
+metrics. Immutable staging publishes only validated data; failures remain separate.
+CPU preflight and Slurm GPU workers are separate entrypoints. Every runtime gets
+private writable image/label views so caches cannot change original publications.
+Missing evidence blocks publication/execution without fabricating approvals.
+See the [contract and deployment runbook](runbooks/oe4_closeout_20261120.md).
+
 ## Consolidated reference — 2026-11-14
 
 `src/flir_pipeline` remains the scientific/CLI boundary; `apps/explorer` reuses

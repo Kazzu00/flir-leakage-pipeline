@@ -1,5 +1,23 @@
 # Design decisions
 
+## Denoised and OE4 closeout adapter (2026-11-21)
+
+The external kit is a prototype, not an authority. `closeout/` reuses native
+content-level feature storage, group MILP, frozen-publication verification,
+source ZIP locators and detector matching/metrics. Denoised metadata versions
+are retained byte-for-byte; historical split columns do not define protected test.
+Nominal scenes and temporal windows are explicit conservative candidate constraints,
+not independently verified lineage. Missing visual evidence prevents real split
+publication. No quantile-refitted PaCMAP/DBSCAN run is labeled original C10.
+
+OE4 compares last epoch 50 on a single frozen test only after all matched AUG_OFF
+runs and a valid release. Existing baselines retain AUG_ON labeling. New workers
+copy development/test views before Ultralytics can write caches, preserve all
+recorded nonoperational controls, and reject unknown defaults or missing identity
+mappings. The original automatic 75-run protocol does not silently authorize this
+new ablation; existing scientific signature verification is reused with a new
+protocol/freeze scope. See the [runbook](runbooks/oe4_closeout_20261120.md).
+
 ## Reuse the existing subtree and versioned execution boundaries — 2026-11-14
 
 Keep `apps/explorer`, whose subtree already preserves frontend history, rather

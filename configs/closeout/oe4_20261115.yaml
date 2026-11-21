@@ -1,0 +1,35 @@
+protocol: oe4_closeout_v1
+publication: $HOME/flir-yolo11m-automatic-v1/publications/five-seeds-20261013-a
+source_root: $HOME/datasets/flir_raw/source
+initial_weights: $HOME/yolo11m.pt
+weights_receipt: $HOME/flir-yolo11m-automatic-v1/official-weights.json
+freeze: $HOME/flir-oe4-closeout-20261121/freeze
+common_test: $HOME/flir-oe4-closeout-20261121/common-test
+aug_off_output: $HOME/flir-oe4-closeout-20261121/aug-off
+evaluation_output: $HOME/flir-oe4-closeout-20261121/evaluations
+aggregate_output: $HOME/flir-oe4-closeout-20261121/aggregate
+train_admission: $HOME/flir-oe4-closeout-20261121/approvals/train.json
+train_signature: $HOME/flir-oe4-closeout-20261121/approvals/train.json.sig
+evaluate_admission: $HOME/flir-oe4-closeout-20261121/approvals/evaluate.json
+evaluate_signature: $HOME/flir-oe4-closeout-20261121/approvals/evaluate.json.sig
+temporal_window_frames: 60
+versions:
+  ultralytics: 8.3.203
+  torch: 2.7.1
+  torchvision: 0.22.1
+runs:
+  historica: $HOME/flir-oe4-minimal-20261115/scientific-runs/cd85f3345665111d/attempt-0000
+  aleatoria: $HOME/flir-oe4-minimal-20261115/scientific-runs/4655d8b40250bf0b/attempt-0000
+  c10: $HOME/flir-oe4-minimal-20261115/scientific-runs/161e47b750c73807/attempt-0000
+evaluation:
+  imgsz: 640
+  batch: 1
+  conf: 0.001
+  iou: 0.7
+  max_det: 300
+  half: false
+  rect: false
+  augment: false
+  agnostic_nms: false
+  classes: null
+  workers: 0

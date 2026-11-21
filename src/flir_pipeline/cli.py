@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Any
 
 import typer
 
+from flir_pipeline.closeout.cli import app as closeout_app
 from flir_pipeline.data.no_hud_cli import app as no_hud_app
 from flir_pipeline.data.video_variant_cli import app as video_variant_app
 from flir_pipeline.detection.cli import app as detection_app
@@ -37,6 +38,7 @@ app.add_typer(explorer_app, name="explorer")
 app.add_typer(sequences_app, name="sequences")
 app.add_typer(linkage_app, name="linkage")
 app.add_typer(general_app, name="general")
+app.add_typer(closeout_app, name="closeout")
 
 
 def _default_root() -> Path | None:
