@@ -258,6 +258,28 @@ def build(dataset: Path, config_path: Path, output: Path, stores: dict | None = 
         write_csv(
             stage / "relations.csv", relations, ["left", "right", "kind", "evidence"]
         )
+        write_csv(
+            stage / "preassignment_groups.csv",
+            rows[["frame_id", "content_id", "source_frame_key", "group_id"]].to_dict(
+                "records"
+            ),
+        )
+        support = rows.groupby("group_id")[list(CLASS_COLUMNS)].sum()
+        write_json(
+            stage / "preassignment.json",
+            {
+                "state": "GRAPH_ONLY_NO_ASSIGNMENT",
+                "source_receipt_sha256": file_sha256(dataset / "receipt.json"),
+                "configuration": config,
+                "features": bindings,
+                "groups": int(rows.group_id.nunique()),
+                "largest_group_records": int(rows.groupby("group_id").size().max()),
+                "atomic_groups_with_class": {
+                    str(i): int(support[f"class_{i}"].gt(0).sum()) for i in range(5)
+                },
+                "quarantine_groups": sorted(quarantine),
+            },
+        )
         if not blockers:
             included = rows.loc[~rows.group_id.isin(quarantine)].copy()
             included["record_count"] = 1
