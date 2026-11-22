@@ -1,0 +1,11 @@
+# All paths relative to the root passed to `general ingest`.
+# Sparse original IDs are retained. Missing label != empty label file.
+classes:
+  - {class_id: 10, name: object_a}
+  - {class_id: 42, name: object_b}
+images:
+  - {frame_id: occurrence-a, image: images/a.png, label: labels/a.txt}
+  - {frame_id: occurrence-b, image: images/b.png, label: null}
+  - {frame_id: occurrence-c, image: images/c.png, label: labels/c.txt}
+videos: []
+relations: []

@@ -1,0 +1,422 @@
+{
+  "$defs": {
+    "Case": {
+      "additionalProperties": false,
+      "properties": {
+        "alignment_id": {
+          "title": "Alignment Id",
+          "type": "string"
+        },
+        "audit_event_links": {
+          "items": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "title": "Audit Event Links",
+          "type": "array"
+        },
+        "candidate_interval": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Candidate Interval"
+        },
+        "control_evidence_locator": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Control Evidence Locator"
+        },
+        "control_evidence_sha256": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Control Evidence Sha256"
+        },
+        "controls": {
+          "items": {
+            "$ref": "#/$defs/Match"
+          },
+          "title": "Controls",
+          "type": "array"
+        },
+        "errors": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Errors",
+          "type": "array"
+        },
+        "evidence_locator": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Evidence Locator"
+        },
+        "evidence_sha256": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Evidence Sha256"
+        },
+        "image_id": {
+          "title": "Image Id",
+          "type": "string"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        },
+        "searched_intervals": {
+          "items": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array"
+          },
+          "title": "Searched Intervals",
+          "type": "array"
+        },
+        "status": {
+          "enum": [
+            "candidate",
+            "ambiguous",
+            "not_found"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "top_k": {
+          "items": {
+            "$ref": "#/$defs/Match"
+          },
+          "title": "Top K",
+          "type": "array"
+        }
+      },
+      "required": [
+        "alignment_id",
+        "image_id",
+        "status",
+        "reason",
+        "top_k",
+        "controls",
+        "searched_intervals",
+        "candidate_interval",
+        "evidence_locator",
+        "evidence_sha256",
+        "audit_event_links",
+        "errors"
+      ],
+      "title": "Case",
+      "type": "object"
+    },
+    "Config": {
+      "additionalProperties": false,
+      "properties": {
+        "coarse_step": {
+          "default": 0.5,
+          "exclusiveMinimum": 0,
+          "title": "Coarse Step",
+          "type": "number"
+        },
+        "expanded_radius": {
+          "default": 60,
+          "exclusiveMinimum": 0,
+          "maximum": 300,
+          "title": "Expanded Radius",
+          "type": "number"
+        },
+        "expanded_step": {
+          "default": 3,
+          "exclusiveMinimum": 0,
+          "title": "Expanded Step",
+          "type": "number"
+        },
+        "local_radius": {
+          "default": 8,
+          "exclusiveMinimum": 0,
+          "maximum": 120,
+          "title": "Local Radius",
+          "type": "number"
+        },
+        "max_decoded_frames": {
+          "default": 90000,
+          "minimum": 1,
+          "title": "Max Decoded Frames",
+          "type": "integer"
+        },
+        "max_images": {
+          "default": 60,
+          "maximum": 200,
+          "minimum": 1,
+          "title": "Max Images",
+          "type": "integer"
+        },
+        "max_seconds": {
+          "default": 1800,
+          "exclusiveMinimum": 0,
+          "title": "Max Seconds",
+          "type": "number"
+        },
+        "min_coverage": {
+          "default": 0.03,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Min Coverage",
+          "type": "number"
+        },
+        "min_inlier_ratio": {
+          "default": 0.35,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Min Inlier Ratio",
+          "type": "number"
+        },
+        "min_inliers": {
+          "default": 12,
+          "minimum": 4,
+          "title": "Min Inliers",
+          "type": "integer"
+        },
+        "offset_hypothesis": {
+          "default": 1978,
+          "title": "Offset Hypothesis",
+          "type": "number"
+        },
+        "per_split": {
+          "default": 12,
+          "maximum": 50,
+          "minimum": 1,
+          "title": "Per Split",
+          "type": "integer"
+        },
+        "refine_radius": {
+          "default": 0.3,
+          "exclusiveMinimum": 0,
+          "maximum": 2,
+          "title": "Refine Radius",
+          "type": "number"
+        },
+        "seed": {
+          "default": 20261103,
+          "title": "Seed",
+          "type": "integer"
+        },
+        "selection_archive": {
+          "default": "Imagenes.zip",
+          "title": "Selection Archive",
+          "type": "string"
+        },
+        "top_k": {
+          "default": 5,
+          "maximum": 10,
+          "minimum": 2,
+          "title": "Top K",
+          "type": "integer"
+        }
+      },
+      "title": "Config",
+      "type": "object"
+    },
+    "Match": {
+      "additionalProperties": false,
+      "properties": {
+        "correlation": {
+          "title": "Correlation",
+          "type": "number"
+        },
+        "coverage": {
+          "title": "Coverage",
+          "type": "number"
+        },
+        "decoded_rgb_sha256": {
+          "title": "Decoded Rgb Sha256",
+          "type": "string"
+        },
+        "dhash_distance": {
+          "title": "Dhash Distance",
+          "type": "integer"
+        },
+        "duration_seconds": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Duration Seconds"
+        },
+        "first_decoded_second": {
+          "title": "First Decoded Second",
+          "type": "number"
+        },
+        "inlier_ratio": {
+          "title": "Inlier Ratio",
+          "type": "number"
+        },
+        "inliers": {
+          "title": "Inliers",
+          "type": "integer"
+        },
+        "matches": {
+          "title": "Matches",
+          "type": "integer"
+        },
+        "pts": {
+          "title": "Pts",
+          "type": "integer"
+        },
+        "reprojection_median_px": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Reprojection Median Px"
+        },
+        "requested_seek_second": {
+          "title": "Requested Seek Second",
+          "type": "number"
+        },
+        "search_stage": {
+          "title": "Search Stage",
+          "type": "string"
+        },
+        "second": {
+          "title": "Second",
+          "type": "number"
+        },
+        "supported": {
+          "title": "Supported",
+          "type": "boolean"
+        },
+        "time_base": {
+          "title": "Time Base",
+          "type": "string"
+        }
+      },
+      "required": [
+        "pts",
+        "time_base",
+        "second",
+        "duration_seconds",
+        "decoded_rgb_sha256",
+        "requested_seek_second",
+        "first_decoded_second",
+        "correlation",
+        "dhash_distance",
+        "matches",
+        "inliers",
+        "inlier_ratio",
+        "coverage",
+        "reprojection_median_px",
+        "supported",
+        "search_stage"
+      ],
+      "title": "Match",
+      "type": "object"
+    }
+  },
+  "$id": "urn:flir:alignment-evidence-v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "cases": {
+      "items": {
+        "$ref": "#/$defs/Case"
+      },
+      "title": "Cases",
+      "type": "array"
+    },
+    "config": {
+      "$ref": "#/$defs/Config"
+    },
+    "execution": {
+      "additionalProperties": true,
+      "title": "Execution",
+      "type": "object"
+    },
+    "manifest_sha256": {
+      "title": "Manifest Sha256",
+      "type": "string"
+    },
+    "run_id": {
+      "title": "Run Id",
+      "type": "string"
+    },
+    "schema": {
+      "const": "alignment-evidence-v1",
+      "title": "Schema",
+      "type": "string"
+    },
+    "selection_sha256": {
+      "title": "Selection Sha256",
+      "type": "string"
+    },
+    "source_video": {
+      "title": "Source Video",
+      "type": "string"
+    },
+    "source_video_sha256": {
+      "title": "Source Video Sha256",
+      "type": "string"
+    },
+    "video_metadata": {
+      "additionalProperties": true,
+      "title": "Video Metadata",
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema",
+    "run_id",
+    "config",
+    "manifest_sha256",
+    "selection_sha256",
+    "source_video",
+    "source_video_sha256",
+    "video_metadata",
+    "execution",
+    "cases"
+  ],
+  "title": "Evidence",
+  "type": "object"
+}

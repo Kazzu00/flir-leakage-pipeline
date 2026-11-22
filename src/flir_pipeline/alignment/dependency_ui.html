@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="es"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FLIR · Dependencias visuales</title>
+<style>body{font:16px system-ui;margin:24px;background:#101923;color:#ecf1f4}button,select,input,textarea{font:inherit;margin:6px;padding:8px}button{cursor:pointer}img{max-width:100%;max-height:480px;object-fit:contain;background:#000}#content{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}figure{margin:0;padding:12px;background:#1d2b38}figcaption{overflow-wrap:anywhere}pre{white-space:pre-wrap;overflow-wrap:anywhere}textarea{display:block;width:90%}fieldset{margin:16px 0}a{color:#84cfff}.notice{color:#ffe28b}#message{white-space:pre-wrap}summary{cursor:pointer}</style>
+<h1>FLIR · Piloto de dependencias</h1>
+<p class="notice">Continuidad de toma y relación espacial son juicios independientes. Ausencia de SIFT no demuestra región diferente. Los controles son candidatos sin verificar. El contexto ±1 s no cubre todo el intervalo entre imágenes.</p>
+<p id="role"></p><label>Par <select id="cases"></select></label><button id="previous">Anterior</button><button id="next">Siguiente pendiente</button>
+<label><input type="checkbox" id="splits">Mostrar splits históricos</label><p id="summary"></p>
+<details><summary>Procedencia, tiempos, incertidumbre y métricas</summary><pre id="metadata"></pre></details>
+<div id="content"></div>
+<fieldset><legend>Evidencia examinada</legend><p>Cargar imágenes no registra que fueron examinadas. Confirma únicamente los materiales que realmente revisaste.</p><button id="bulk" type="button">Confirmo haber examinado todos los materiales mostrados</button><div id="evidence"></div></fieldset>
+<form id="review"><fieldset><legend>Decisión independiente</legend>
+<label>Estado <select id="status"><option value="pending">Pendiente</option><option value="reviewed">Revisado</option></select></label>
+<label>Continuidad <select id="continuity"><option value="uncertain">Indeterminada</option><option value="continuous">Continuidad de toma</option><option value="shot_change">Cambio de toma</option></select></label>
+<label>Relación espacial <select id="spatial"><option value="uncertain">Indeterminada</option><option value="same_region">Misma región</option><option value="different_region">Región diferente</option></select></label>
+<label>Confianza <select id="confidence"><option value="undetermined">Indeterminada</option><option value="low">Baja</option><option value="medium">Media</option><option value="high">Alta</option></select></label>
+<label>Revisor <input id="reviewer" maxlength="200"></label><label>Justificación<textarea id="justification" maxlength="10000"></textarea></label>
+<div id="phenomena"></div><div id="adjudication"></div><button type="submit">Guardar versión</button></fieldset></form>
+<p role="status" id="message"></p><details><summary>Mi historial del par</summary><pre id="history"></pre></details>
+<p><a href="/api/export/json">Exportar JSON</a> · <a href="/api/export/csv">Exportar CSV</a> · <a href="/api/report">Reporte de este revisor</a></p>
+<script>
+'use strict';
+let snapshot, current, latest;
+const $=id=>document.getElementById(id);
+const phenomena={zoom:'Zoom',rapid_camera:'Movimiento rápido de cámara',signal_loss:'Pérdida de señal',gain:'Cambio de ganancia',polarity:'Inversión de polaridad',occlusion:'Oclusión',low_texture:'Baja textura'};
+function check(parent,key,label,group){const box=document.createElement('input');box.type='checkbox';box.value=key;box.dataset.group=group;const node=document.createElement('label');node.append(box,document.createTextNode(label));parent.append(node);return box;}
+function chosen(group){return [...document.querySelectorAll(`input[data-group="${group}"]:checked`)].map(x=>x.value);}
+function provenance(){const p=structuredClone(current);if(!$('splits').checked){for(const side of ['a','b'])delete p[side].original.original_split;delete p.secondary.cross_split;} $('metadata').textContent=JSON.stringify({pair:p,method:snapshot.pilot.method,binding:snapshot.binding,media:Object.fromEntries(current.media.map(k=>[k,snapshot.pilot.media[k]]))},null,2);}
+function render(){current=snapshot.pilot.pairs[Number($('cases').value)];latest=snapshot.history.filter(r=>r.pair_id===current.pair_id).at(-1);$('summary').textContent=`${current.a.original.dataset_index} ↔ ${current.b.original.dataset_index} · ${current.category} · versión ${latest?.version||0} · ${latest?.status||'pending'}`;
+ $('content').replaceChildren();$('evidence').replaceChildren();$('message').textContent='';
+ for(const key of current.media){const figure=document.createElement('figure'),img=document.createElement('img'),caption=document.createElement('figcaption');img.src='/media/'+encodeURIComponent(key);img.alt=key;caption.textContent=key;figure.append(img,caption);$('content').append(figure);const box=check($('evidence'),key,key,'evidence');box.checked=latest?.evidence_consulted.includes(key)||false;}
+ for(const id of ['status','continuity','spatial','confidence','reviewer','justification'])$(id).value=latest?.[id]??({status:'pending',continuity:'uncertain',spatial:'uncertain',confidence:'undetermined',reviewer:'',justification:''}[id]);
+ $('phenomena').replaceChildren();for(const [key,label] of Object.entries(phenomena))check($('phenomena'),key,label,'phenomena').checked=latest?.phenomena.includes(key)||false;
+ $('history').textContent=JSON.stringify(snapshot.history.filter(r=>r.pair_id===current.pair_id),null,2);$('adjudication').replaceChildren();
+ if(snapshot.role==='adjudicator'){for(const role of ['reviewer1','reviewer2']){const rows=snapshot.adjudication_sources.filter(r=>r.pair_id===current.pair_id&&r.role===role&&r.status==='reviewed');if(rows.length){const r=rows.at(-1);check($('adjudication'),r.id,`${role}: ${r.continuity} / ${r.spatial}; ${r.justification}`,'adjudicates');}}}
+ provenance();}
+async function refresh(index=0){snapshot=await(await fetch('/api/pilot')).json();$('role').textContent=`Sesión ${snapshot.role}. Las anotaciones del otro revisor no están disponibles en las sesiones independientes.`;$('cases').replaceChildren();snapshot.pilot.pairs.forEach((p,i)=>{const o=document.createElement('option');o.value=i;o.textContent=`${i+1}. ${p.a.original.dataset_index}–${p.b.original.dataset_index} · ${p.category}`;$('cases').append(o);});$('cases').value=String(index);render();}
+$('cases').onchange=render;$('splits').onchange=provenance;$('bulk').onclick=()=>document.querySelectorAll('[data-group="evidence"]').forEach(x=>x.checked=true);
+$('previous').onclick=()=>{$('cases').value=String(Math.max(0,Number($('cases').value)-1));render();};
+$('next').onclick=()=>{const n=snapshot.pilot.pairs.length,start=Number($('cases').value);for(let step=1;step<=n;step++){const i=(start+step)%n,p=snapshot.pilot.pairs[i],last=snapshot.history.filter(r=>r.pair_id===p.pair_id).at(-1);if(last?.status!=='reviewed'){$('cases').value=String(i);render();return;}}$('message').textContent='No quedan pares pendientes en esta sesión.';};
+$('review').onsubmit=async event=>{event.preventDefault();const payload={pair_id:current.pair_id,expected_version:latest?.version||0,evidence_consulted:chosen('evidence'),phenomena:chosen('phenomena'),adjudicates:chosen('adjudicates')};for(const id of ['status','continuity','spatial','confidence','reviewer','justification'])payload[id]=$(id).value;const response=await fetch('/api/decisions',{method:'POST',headers:{'Content-Type':'application/json','X-Alignment-Review':'1'},body:JSON.stringify(payload)});const result=await response.json();if(!response.ok){$('message').textContent=result.error;return;}await refresh(Number($('cases').value));$('message').textContent='Versión guardada; historial conservado.';};
+refresh().catch(e=>$('message').textContent=e.message);
+</script></html>

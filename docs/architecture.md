@@ -1,5 +1,100 @@
 # Architecture
 
+Final publication: `closeout.final_metrics` is a standard-library, CPU-only CSV
+projection downstream of the existing OE4 aggregator. It validates receipt/source
+integrity and preserves decimal tokens; it does not invoke evaluation, scientific
+gates, data access or Hypatia. The public results package is
+`docs/results/oe4_20261122/`; private native artifacts remain external.
+`closeout.final_provenance` projects six recovered evaluation receipts into a
+public allowlist, with metadata consistency checks and explicit unverified payload
+flags. It removes native per-image file maps without changing the external originals.
+
+## Training recovery (2026-11-22)
+
+Both OE4 and isolated denoised exploration reuse scientific_executor.write_view,
+its emitted counts and the native loader check via closeout/training.py. CPU
+preparation runs actual pinned YOLO label loading before GPU submission. A single
+execute_prepared function owns the training invocation. Operations now use
+flir-oe4-recovery-20261122; earlier failed operations remain untouched.
+
+## OE4 authorization v2 (2026-11-22)
+
+`closeout/oe4.py` binds the communicated authorization YAML into the immutable
+preflight freeze. Submission CLI and both runtime workers use the same integrity
+gate. Phase records live outside the sealed freeze; evaluation records the exact
+three completed AUG_OFF receipts. No OE4 path invokes the historical OpenSSH
+authorization verifier. New operations use `flir-oe4-hotfix-20261122`; protected
+common-test data remains in its existing read-only location.
+
+## Denoised / OE4 adapter (2026-11-21)
+
+`closeout/` isolates the external TAR version contract and the new OE4 closeout
+from historical experiment APIs. It reuses `features/storage.py`, encoder wrappers,
+`splitting/construction.py`, fixed-test source verification and detector capture/
+metrics. Immutable staging publishes only validated data; failures remain separate.
+CPU preflight and Slurm GPU workers are separate entrypoints. Every runtime gets
+private writable image/label views so caches cannot change original publications.
+Missing evidence blocks publication/execution without fabricating approvals.
+See the [contract and deployment runbook](runbooks/oe4_closeout_20261120.md).
+
+## Consolidated reference — 2026-11-14
+
+`src/flir_pipeline` remains the scientific/CLI boundary; `apps/explorer` reuses
+the existing frontend subtree and subsequent recovered working code. The two
+Streamlit explorers remain available. Real artifacts are external and immutable;
+the UI consumes versioned exports without fitting or reassigning science.
+See [integration decisions and recovery boundaries](final_integration.md).
+
+## Independent preliminary BASE runtime (2026-11-04)
+
+`detection/preliminary.py` and `preliminary_cli.py` implement explicit user-accepted
+positive-only preparation/verification/training. They reuse environment and loader
+guards while keeping package, receipts and outputs separate from final scientific
+admission. Runtime copies prevent cache writes to immutable transfer data.
+`data/box_transfer.py` inverts registration coordinates for review-only proposals;
+`scripts/build_hud_review.py` creates static contact sheets and traceable evidence.
+Neither module approves NO-HUD annotation transfer.
+
+## Monorepo boundary (2026-11-04)
+
+The existing backend remains under src/flir_pipeline; apps/explorer is a Git
+subtree retaining frontend history. Root GitHub Actions activates its quality
+workflow with the frontend working directory. Data stays external. The standalone
+handoff checksum verifier uses only the standard library and cannot grant training
+admission. Recovered no-HUD transfer code reuses existing data validation.
+The primary historical/expanded common-test route now uses the versioned automatic
+policy in `common_admission.py`, operational orchestration in `common_training.py`
+and matrix-bound evaluation/comparison in `common_evaluation.py`. It reuses the
+existing preparer, scientific worker, receipt verifier and metrics. Original
+occurrence labels, not the adjudicated A/B layer, are its inputs. `common_checks.py`
+keeps argument/resume checks available before GPU imports; `common_resources.py`
+records operational limits outside scientific identities. Legacy signed routes
+below remain separate for historical contracts. See the
+[automatic route](runbooks/automatic_yolo11m.md).
+
+`detection/general_ab.py` is an explicit input adapter to the common executor.
+It validates occurrence-bound assignments, common protected test and accepted-group
+invariants, then reuses planning, preparation verification, signed admission and
+the scientific worker. It preserves long A/B policy names and all aliases for
+identical run identities. No split engine, MILP objective or detector runtime is
+introduced. See the [A/B contract](runbooks/general_ab_executor.md).
+
+`detection/curated_development.py` adds manifest-driven development materialization
+to the existing common-executor CLI. It reuses source hashing, YOLO validation,
+external-output checks and checked writes. Its versioned development receipt is
+not accepted by the existing preparation/admission contracts. No alternative
+training runtime, split engine or authority mechanism is added. See the
+[curated preparation contract](runbooks/curated_development.md).
+
+The common-test executor has a separate signed admission boundary in
+`detection/admission.py`: an administrator-owned OpenSSH allowlist, attributed
+decision hashes, expiration and clean code/environment freeze. `scientific_executor.py`
+joins existing plans/prepared memberships and verifies variants; it never solves
+splits. `scientific_runtime.py` runs development-only attempts and separately
+released test evaluation, reusing original label validation and detector metrics.
+No changes to the historical YOLO11n runtime or its admission rules. See the
+[scientific runbook](runbooks/scientific_yolo11m.md).
+
 Ground-truth evidence lives in `detection/ground_truth_quality.py` (descriptive
 metrics and human-form contract), `ground_truth_gallery.py` (static native-raster
 views) and `ground_truth_quality_storage.py` (source binding, receipts and replay).
@@ -61,6 +156,50 @@ annotation ledger and evidence edges join through occurrence/content/label IDs.
 `summary.json`, written last, binds input and output checksums. This independent
 candidate publication does not mutate historical data, splits or detector runs.
 See the [schema, identity and failure contract](runbooks/adendo.md).
+## General dependency pipeline (2026-11-06)
+
+`general/contract.py` defines a versioned occurrence/class/evidence manifest.
+`ingestion.py` reuses local path safety and YOLO QA; `localization.py` optionally
+reuses full-raster hashing with actual PyAV PTS. `analysis.py` builds accepted
+components, detects cannot-link contradictions and invokes the existing MILP with
+explicit balance columns/weights. Historical defaults remain compatible.
+`publication.py` binds sources, code and environment, publishes immutable outputs
+and replays full analysis. `timeline.py` renders only confirmed decoded positions.
+`fac_adapter.py` alone interprets the audited FAC delivery. No detector training
+or external publication is invoked. See [contract](../PIPELINE_CONTRACT.md).
+
+Legacy five-class contracts remain in `data/classes.py`, historical
+`record_statistics`/`aggregate_groups`, `splitting/metrics.py` and its visualization.
+They are not invoked by the generic path; changing their meaning would invalidate
+older publications. New variable-class metrics live in the general analysis.
+
+## Content-only video localization review
+
+`alignment/visual_localization.py` supplies content retrieval keys, full-raster
+digests, interior descriptors, diverse candidate selection and conservative
+temporal states. It has no nominal-index or splitting input. An external runner
+binds original videos and records decoded PTS without changing published datasets.
+The review sidecar retains candidate groups and decision templates separately from
+scientifically accepted relations. See [review contract](runbooks/jp_video_grounded_review.md).
+
+## JP paired delivery adapter
+
+`explorer/paired_inputs.py` binds an existing external inventory and historical
+evidence. `paired_timeline.py` reuses timeline ordering/figures and emits standalone
+HTML. `splitting/paired.py` closes exact/accepted units and uses the existing seeded
+record-cut allocator for both policies. `paired_delivery.py` exposes timeline,
+split and independent verify stages. It writes only to a new external directory;
+no source store, frontend service or training package is modified.
+
+## Local dependency pair review (Phase 2B)
+
+`alignment/dependency.py` validates frozen alignment references and builds a bounded
+pair bundle. `dependency_contract.py` describes the versioned pair schema.
+`dependency_store.py` binds each append-only SQLite ledger to manifest and reviewer
+role; reviewer 2 sees only assigned pairs and its own decisions. Adjudication uses
+two read-only source ledgers and a third history. `dependency_ui.html` reuses the
+loopback server with explicit consulted-evidence confirmation. Original datasets,
+alignment reviews and historical audit ledger are never written by this path.
 
 ## External visual-variant ingestion (2026-10-08)
 
@@ -543,3 +682,32 @@ identity. Sequence experiment sources carry this declaration into every immutabl
 publication and SLURM run identity. Legacy undeclared stores remain `unspecified`.
 `sequences/experiments/variant_comparison.py` consumes completed frozen suites and
 optional validated occurrence correspondence; it never fits or constructs groups.
+
+## Local audit and human review (2026-11-02)
+
+Phase 2A.1 adds `alignment/pilot*`: immutable selection/media bundle → loopback
+HTML/API reviewer → separately bound SQLite append-only alignment judgments.
+The service does not write the historical audit ledger or matching evidence.
+Fixed-pair geometry is reconstructed only at existing candidate PTS; no retrieval
+or ranking is performed. Report denominators distinguish pending, uncertain and
+conclusive human labels; confidence calibration is unavailable.
+
+Phase 2A adds the separate `alignment` package: image occurrence inventory and
+stratified selection → CPU visual retrieval and native media-time refinement →
+immutable JSON/CSV, contact sheets and local HTML. Existing audit IDs are referenced
+read-only as index-based navigation candidates, never silently promoted into visual
+identity. Human correspondence reviews live in separate source-bound revision files.
+No new frontend backend endpoint or dependency graph is introduced.
+
+Revision 1.1 adds persistent canonical companion mappings, explicit reconciliation
+receipts, frozen external image evidence and complete document schemas. Legacy
+normalizers verify original rows; current snapshots project compatible temporal
+metadata without rewriting history. See [v1.1](runbooks/audit_human_review_v11.md).
+
+`sequences audit` → bounded read-only legacy adapters → immutable raw evidence
+and normalized `audit-evidence-v1` rows in SQLite → loopback HTTP API → existing
+React `SequenceExplorer` reviewer. Human decisions are append-only revisions,
+separate from automatic metrics, with optimistic version checks and evidence
+hash bindings. JSON/CSV exports round-trip the full history. This local annotation
+service does not change the existing immutable organization/scientific contracts.
+See the [architecture, contract and operational guide](runbooks/audit_human_review.md).

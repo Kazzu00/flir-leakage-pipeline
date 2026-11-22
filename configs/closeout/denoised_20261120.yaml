@@ -1,0 +1,11 @@
+protocol: denoised_dependency_candidate_v1
+# New candidate, never equivalent to frozen C10 or historical membership.
+protected_test_anchor_mode: none
+temporal_window_seconds: 2.0
+cosine_thresholds:
+  dinov2: 0.983503
+  clip: 0.988371
+# Explicit proposed targets, not copied from split_original.
+ratios: [0.70, 0.15, 0.15]
+seed: 42
+milp_node_limit: 128

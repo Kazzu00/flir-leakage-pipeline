@@ -1,0 +1,12 @@
+.references
+node_modules
+dist
+playwright-report
+test-results
+package-lock.json
+
+.tmp
+public/runtime
+src/features/detection/snapshot
+.pytest_cache
+.ruff_cache

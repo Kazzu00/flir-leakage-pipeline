@@ -5,12 +5,16 @@ from pathlib import Path
 
 import typer
 
+from flir_pipeline.alignment.cli import app as alignment_app
+from flir_pipeline.audit.cli import app as audit_app
 from flir_pipeline.sequences.experiments.cli import app as experiment_app
 
 app = typer.Typer(
     help="Occurrence-level candidates, reviewed sequences and exact-copy dependencies; no splits."
 )
 app.add_typer(experiment_app, name="experiment")
+app.add_typer(audit_app, name="audit")
+app.add_typer(alignment_app, name="alignment")
 
 
 @app.command("detect")

@@ -1,0 +1,279 @@
+{
+  "schema_version": "oe4_public_evaluation_receipts_v1",
+  "verification_scope": "Six native receipt metadata bindings checked against the official aggregate; no checkpoint or bound payload rehash",
+  "checkpoint_bytes_verified_locally": false,
+  "bound_payloads_verified_locally": false,
+  "original_receipts_preserved_externally": true,
+  "receipts": [
+    {
+      "source_relative_path": "AUG_ON/historica/receipt.json",
+      "native_receipt_sha256": "08841644cffebb04e73920e80ec1abec7a2b752522f0fb1f5a5e43f7bc9baed4",
+      "metadata": {
+        "state": "COMPLETED_EVALUATION",
+        "protocol": "oe4_closeout_v2",
+        "policy": "historica",
+        "treatment": "AUG_ON",
+        "authorization_sha256": "56ae92d0a424f695fbb8ad077e77f48047c069ce615c02a59649054ca4720c63",
+        "phase_authorization_receipt_sha256": "93444195f0c7f4a42234088b325f449d0df2562f0b9ee618d76b4da58a285827",
+        "freeze_sha256": "3cc95669cfd030948ab4287032ca658c11655053fe6a37ca950d6d1ec108fe4e",
+        "training_receipt_sha256": "4e224b8eb6d82e414699a83e8a538415baa7b98276a1a6cbe00fe2e4f7df2b1c",
+        "weights_sha256": "e993c1ee02d55faa6dd6d2db536f4caa74e9d3a2dcb10e206195e59112b4c665",
+        "test_receipt_sha256": "8f1d29224cc17ef8c0228f03de3b01837bb8343fc26b0d6d929ce559e12edd86",
+        "test_records_sha256": "c6518771c0e67d4208a3f40d93e2eced15567bcec56381884b665adbbd5b3ccb",
+        "evaluation": {
+          "imgsz": 640,
+          "batch": 1,
+          "conf": 0.001,
+          "iou": 0.7,
+          "max_det": 300,
+          "half": false,
+          "rect": false,
+          "augment": false,
+          "agnostic_nms": false,
+          "classes": null,
+          "workers": 0
+        },
+        "split": "test",
+        "checkpoint_selection": "last_epoch_50",
+        "test_tuning": false,
+        "environment": {
+          "ultralytics": "8.3.203",
+          "torch": "2.7.1+cu118",
+          "cuda": "11.8",
+          "gpu": "Quadro RTX 6000",
+          "slurm_job_id": "809089"
+        }
+      },
+      "aggregate_file_sha256": {
+        "metrics.json": "6f59f6c87b3bb87ce7c858d4e26a71f5a9cb18534f9e22074ebc6b40f7a21fb0",
+        "five_classes.csv": "26f9a28f6884f78c8520ca211373645044a9d403d72290aa9a1b5af28e01bacb",
+        "shared_01.csv": "939672d1bf5a63c50fc3e0182b2ac368a4dafd11a080caabb8a47927189d0ed9"
+      }
+    },
+    {
+      "source_relative_path": "AUG_OFF/historica/receipt.json",
+      "native_receipt_sha256": "9866fe35c0c0051c73ae57f4e3471a6ac63e39f9ac16cd0df95304976b5e2fe5",
+      "metadata": {
+        "state": "COMPLETED_EVALUATION",
+        "protocol": "oe4_closeout_v2",
+        "policy": "historica",
+        "treatment": "AUG_OFF",
+        "authorization_sha256": "56ae92d0a424f695fbb8ad077e77f48047c069ce615c02a59649054ca4720c63",
+        "phase_authorization_receipt_sha256": "93444195f0c7f4a42234088b325f449d0df2562f0b9ee618d76b4da58a285827",
+        "freeze_sha256": "3cc95669cfd030948ab4287032ca658c11655053fe6a37ca950d6d1ec108fe4e",
+        "training_receipt_sha256": "3822fea10623a2d7cf6149bf35ab6fd6bf095835eb4729ab7b17163cdce6fcc7",
+        "weights_sha256": "8eb47851946ae7f5a840927f9ae5d181ae437b1aabd2b9850d4b4a6db4e32ce6",
+        "test_receipt_sha256": "8f1d29224cc17ef8c0228f03de3b01837bb8343fc26b0d6d929ce559e12edd86",
+        "test_records_sha256": "c6518771c0e67d4208a3f40d93e2eced15567bcec56381884b665adbbd5b3ccb",
+        "evaluation": {
+          "imgsz": 640,
+          "batch": 1,
+          "conf": 0.001,
+          "iou": 0.7,
+          "max_det": 300,
+          "half": false,
+          "rect": false,
+          "augment": false,
+          "agnostic_nms": false,
+          "classes": null,
+          "workers": 0
+        },
+        "split": "test",
+        "checkpoint_selection": "last_epoch_50",
+        "test_tuning": false,
+        "environment": {
+          "ultralytics": "8.3.203",
+          "torch": "2.7.1+cu118",
+          "cuda": "11.8",
+          "gpu": "Quadro RTX 6000",
+          "slurm_job_id": "809089"
+        }
+      },
+      "aggregate_file_sha256": {
+        "metrics.json": "873db37e10ca8f3ea2868440f26512b6d7331ea7b61b40133733018ab15018c2",
+        "five_classes.csv": "e9e574ef5fdb12b86fea66cade65b1329a1a534e6cd2fafacf4988d0d0fdc612",
+        "shared_01.csv": "50f1f293869e74044084e150e01058cea1f4cd15cae1a82d4a6884b72cf3fbc2"
+      }
+    },
+    {
+      "source_relative_path": "AUG_ON/aleatoria/receipt.json",
+      "native_receipt_sha256": "ba67ea53f00ea73ab119a6e1447ddf0d8f44e125c8b6fc661cbf445bab455ea3",
+      "metadata": {
+        "state": "COMPLETED_EVALUATION",
+        "protocol": "oe4_closeout_v2",
+        "policy": "aleatoria",
+        "treatment": "AUG_ON",
+        "authorization_sha256": "56ae92d0a424f695fbb8ad077e77f48047c069ce615c02a59649054ca4720c63",
+        "phase_authorization_receipt_sha256": "93444195f0c7f4a42234088b325f449d0df2562f0b9ee618d76b4da58a285827",
+        "freeze_sha256": "3cc95669cfd030948ab4287032ca658c11655053fe6a37ca950d6d1ec108fe4e",
+        "training_receipt_sha256": "7d6f78a8dd4cc2272be5cee2811dd5bf7fea00cc0c9a294662e57486f6d99e80",
+        "weights_sha256": "14f0933a602746587aa2cb040cee1888763b93913515457841df1e1588d69ce8",
+        "test_receipt_sha256": "8f1d29224cc17ef8c0228f03de3b01837bb8343fc26b0d6d929ce559e12edd86",
+        "test_records_sha256": "c6518771c0e67d4208a3f40d93e2eced15567bcec56381884b665adbbd5b3ccb",
+        "evaluation": {
+          "imgsz": 640,
+          "batch": 1,
+          "conf": 0.001,
+          "iou": 0.7,
+          "max_det": 300,
+          "half": false,
+          "rect": false,
+          "augment": false,
+          "agnostic_nms": false,
+          "classes": null,
+          "workers": 0
+        },
+        "split": "test",
+        "checkpoint_selection": "last_epoch_50",
+        "test_tuning": false,
+        "environment": {
+          "ultralytics": "8.3.203",
+          "torch": "2.7.1+cu118",
+          "cuda": "11.8",
+          "gpu": "Quadro RTX 6000",
+          "slurm_job_id": "809090"
+        }
+      },
+      "aggregate_file_sha256": {
+        "metrics.json": "3f4d45c9e89f4ce81979e924f58a4af718184a866adcf511b404ee143044937e",
+        "five_classes.csv": "751cb726323bc5e526355087717289d748626ab47c2e522e95407a4216e36cad",
+        "shared_01.csv": "67bec45c89f9028de1056b2b8c1170231f63e1339cbd793ad6b55d062a8065ae"
+      }
+    },
+    {
+      "source_relative_path": "AUG_OFF/aleatoria/receipt.json",
+      "native_receipt_sha256": "de1afee1151fad5d2efe8e49b6f7df4a14f2af7007e6be4d2335952998d14dce",
+      "metadata": {
+        "state": "COMPLETED_EVALUATION",
+        "protocol": "oe4_closeout_v2",
+        "policy": "aleatoria",
+        "treatment": "AUG_OFF",
+        "authorization_sha256": "56ae92d0a424f695fbb8ad077e77f48047c069ce615c02a59649054ca4720c63",
+        "phase_authorization_receipt_sha256": "93444195f0c7f4a42234088b325f449d0df2562f0b9ee618d76b4da58a285827",
+        "freeze_sha256": "3cc95669cfd030948ab4287032ca658c11655053fe6a37ca950d6d1ec108fe4e",
+        "training_receipt_sha256": "de3b9fe1827a6a96126e07cebdcb867aceb0da99ca4652471b024d912b0ebbd8",
+        "weights_sha256": "8e04eb775ab66f8e9ec0edfdbbec6a088fab1e66e0f05327a13d92eb22b5e3e1",
+        "test_receipt_sha256": "8f1d29224cc17ef8c0228f03de3b01837bb8343fc26b0d6d929ce559e12edd86",
+        "test_records_sha256": "c6518771c0e67d4208a3f40d93e2eced15567bcec56381884b665adbbd5b3ccb",
+        "evaluation": {
+          "imgsz": 640,
+          "batch": 1,
+          "conf": 0.001,
+          "iou": 0.7,
+          "max_det": 300,
+          "half": false,
+          "rect": false,
+          "augment": false,
+          "agnostic_nms": false,
+          "classes": null,
+          "workers": 0
+        },
+        "split": "test",
+        "checkpoint_selection": "last_epoch_50",
+        "test_tuning": false,
+        "environment": {
+          "ultralytics": "8.3.203",
+          "torch": "2.7.1+cu118",
+          "cuda": "11.8",
+          "gpu": "Quadro RTX 6000",
+          "slurm_job_id": "809090"
+        }
+      },
+      "aggregate_file_sha256": {
+        "metrics.json": "77e8e92042570ffcbb8cc07173513cd6148e96845afad1ed100cef5f07b0876b",
+        "five_classes.csv": "b34d901b4bc13c5edec32d50e688598c2705728109549f44881300f62e1339f6",
+        "shared_01.csv": "78586915b18a6296230bae7076b0278d5f784b2f05ae1ac91a7dbd898a334e8d"
+      }
+    },
+    {
+      "source_relative_path": "AUG_ON/c10/receipt.json",
+      "native_receipt_sha256": "d0b7dd848b49c5b6b1af5a5ec40de2d227f9edf0138bef1e5c0fd61bcc57ad78",
+      "metadata": {
+        "state": "COMPLETED_EVALUATION",
+        "protocol": "oe4_closeout_v2",
+        "policy": "c10",
+        "treatment": "AUG_ON",
+        "authorization_sha256": "56ae92d0a424f695fbb8ad077e77f48047c069ce615c02a59649054ca4720c63",
+        "phase_authorization_receipt_sha256": "93444195f0c7f4a42234088b325f449d0df2562f0b9ee618d76b4da58a285827",
+        "freeze_sha256": "3cc95669cfd030948ab4287032ca658c11655053fe6a37ca950d6d1ec108fe4e",
+        "training_receipt_sha256": "07100b7621d5c64934f5cea28df25203e90db037510b67b9fb6cc2fe172e6ae9",
+        "weights_sha256": "1f57681cd5e5a5fb913a6f2868133e0cb4a3cf42238f70fb45b7d0a87a2a3f8c",
+        "test_receipt_sha256": "8f1d29224cc17ef8c0228f03de3b01837bb8343fc26b0d6d929ce559e12edd86",
+        "test_records_sha256": "c6518771c0e67d4208a3f40d93e2eced15567bcec56381884b665adbbd5b3ccb",
+        "evaluation": {
+          "imgsz": 640,
+          "batch": 1,
+          "conf": 0.001,
+          "iou": 0.7,
+          "max_det": 300,
+          "half": false,
+          "rect": false,
+          "augment": false,
+          "agnostic_nms": false,
+          "classes": null,
+          "workers": 0
+        },
+        "split": "test",
+        "checkpoint_selection": "last_epoch_50",
+        "test_tuning": false,
+        "environment": {
+          "ultralytics": "8.3.203",
+          "torch": "2.7.1+cu118",
+          "cuda": "11.8",
+          "gpu": "Quadro RTX 6000",
+          "slurm_job_id": "809088"
+        }
+      },
+      "aggregate_file_sha256": {
+        "metrics.json": "09b2bee3665bab47a88616e7f30286b2506154cfeebfa1904f90db88f4562eb7",
+        "five_classes.csv": "be7e15ffad92fea2f53057cc8c71c86e2ea14b4740817c6001c5aa07c2386338",
+        "shared_01.csv": "2a3ed1ddee42f1c107a3ad1959b451d8748bb79b636ad38c816f69235c769d4f"
+      }
+    },
+    {
+      "source_relative_path": "AUG_OFF/c10/receipt.json",
+      "native_receipt_sha256": "233dee9cc352c53a9de7b4536d2165e992925fa4dba7d873b70dcba4607e27d7",
+      "metadata": {
+        "state": "COMPLETED_EVALUATION",
+        "protocol": "oe4_closeout_v2",
+        "policy": "c10",
+        "treatment": "AUG_OFF",
+        "authorization_sha256": "56ae92d0a424f695fbb8ad077e77f48047c069ce615c02a59649054ca4720c63",
+        "phase_authorization_receipt_sha256": "93444195f0c7f4a42234088b325f449d0df2562f0b9ee618d76b4da58a285827",
+        "freeze_sha256": "3cc95669cfd030948ab4287032ca658c11655053fe6a37ca950d6d1ec108fe4e",
+        "training_receipt_sha256": "9e270bea9d0fec3f571ab2d1ffe9a3c768b1fb268eb6e3b85698ae25b7e8fe04",
+        "weights_sha256": "f4f9fc40bd837fa6e44b9f9f2fbeb9d2167dce18a99ee2e1621f7f5499b918ed",
+        "test_receipt_sha256": "8f1d29224cc17ef8c0228f03de3b01837bb8343fc26b0d6d929ce559e12edd86",
+        "test_records_sha256": "c6518771c0e67d4208a3f40d93e2eced15567bcec56381884b665adbbd5b3ccb",
+        "evaluation": {
+          "imgsz": 640,
+          "batch": 1,
+          "conf": 0.001,
+          "iou": 0.7,
+          "max_det": 300,
+          "half": false,
+          "rect": false,
+          "augment": false,
+          "agnostic_nms": false,
+          "classes": null,
+          "workers": 0
+        },
+        "split": "test",
+        "checkpoint_selection": "last_epoch_50",
+        "test_tuning": false,
+        "environment": {
+          "ultralytics": "8.3.203",
+          "torch": "2.7.1+cu118",
+          "cuda": "11.8",
+          "gpu": "Quadro RTX 6000",
+          "slurm_job_id": "809088"
+        }
+      },
+      "aggregate_file_sha256": {
+        "metrics.json": "eff066c170fb2424f475a1e5a0d85b9dc5c61d20711bcde8364b13f1ec372b82",
+        "five_classes.csv": "afbe375364d41e803f5cbe989d24a704e735fd30d4dec80cf2fed7008fa10d72",
+        "shared_01.csv": "aa7f27696161f7378893947d02328e142981c742e48c14faad70fe1401803de6"
+      }
+    }
+  ]
+}

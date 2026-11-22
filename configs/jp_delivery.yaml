@@ -1,0 +1,22 @@
+# All paths are relative to an explicitly supplied external evidence root.
+protocol: jp_paired_provisional_v1
+seed: 20261105
+ratios: [0.7, 0.15, 0.15]
+sample_per_video: 8
+thumbnail_width: 320
+inventory: operations/jp-inventory-20261105
+hypatia: operations/hypatia-sequence-evidence
+assessment: operations/sequence-linkage-assessment-20261105-v2
+october_decisions: revisiones/JP_YOLO11m_decisiones_20261021/DECISIONES_PARA_JP.md
+october_boundaries: audits/source-alignment-review-20261028/video13_split_boundary_review.json
+protected_records: audits/fixed_test_train_val_v1/five-seeds-20261013-a/sources/proposal/protected_records.parquet
+test_records: audits/fixed_test_train_val_v1/five-seeds-20261013-a/sources/proposal/test_records.parquet
+# Optional explanatory evidence; unavailable producer code never blocks execution.
+producer_script: null
+producer_receipt: null
+data: fac
+# No historical support is current authority. Optional reviewed edges must name
+# pair IDs, accepted/candidate/ambiguous/rejected status and an evidence reference.
+relations: null
+training_allowed: false
+publication_status: provisional

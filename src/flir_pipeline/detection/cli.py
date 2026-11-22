@@ -4,7 +4,198 @@ from pathlib import Path
 
 import typer
 
+from flir_pipeline.detection.preliminary_cli import app as preliminary_app
+
 app = typer.Typer(help="Frozen historical/random/cluster detector comparison.")
+app.add_typer(preliminary_app, name="preliminary-base")
+common_executor_app = typer.Typer(help="YOLO11m common-test operations with versioned technical admission; signed scientific operations remain separate.")
+app.add_typer(common_executor_app, name="common-executor")
+
+
+@common_executor_app.command("prepare-curated-development")
+def common_prepare_curated_development(
+    source_root: Path, manifest: Path, matrix: Path, provenance: Path,
+    output: Path, linux_root: str = typer.Option(...),
+    protected_records: Path | None = None, protected_receipt: Path | None = None,
+) -> None:
+    """Prepare or reverify curated development only. Does not admit training."""
+    from flir_pipeline.detection.curated_development import prepare_curated
+
+    result = prepare_curated(source_root, manifest, matrix, provenance, output,
+                             linux_root, protected_records, protected_receipt)
+    typer.echo(f"{result['state']}: {result['canonical_contents']} contents; "
+               f"protection={result['protected_exclusion']['status']}")
+
+def _prime_cuda_import_order() -> None:
+    """Load GPU dependencies before the detection runtime."""
+    import torch  # noqa: F401
+    from ultralytics import settings  # noqa: F401
+
+
+@common_executor_app.command("dry-run")
+def common_executor_plan(publication: Path, output: Path,
+                         config: Path = Path("configs/detection/common_test_yolo11m_v2.yaml"),
+                         checkpoint_sha256: str | None = None,
+                         input_format: str = "legacy_fixed_test") -> None:
+    import json
+
+    from flir_pipeline.detection.common_executor import dry_run
+    typer.echo(json.dumps(dry_run(publication, config, output, checkpoint_sha256, input_format), indent=2))
+
+
+@common_executor_app.command("prepare")
+def common_executor_prepare(publication: Path, source_root: Path, output: Path,
+                            evidence: Path | None = None,
+                            input_format: str = "legacy_fixed_test") -> None:
+    from flir_pipeline.detection.common_executor import prepare
+    result = prepare(publication, source_root, output, evidence, input_format)
+    typer.echo(f"Prepared {len(result['views'])} development views; operational freeze pending")
+
+
+@common_executor_app.command("verify")
+def common_executor_verify(directory: Path, kind: str = "plan") -> None:
+    from flir_pipeline.detection.common_executor import (
+        verify_executor_plan,
+        verify_preparation,
+    )
+    from flir_pipeline.detection.common_runtime import verify_operation
+    checks = {"plan": verify_executor_plan, "preparation": verify_preparation, "operation": verify_operation}
+    if kind not in checks:
+        raise typer.BadParameter("kind must be plan, preparation or operation")
+    result = checks[kind](directory)
+    typer.echo(f"Verified {kind}: {result.get('state', result.get('plan_id', 'technical_only'))}")
+
+
+@common_executor_app.command("preflight")
+def common_executor_preflight(output: Path, cpu: bool = False,
+                              config: Path = Path("configs/detection/common_test_yolo11m_v2.yaml")) -> None:
+    _prime_cuda_import_order()
+    from flir_pipeline.detection.common_runtime import preflight
+    typer.echo(preflight(config, output, cpu))
+
+
+@common_executor_app.command("synthetic-smoke")
+def common_executor_smoke(output: Path, batch: int = 1, cpu: bool = False,
+                          config: Path = Path("configs/detection/common_test_yolo11m_v2.yaml")) -> None:
+    _prime_cuda_import_order()
+    from flir_pipeline.detection.common_runtime import synthetic_smoke
+    typer.echo(synthetic_smoke(config, output, batch, cpu))
+
+
+@common_executor_app.command("probe")
+def common_executor_probe(output: Path,
+                          config: Path = Path("configs/detection/common_test_yolo11m_v2.yaml")) -> None:
+    _prime_cuda_import_order()
+    from flir_pipeline.detection.common_runtime import probe
+    typer.echo(probe(config, output))
+
+
+@common_executor_app.command("train")
+def common_executor_train(plan: Path, output: Path, index: int = 0, resume: bool = False,
+                          admission: Path | None = None, signature: Path | None = None,
+                          resume_admission: Path | None = None, resume_signature: Path | None = None,
+                          technical_freeze: Path | None = None) -> None:
+    from flir_pipeline.detection.common_executor import train
+    try:
+        result = train(plan, output, index, resume, admission, signature, resume_admission, resume_signature, technical_freeze)
+        typer.echo(result["state"])
+    except ValueError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(1) from exc
+
+
+@common_executor_app.command("legacy-admission-check", hidden=True)
+def common_admission_check(plan: Path, output: Path, admission: Path, signature: Path) -> None:
+    """Check signed matrix and immutable inputs; no model import or training."""
+    from flir_pipeline.detection.scientific_executor import context
+    checked = context(admission, signature, plan, output)
+    typer.echo(len(checked["runs"]))
+
+
+@common_executor_app.command("legacy-prepare-test", hidden=True)
+def common_prepare_test(admission: Path, signature: Path, training_admission: Path,
+                        training_signature: Path, output: Path) -> None:
+    """Custodian operation after a signed release of the entire completed matrix."""
+    from flir_pipeline.detection.scientific_executor import prepare_test
+    typer.echo(prepare_test(admission, signature, training_admission, training_signature, output)["state"])
+
+
+@common_executor_app.command("legacy-evaluate", hidden=True)
+def common_evaluate(admission: Path, signature: Path, training_admission: Path,
+                    training_signature: Path, test_root: Path, output: Path, index: int = 0) -> None:
+    from flir_pipeline.detection.scientific_executor import evaluate_run
+    typer.echo(evaluate_run(admission, signature, training_admission, training_signature, test_root, output, index)["state"])
+
+
+@common_executor_app.command("admit")
+def common_technical_admit(publication: Path, plan: Path, prepared: Path,
+                           source_root: Path, output: Path,
+                           config: Path = Path("configs/detection/common_test_yolo11m_v2.yaml"),
+                           evidence: Path | None = None) -> None:
+    """Verify original bytes and the complete matrix, without human assertions."""
+    from flir_pipeline.detection.common_admission import admit
+    typer.echo(admit(publication, plan, prepared, config, source_root, output, evidence)["counts"])
+
+
+@common_executor_app.command("verify-weights")
+def common_verify_weights(checkpoint: Path, output: Path) -> None:
+    """Explicit HTTPS comparison with official release; no model execution."""
+    from flir_pipeline.detection.common_admission import verify_official_weights
+    typer.echo(verify_official_weights(checkpoint, output)["receipt_id"])
+
+
+@common_executor_app.command("pilot")
+def common_pilot(gate: Path, weights: Path, probe: Path, output: Path,
+                 batch: int = 1, index: int = 0, resume: bool = False) -> None:
+    """Operational development-only epoch; never counts toward scientific matrix."""
+    from flir_pipeline.detection.common_training import pilot
+    typer.echo(pilot(gate, weights, probe, output, batch, index, resume)["state"])
+
+
+@common_executor_app.command("freeze")
+def common_freeze(gate: Path, weights: Path, probe: Path, pilot: Path,
+                  output: Path, batch: int = 1) -> None:
+    from flir_pipeline.detection.common_training import freeze
+    typer.echo(len(freeze(gate, weights, probe, pilot, output, batch)["runs"]))
+
+
+@common_executor_app.command("admission-check")
+def common_automatic_check(freeze: Path) -> None:
+    """Recheck full technical freeze and return the derived unique execution count."""
+    from flir_pipeline.detection.common_training import frozen_context
+    typer.echo(len(frozen_context(freeze)["runs"]))
+
+
+@common_executor_app.command("release-test")
+def common_release_test(freeze: Path, training: Path, output: Path) -> None:
+    from flir_pipeline.detection.common_evaluation import release
+    typer.echo(release(freeze, training, output)["receipt_id"])
+
+
+@common_executor_app.command("prepare-test")
+def common_automatic_test(release: Path, output: Path) -> None:
+    from flir_pipeline.detection.common_evaluation import prepare_test
+    typer.echo(prepare_test(release, output)["state"])
+
+
+@common_executor_app.command("evaluate")
+def common_automatic_evaluate(release: Path, test: Path, output: Path, index: int = 0) -> None:
+    from flir_pipeline.detection.common_evaluation import evaluate_run
+    typer.echo(evaluate_run(release, test, output, index)["state"])
+
+
+@common_executor_app.command("compare")
+def common_compare(release: Path, test: Path, evaluations: Path, output: Path) -> None:
+    from flir_pipeline.detection.common_evaluation import compare
+    typer.echo(compare(release, test, evaluations, output)["state"])
+
+
+@common_executor_app.command("status")
+def common_executor_status(plan: Path) -> None:
+    from flir_pipeline.detection.common_executor import verify_executor_plan
+    checked = verify_executor_plan(plan)
+    for index, run in enumerate(checked["runs"]):
+        typer.echo(f"{index}\t{run['run_id']}\tcandidate\tautomatic data/probe/pilot/freeze checks required; use admission-check for operational readiness")
 
 
 @app.command("ground-truth-quality")

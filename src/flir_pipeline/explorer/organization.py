@@ -393,7 +393,9 @@ def scientific_tables(manifest, selected, clusters, evidence):
                 cluster_run_id=cid,
                 source_kind=cluster_evidence.source_kind,
                 full_clustering_artifact_available=cluster is not None,
-                membership_consistency_verified=cluster is None,
+                membership_consistency_verified=bool(
+                    cluster_evidence.source_membership_checksums
+                ),
                 source_split_ids=sorted(cluster_evidence.source_membership_checksums),
                 source_membership_checksums=dict(
                     sorted(cluster_evidence.source_membership_checksums.items())

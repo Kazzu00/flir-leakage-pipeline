@@ -1,0 +1,207 @@
+{
+  "$defs": {
+    "Media": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "minLength": 1,
+          "title": "Path",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "title": "Media",
+      "type": "object"
+    },
+    "Pair": {
+      "additionalProperties": true,
+      "properties": {
+        "pair_id": {
+          "minLength": 1,
+          "title": "Pair Id",
+          "type": "string"
+        },
+        "category": {
+          "enum": [
+            "diagnostic",
+            "nearby",
+            "nonconsecutive",
+            "change_candidate",
+            "negative_candidate"
+          ],
+          "title": "Category",
+          "type": "string"
+        },
+        "a": {
+          "$ref": "#/$defs/Source"
+        },
+        "b": {
+          "$ref": "#/$defs/Source"
+        },
+        "metrics": {
+          "additionalProperties": true,
+          "title": "Metrics",
+          "type": "object"
+        },
+        "media": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 2,
+          "title": "Media",
+          "type": "array"
+        },
+        "secondary": {
+          "additionalProperties": true,
+          "title": "Secondary",
+          "type": "object"
+        },
+        "status": {
+          "const": "pending",
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "pair_id",
+        "category",
+        "a",
+        "b",
+        "metrics",
+        "media",
+        "secondary",
+        "status"
+      ],
+      "title": "Pair",
+      "type": "object"
+    },
+    "Provenance": {
+      "additionalProperties": true,
+      "properties": {
+        "dataset_index": {
+          "minimum": 0,
+          "title": "Dataset Index",
+          "type": "integer"
+        },
+        "original_split": {
+          "enum": [
+            "train",
+            "val",
+            "test"
+          ],
+          "title": "Original Split",
+          "type": "string"
+        }
+      },
+      "required": [
+        "dataset_index",
+        "original_split"
+      ],
+      "title": "Provenance",
+      "type": "object"
+    },
+    "Source": {
+      "additionalProperties": true,
+      "properties": {
+        "image_id": {
+          "minLength": 1,
+          "title": "Image Id",
+          "type": "string"
+        },
+        "original": {
+          "$ref": "#/$defs/Provenance"
+        },
+        "alignment_id": {
+          "minLength": 1,
+          "title": "Alignment Id",
+          "type": "string"
+        },
+        "alignment_metrics": {
+          "additionalProperties": true,
+          "title": "Alignment Metrics",
+          "type": "object"
+        },
+        "time_uncertainty": {
+          "title": "Time Uncertainty"
+        },
+        "media": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Media",
+          "type": "array"
+        }
+      },
+      "required": [
+        "image_id",
+        "original",
+        "alignment_id",
+        "alignment_metrics",
+        "time_uncertainty",
+        "media"
+      ],
+      "title": "Source",
+      "type": "object"
+    }
+  },
+  "additionalProperties": true,
+  "properties": {
+    "schema": {
+      "const": "dependency-pilot-v1",
+      "title": "Schema",
+      "type": "string"
+    },
+    "pairs": {
+      "items": {
+        "$ref": "#/$defs/Pair"
+      },
+      "title": "Pairs",
+      "type": "array"
+    },
+    "media": {
+      "additionalProperties": {
+        "$ref": "#/$defs/Media"
+      },
+      "title": "Media",
+      "type": "object"
+    },
+    "second_reviewer_pairs": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Second Reviewer Pairs",
+      "type": "array"
+    },
+    "method": {
+      "additionalProperties": true,
+      "title": "Method",
+      "type": "object"
+    },
+    "source_video": {
+      "minLength": 1,
+      "title": "Source Video",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema",
+    "pairs",
+    "media",
+    "second_reviewer_pairs",
+    "method",
+    "source_video"
+  ],
+  "title": "Bundle",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://flir-pipeline.local/contracts/dependency-pilot-v1.schema.json"
+}

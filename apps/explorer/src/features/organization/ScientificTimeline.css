@@ -1,0 +1,214 @@
+.scientific-timeline {
+  --timeline-cluster-lightness: 66%;
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+}
+:root[data-theme='light'] .scientific-timeline {
+  --timeline-cluster-lightness: 32%;
+}
+.scientific-timeline .panel {
+  min-width: 0;
+}
+.scientific-timeline button {
+  min-height: 32px;
+  min-width: 32px;
+}
+.scientific-timeline summary {
+  min-height: 32px;
+  padding: 6px 0;
+  cursor: pointer;
+}
+.scientific-timeline .toolbar {
+  padding: 12px 16px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.scientific-timeline .timeline-filters {
+  padding: 0;
+  align-items: end;
+}
+.scientific-timeline .select-field {
+  min-width: 125px;
+  max-width: 100%;
+}
+.scientific-timeline .select-field select {
+  max-width: 355px;
+  min-height: 36px;
+}
+.scientific-timeline .select-field input {
+  min-height: 36px;
+  max-width: 140px;
+}
+.timeline-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 28px;
+  padding: 16px;
+  margin: 0;
+}
+.timeline-metrics dt {
+  color: var(--muted);
+  font-size: 12px;
+}
+.timeline-metrics dd {
+  margin: 4px 0 0;
+  font-size: 26px;
+  font-variant-numeric: tabular-nums;
+}
+.timeline-metrics div {
+  border-left: 3px solid var(--accent);
+  padding-left: 12px;
+}
+.scientific-timeline-scroll {
+  overflow-x: auto;
+  margin: 10px 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg);
+}
+.scientific-timeline-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  min-height: 240px;
+  touch-action: pan-y;
+  user-select: none;
+}
+.scientific-timeline-svg text {
+  fill: var(--text);
+  font-family: inherit;
+  font-size: 12px;
+}
+.scientific-timeline-svg rect[data-frame-id] {
+  cursor: crosshair;
+}
+.timeline-guide {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+.timeline-range {
+  fill: var(--accent);
+  opacity: 0.055;
+  pointer-events: none;
+}
+.timeline-selected-mark {
+  stroke: var(--text);
+  stroke-width: 1.5;
+  opacity: 1;
+}
+.timeline-interval {
+  cursor: pointer;
+}
+.timeline-candidate-block {
+  fill: var(--surface2);
+  stroke: var(--muted);
+  stroke-width: 1;
+  stroke-dasharray: 5 3;
+}
+.timeline-reviewed-block {
+  fill: var(--surface2);
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+.timeline-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+  padding: 12px 16px;
+}
+.timeline-legend span,
+.timeline-legend button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.timeline-legend i {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 1px solid var(--muted);
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.timeline-cluster-legend {
+  margin: 0 16px 16px;
+}
+.timeline-table-scroll {
+  max-width: 100%;
+  overflow: auto;
+}
+.timeline-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+.timeline-table caption {
+  text-align: left;
+  padding: 12px 16px;
+  color: var(--muted);
+}
+.timeline-table th,
+.timeline-table td {
+  border-top: 1px solid var(--line);
+  padding: 10px 16px;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+.timeline-table th {
+  font-weight: 550;
+}
+.timeline-table small {
+  display: block;
+  color: var(--muted);
+  max-width: 360px;
+}
+.timeline-frame-detail {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(300px, 2fr);
+  gap: 24px;
+  padding: 16px;
+}
+.timeline-preview {
+  display: block;
+  width: 100%;
+  max-height: 280px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: var(--bg);
+}
+.timeline-facts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 20px;
+  margin: 0;
+  min-width: 0;
+}
+.timeline-facts dt {
+  color: var(--muted);
+  font-size: 12px;
+}
+.timeline-facts dd {
+  margin: 3px 0 0;
+  overflow-wrap: anywhere;
+}
+.scientific-timeline details:not(.timeline-cluster-legend) {
+  padding: 12px 16px;
+}
+@media (max-width: 760px) {
+  .timeline-frame-detail {
+    grid-template-columns: 1fr;
+  }
+  .timeline-facts {
+    grid-template-columns: 1fr;
+  }
+  .scientific-timeline .select-field select {
+    max-width: 100%;
+  }
+  .timeline-table {
+    min-width: 600px;
+  }
+  .scientific-timeline .panel {
+    overflow-x: auto;
+  }
+}

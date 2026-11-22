@@ -1,0 +1,460 @@
+{
+  "$defs": {
+    "ClassEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "class_id": {
+          "minimum": 0,
+          "title": "Class Id",
+          "type": "integer"
+        },
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "class_id",
+        "name"
+      ],
+      "title": "ClassEntry",
+      "type": "object"
+    },
+    "Evidence": {
+      "additionalProperties": false,
+      "properties": {
+        "method": {
+          "minLength": 1,
+          "title": "Method",
+          "type": "string"
+        },
+        "path": {
+          "minLength": 1,
+          "title": "Path",
+          "type": "string"
+        },
+        "provenance": {
+          "minLength": 1,
+          "title": "Provenance",
+          "type": "string"
+        },
+        "reviewed_at": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reviewed At"
+        },
+        "reviewer": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reviewer"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "version": {
+          "minLength": 1,
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "sha256",
+        "method",
+        "version",
+        "provenance"
+      ],
+      "title": "Evidence",
+      "type": "object"
+    },
+    "Occurrence": {
+      "additionalProperties": false,
+      "properties": {
+        "annotation_errors": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Annotation Errors",
+          "type": "array"
+        },
+        "annotation_status": {
+          "default": "missing",
+          "enum": [
+            "missing",
+            "empty",
+            "valid",
+            "invalid"
+          ],
+          "title": "Annotation Status",
+          "type": "string"
+        },
+        "boxes": {
+          "items": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array"
+          },
+          "title": "Boxes",
+          "type": "array"
+        },
+        "content_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Content Id",
+          "type": "string"
+        },
+        "exclusion_reasons": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Exclusion Reasons",
+          "type": "array"
+        },
+        "frame_id": {
+          "minLength": 1,
+          "title": "Frame Id",
+          "type": "string"
+        },
+        "image_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Image Sha256",
+          "type": "string"
+        },
+        "label_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Label Sha256"
+        },
+        "label_source": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Label Source"
+        },
+        "metadata": {
+          "additionalProperties": true,
+          "title": "Metadata",
+          "type": "object"
+        },
+        "original_name": {
+          "minLength": 1,
+          "title": "Original Name",
+          "type": "string"
+        },
+        "original_split": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Original Split"
+        },
+        "positions": {
+          "items": {
+            "$ref": "#/$defs/Position"
+          },
+          "title": "Positions",
+          "type": "array"
+        },
+        "source": {
+          "minLength": 1,
+          "title": "Source",
+          "type": "string"
+        }
+      },
+      "required": [
+        "frame_id",
+        "content_id",
+        "image_sha256",
+        "source",
+        "original_name"
+      ],
+      "title": "Occurrence",
+      "type": "object"
+    },
+    "Position": {
+      "additionalProperties": false,
+      "properties": {
+        "decoded_ordinal": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Decoded Ordinal"
+        },
+        "decoded_rgb_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Decoded Rgb Sha256"
+        },
+        "evidence": {
+          "$ref": "#/$defs/Evidence"
+        },
+        "kind": {
+          "enum": [
+            "decoded_pts",
+            "nominal_sample",
+            "external_timestamp"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "pts": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pts"
+        },
+        "seconds": {
+          "title": "Seconds",
+          "type": "number"
+        },
+        "status": {
+          "enum": [
+            "confirmed",
+            "candidate",
+            "ambiguous",
+            "rejected"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "time_base": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Time Base"
+        },
+        "video_id": {
+          "minLength": 1,
+          "title": "Video Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "video_id",
+        "status",
+        "kind",
+        "seconds",
+        "evidence"
+      ],
+      "title": "Position",
+      "type": "object"
+    },
+    "Relation": {
+      "additionalProperties": false,
+      "properties": {
+        "accepted": {
+          "default": false,
+          "title": "Accepted",
+          "type": "boolean"
+        },
+        "evidence": {
+          "$ref": "#/$defs/Evidence"
+        },
+        "kind": {
+          "enum": [
+            "exact",
+            "validated_variant",
+            "visual",
+            "temporal",
+            "external"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "left": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Left",
+          "type": "string"
+        },
+        "relation_id": {
+          "minLength": 1,
+          "title": "Relation Id",
+          "type": "string"
+        },
+        "right": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Right",
+          "type": "string"
+        },
+        "score": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Score"
+        },
+        "status": {
+          "enum": [
+            "confirmed",
+            "candidate",
+            "ambiguous",
+            "rejected"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "relation_id",
+        "left",
+        "right",
+        "kind",
+        "status",
+        "evidence"
+      ],
+      "title": "Relation",
+      "type": "object"
+    },
+    "Video": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "minLength": 1,
+          "title": "Path",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "video_id": {
+          "minLength": 1,
+          "title": "Video Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "video_id",
+        "path",
+        "sha256"
+      ],
+      "title": "Video",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "classes": {
+      "items": {
+        "$ref": "#/$defs/ClassEntry"
+      },
+      "title": "Classes",
+      "type": "array"
+    },
+    "records": {
+      "items": {
+        "$ref": "#/$defs/Occurrence"
+      },
+      "title": "Records",
+      "type": "array"
+    },
+    "relations": {
+      "items": {
+        "$ref": "#/$defs/Relation"
+      },
+      "title": "Relations",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "general_manifest_v1",
+      "default": "general_manifest_v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "sources": {
+      "items": {
+        "$ref": "#/$defs/Evidence"
+      },
+      "title": "Sources",
+      "type": "array"
+    },
+    "videos": {
+      "items": {
+        "$ref": "#/$defs/Video"
+      },
+      "title": "Videos",
+      "type": "array"
+    }
+  },
+  "required": [
+    "records"
+  ],
+  "title": "Manifest",
+  "type": "object"
+}
