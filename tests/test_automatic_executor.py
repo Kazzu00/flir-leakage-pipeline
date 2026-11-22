@@ -328,7 +328,9 @@ def test_safe_attempt_idempotence_resume_and_checkpoint_tamper(bundle):
     checkpoint_fixture(ctx, run, attempt)
     assert training.execute_locked(ctx, run, root, False)["state"] == "completed"
     assert training.execute_locked(ctx, run, root, True)["state"] == "completed"
-    changed = {**run, "detector_seed": 43}
+    # Run ordering follows source-bound identities; the first seed can be 43.
+    # Always mutate the selected seed so the rejection tests a real identity drift.
+    changed = {**run, "detector_seed": run["detector_seed"] + 1}
     with pytest.raises(ValueError, match="identity"):
         training.execute_locked(ctx, changed, root, True)
     (attempt / "train/weights/last.pt").write_bytes(b"tampered")
