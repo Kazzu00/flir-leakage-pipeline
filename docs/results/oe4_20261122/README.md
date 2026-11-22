@@ -5,13 +5,16 @@ políticas histórica, aleatoria y C10, cada una con AUG_ON y AUG_OFF. Evaluaci�
 reportada por el responsable en Hypatia: array Slurm `809088`; agregación `809094`.
 Este cierre publica los bytes recibidos; no repite entrenamiento ni evaluación.
 
-El test común contiene **372 imágenes/ocurrencias y 983 objetos anotados**, según
-el protocolo y el responsable. Su identidad es el par de hashes del campo `test`
+El test común contiene **372 imágenes/ocurrencias y 983 objetos anotados**,
+comprobados en el `records.csv` local cuyo SHA coincide con el recibo oficial.
+Su identidad es el par de hashes del campo `test`
 del [recibo original](receipt.json): primero `test_receipt_sha256`, después
 `test_records_sha256`. La coincidencia de los seis tests se exige en
 [`aggregate()`](../../../src/flir_pipeline/closeout/oe4_runtime.py).
-El recibo agregado local no contiene los conteos ni los seis recibos nativos;
-no constituye una nueva auditoría local de sus imágenes, GT o checkpoints.
+El recibo agregado local no contiene los conteos ni los seis recibos nativos.
+El recibo local anterior del test tiene bytes distintos al remoto; se acredita
+la igualdad del `records.csv`, no la del recibo de liberación. No se volvió a
+auditar el payload de imágenes/GT ni los checkpoints.
 
 > Descriptive one-seed internal comparison; no causal or independence claim
 
