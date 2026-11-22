@@ -3,3 +3,6 @@ scripts/hypatia/*.sbatch text eol=lf
 # Published JSON contracts have byte-level SHA-256 identities on every platform.
 exports/frontend/detection/** text eol=lf
 apps/explorer/src/features/detection/snapshot/** text eol=lf
+# Official closeout originals retain byte-level checksums across Git checkouts.
+docs/results/oe4_20261122/*.csv -text whitespace=cr-at-eol
+docs/results/oe4_20261122/receipt.json -text

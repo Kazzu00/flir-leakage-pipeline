@@ -1,5 +1,22 @@
 # Estado actual
 
+## Resultados finales publicados para revisión — 2026-11-22
+
+Recibidos el CSV agregado OE4 `oe4_closeout_v2` y su recibo `AGGREGATED`.
+SHA oficial verificado localmente; transformación exacta de doce filas a seis,
+ocho métricas por configuración, sin recalcular resultados. El responsable reporta
+array de evaluación 809088 y agregación 809094: seis YOLO11m, 50 épocas, seed 42,
+test común 372 imágenes/983 objetos. Comparación interna descriptiva, sin causalidad
+ni independencia. No se ejecutaron entrenamientos/evaluaciones en este cierre.
+Los seis recibos nativos/hashes de checkpoints no acompañan la copia local;
+su verificación independiente permanece pendiente. Véanse [resultados y límites](results/oe4_20261122/README.md).
+
+Los [tres datasets entregados](final_datasets_20261122.md) conservan dominios
+distintos: histórico con leakage conocido, Sin HUD visual no listo para YOLO,
+Sin Ruido agrupado candidato. Publicar los resultados no congela científicamente
+las variantes ni acredita integración panóptica. Las secciones siguientes son
+registros anteriores al recibo de estos resultados.
+
 ## Recuperación de ejecución — 2026-11-22
 
 Corregido el contrato de conteos OE4: se lee el records.parquet enriquecido por
@@ -37,5 +54,5 @@ Los registros fechados permanecen en [status](status.md), sin reescribir su
 historia. El cumplimiento académico se separa en
 [trazabilidad de objetivos](methodology_traceability.md).
 
-El checkout es una candidata local de integración. No implica aceptación de
-experimentos, autorización del test, CI verde ni publicación.
+La publicación de una rama para revisión no implica aceptación de experimentos,
+CI verde, fusión a main ni aprobación científica de los candidatos.

@@ -1,5 +1,10 @@
 # Reproducción
 
+La [tabla final OE4](docs/results/oe4_20261122/README.md) se reconstruye offline
+desde los originales publicados con `python -m flir_pipeline.closeout.final_metrics`.
+No requiere pesos, imágenes ni Hypatia. El procedimiento original de ejecución
+del detector se conserva en los runbooks; este cierre no lo vuelve a ejecutar.
+
 Python 3.11 y uv. Ejecutar desde la raíz del repositorio con los archivos de esta
 rama. Los datos y las publicaciones van a directorios externos nuevos. Los comandos
 usan la entrada Python de la CLI para evitar el bloqueo del launcher `.exe` observado

@@ -1,5 +1,11 @@
 # Architecture
 
+Final publication: `closeout.final_metrics` is a standard-library, CPU-only CSV
+projection downstream of the existing OE4 aggregator. It validates receipt/source
+integrity and preserves decimal tokens; it does not invoke evaluation, scientific
+gates, data access or Hypatia. The public results package is
+`docs/results/oe4_20261122/`; private native artifacts remain external.
+
 ## Training recovery (2026-11-22)
 
 Both OE4 and isolated denoised exploration reuse scientific_executor.write_view,

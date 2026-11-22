@@ -1,5 +1,12 @@
 # FLIR Leakage-Aware Clustering Pipeline
 
+Cierre de resultados 2026-11-22: [tabla final OE4 y originales verificables](docs/results/oe4_20261122/README.md),
+seis configuraciones YOLO11m sobre test común; comparación descriptiva de una
+semilla, sin afirmación causal ni de independencia. [Tres datasets de entrega y
+sus limitaciones](docs/final_datasets_20261122.md). El cierre publica evidencia
+recibida; no repite entrenamientos ni evaluaciones. Los registros siguientes
+conservan el estado observado en sus respectivas fechas.
+
 Recuperación OE4 2026-11-22: conteos derivados de la vista histórica, preparación
 CPU completa antes de GPU y línea denoised exploratoria aislada.
 [Despliegue y comprobación de primera época](docs/runbooks/oe4_recovery_20261122.md).

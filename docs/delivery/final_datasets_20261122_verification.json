@@ -1,0 +1,118 @@
+{
+  "verified": true,
+  "scientific_approval_inferred": false,
+  "total_source_image_occurrences": 23689,
+  "source_coverage_exactly_once": true,
+  "archives": [
+    {
+      "filename": "FLIR_Historico_Splits.zip",
+      "bytes": 100789261,
+      "sha256": "5331eecc02a29b205948efdf9856f977fed30b4cd86359e345c130999b808048",
+      "zip_payload_verified": true,
+      "files": 3345
+    },
+    {
+      "filename": "FLIR_Sin_HUD_Splits.zip",
+      "bytes": 13945907298,
+      "sha256": "2123030ecb20f919694a4252bf529020606327c5036345aae17dd53a772c9009",
+      "zip_payload_verified": true,
+      "files": 22056
+    },
+    {
+      "filename": "FLIR_Sin_Ruido_Splits.zip",
+      "bytes": 1349622540,
+      "sha256": "85b89a266dae3311fbfbb1bd99f63827be9fe0d237c5d296b8035b84e8093550",
+      "zip_payload_verified": true,
+      "files": 2251
+    }
+  ],
+  "datasets": {
+    "01_Historico": {
+      "status": "HISTORICAL_ASSIGNMENT_PRESERVED",
+      "counts": {
+        "train": {
+          "images": 1178,
+          "labels": 1178,
+          "empty_labels": 229
+        },
+        "val": {
+          "images": 107,
+          "labels": 107,
+          "empty_labels": 16
+        },
+        "test": {
+          "images": 372,
+          "labels": 372,
+          "empty_labels": 47
+        },
+        "unused": {
+          "images": 0,
+          "labels": 0,
+          "empty_labels": 0
+        }
+      },
+      "total": 1657,
+      "unused_reasons": {}
+    },
+    "02_Sin_HUD": {
+      "status": "CANDIDATE_WHOLE_VIDEO_VISUAL_NOT_FROZEN",
+      "counts": {
+        "train": {
+          "images": 19914,
+          "labels": 114,
+          "empty_labels": 3
+        },
+        "val": {
+          "images": 839,
+          "labels": 839,
+          "empty_labels": 63
+        },
+        "test": {
+          "images": 163,
+          "labels": 163,
+          "empty_labels": 13
+        },
+        "unused": {
+          "images": 0,
+          "labels": 0,
+          "empty_labels": 0
+        }
+      },
+      "total": 20916,
+      "unused_reasons": {}
+    },
+    "03_Sin_Ruido": {
+      "status": "CANDIDATE_NOT_FROZEN",
+      "counts": {
+        "train": {
+          "images": 777,
+          "labels": 777,
+          "empty_labels": 55
+        },
+        "val": {
+          "images": 172,
+          "labels": 172,
+          "empty_labels": 12
+        },
+        "test": {
+          "images": 167,
+          "labels": 167,
+          "empty_labels": 12
+        },
+        "unused": {
+          "images": 0,
+          "labels": 0,
+          "empty_labels": 0
+        }
+      },
+      "total": 1116,
+      "unused_reasons": {}
+    }
+  },
+  "cross_variant_identical_contents": 34,
+  "cross_variant_identical_contents_with_different_assignments": 17,
+  "do_not_mix_partitions_between_variants": true,
+  "original_historical_zip_unchanged": true,
+  "training_or_inference_executed": false,
+  "hypatia_modified": false
+}

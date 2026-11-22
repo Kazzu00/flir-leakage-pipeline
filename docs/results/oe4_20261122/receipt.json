@@ -1,0 +1,12 @@
+{
+  "state": "AGGREGATED",
+  "protocol": "oe4_closeout_v2",
+  "test": [
+    "8f1d29224cc17ef8c0228f03de3b01837bb8343fc26b0d6d929ce559e12edd86",
+    "c6518771c0e67d4208a3f40d93e2eced15567bcec56381884b665adbbd5b3ccb"
+  ],
+  "interpretation": "Descriptive one-seed internal comparison; no causal or independence claim",
+  "files": {
+    "comparison.csv": "5e690f88ed9a9d9c4f820fd65e660394c99c8ae51109156d2d3646ee15da4bb4"
+  }
+}
