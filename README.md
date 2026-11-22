@@ -1,5 +1,9 @@
 # FLIR Leakage-Aware Clustering Pipeline
 
+Hotfix OE4 2026-11-22: autorización comunicada registrada, sin infraestructura
+SSH de firmas; protocolo y freeze nuevos, controles de integridad conservados.
+[Transferencia y ejecución en Hypatia](docs/runbooks/oe4_hotfix_20261122.md).
+
 ## Cierre denoised / OE4 — 2026-11-21
 
 Disponible `flir-pipeline closeout`: importación TAR segura, auditoría de metadata,

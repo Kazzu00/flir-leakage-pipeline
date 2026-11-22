@@ -1,5 +1,15 @@
 # Estado actual
 
+## Hotfix OE4 — 2026-11-22
+
+OE4 usa `oe4_closeout_v2` y registra la autorización de JP comunicada por el
+responsable, sin exigir firmas SSH. Registro explícitamente no criptográfico ni
+documentalmente verificado. Freeze y salidas nuevos; integridad, datasets,
+checkpoints y requisito de los tres AUG_OFF antes de evaluar conservados.
+El usuario reportó preflight remoto previo READY (808314, exit 0); no se ejecutó
+entrenamiento ni inferencia local para este hotfix. Véanse los
+[comandos de transferencia, preflight y train](runbooks/oe4_hotfix_20261122.md).
+
 ## Adaptador denoised / OE4 — 2026-11-21
 
 Auditoría real local del TAR: 1.116 pares y filas, imágenes decodificadas,

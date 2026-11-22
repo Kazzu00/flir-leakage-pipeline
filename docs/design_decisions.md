@@ -1,5 +1,16 @@
 # Design decisions
 
+## OE4 communicated authorization (2026-11-22)
+
+The project responsible person explicitly reported JP's authorization for OE4
+training and subsequent evaluation. OE4 v2 records that statement, explicitly
+without cryptographic or documentary verification. OpenSSH signatures and system
+signer configuration are not project requirements for this workflow. Immutable
+phase records bind the communicated statement and the new freeze; evaluation
+additionally binds all three completed AUG_OFF receipts. Source/test/checkpoint
+integrity and matched ablation controls remain mandatory. Other protocols are
+unchanged. The v1 freeze is preserved and cannot be reused with v2 code.
+
 ## Denoised and OE4 closeout adapter (2026-11-21)
 
 The external kit is a prototype, not an authority. `closeout/` reuses native

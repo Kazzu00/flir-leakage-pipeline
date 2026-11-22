@@ -102,6 +102,25 @@ def oe4_train(config: Path, index: int):
     typer.echo(json.dumps({"state": result["state"]}))
 
 
+@app.command("oe4-authorize")
+def oe4_authorize(config: Path, phase: str):
+    """Bind communicated authorization to the verified freeze and phase, CPU only."""
+    from flir_pipeline.closeout.oe4 import authorize
+
+    _, freeze = authorize(config, phase)
+    typer.echo(
+        json.dumps(
+            {
+                "state": "AUTHORIZED_BY_RECORDED_COMMUNICATION",
+                "phase": phase,
+                "protocol": freeze["protocol"],
+                "cryptographically_verified": False,
+                "documentary_approval_verified": False,
+            }
+        )
+    )
+
+
 @app.command("oe4-evaluate")
 def oe4_evaluate(config: Path, index: int):
     from flir_pipeline.closeout.oe4_runtime import evaluate_policy

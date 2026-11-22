@@ -10,7 +10,11 @@ import tarfile
 from pathlib import Path
 
 
-def build(root: Path, output: Path):
+def build(root: Path, output: Path, bundle_name="flir-oe4-closeout-20261121-code"):
+    if not bundle_name or any(
+        c not in "abcdefghijklmnopqrstuvwxyz0123456789-" for c in bundle_name
+    ):
+        raise ValueError("Bundle root must be a simple lowercase directory name")
     if output.exists():
         raise FileExistsError(output)
     if subprocess.check_output(
@@ -62,6 +66,7 @@ def build(root: Path, output: Path):
     manifest = {
         "schema": "flir_code_bundle_v1",
         "git_commit": commit,
+        "bundle_root": bundle_name,
         "files": {k: hashlib.sha256(v).hexdigest() for k, v in blobs.items()},
         "contains_real_data": False,
         "contains_checkpoints": False,
@@ -77,7 +82,7 @@ def build(root: Path, output: Path):
         tarfile.open(fileobj=compressed, mode="w|") as archive,
     ):
         for name, content in sorted(blobs.items()):
-            info = tarfile.TarInfo("flir-oe4-closeout-20261121-code/" + name)
+            info = tarfile.TarInfo(bundle_name + "/" + name)
             info.size = len(content)
             info.mode = 0o755 if name.endswith((".sh", ".sbatch")) else 0o644
             info.mtime = 0
@@ -95,5 +100,6 @@ def build(root: Path, output: Path):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("output", type=Path)
+    parser.add_argument("--name", default="flir-oe4-closeout-20261121-code")
     args = parser.parse_args()
-    build(Path(__file__).resolve().parents[2], args.output)
+    build(Path(__file__).resolve().parents[2], args.output, args.name)

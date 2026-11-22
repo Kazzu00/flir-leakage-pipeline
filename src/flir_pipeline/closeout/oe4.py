@@ -30,7 +30,8 @@ from flir_pipeline.detection.runtime import parse_training_history
 from flir_pipeline.detection.scientific_executor import verify_execution
 from flir_pipeline.similarity.storage import file_sha256
 
-PROTOCOL = "oe4_closeout_v1"
+PROTOCOL = "oe4_closeout_v2"
+AUTHORIZATION_SCHEMA = "oe4_communicated_authorization_v1"
 POLICIES = ("historica", "aleatoria", "c10")
 AUG_ZERO = (
     "hsv_h",
@@ -107,6 +108,32 @@ def load_config(config_path):
     ):
         raise ValueError("Unexpected OE4 protocol/policy/evaluation configuration")
     return cfg
+
+
+def communicated_authorization(config_path: Path, cfg: dict) -> dict:
+    """Record the responsible person's report; do not assert documentary verification.
+
+    SHA256 binds this statement to the immutable operation. It authenticates no
+    person and is deliberately not a replacement cryptographic signature.
+    """
+    location = Path(cfg["authorization_record"])
+    location = location if location.is_absolute() else config_path.parent / location
+    record = yaml.safe_load(location.read_text(encoding="utf-8"))
+    if (
+        record.get("schema") != AUTHORIZATION_SCHEMA
+        or record.get("protocol") != PROTOCOL
+        or record.get("method") != "responsible_person_communication"
+        or record.get("cryptographically_verified") is not False
+        or record.get("documentary_approval_verified") is not False
+        or record.get("communicated_authorizer") != "JP"
+        or record.get("communicated_by") != "project_responsible_person"
+        or record.get("authorized_phases") != ["train", "evaluate"]
+        or record.get("evaluation_requires_all_aug_off_completed") is not True
+        or not record.get("communication_date")
+        or not record.get("statement")
+    ):
+        raise ValueError("Invalid communicated OE4 authorization record")
+    return {"record": record, "sha256": file_sha256(location)}
 
 
 def aug_off(baseline: dict) -> dict:
@@ -221,6 +248,7 @@ def code_hashes():
 
 def preflight(config_path: Path):
     cfg = load_config(config_path)
+    authorization = communicated_authorization(config_path, cfg)
     destination, common = path(cfg["freeze"]), path(cfg["common_test"])
     if destination.exists():
         return verify_freeze(config_path)
@@ -345,6 +373,7 @@ def preflight(config_path: Path):
         common,
         *[path(v) for v in cfg["runs"].values()],
     ) as stage:
+        write_json(stage / "authorization.json", authorization)
         for policy, item in runs.items():
             item.pop("development").to_parquet(
                 stage / f"development_{policy}.parquet", index=False
@@ -360,7 +389,7 @@ def preflight(config_path: Path):
             "versions": versions,
             "code": code_hashes(),
             "gpu_checked": False,
-            "scientific_authorization": "Not asserted; signed new-protocol scope required at worker",
+            "scientific_authorization": authorization,
             **environment(),
         }
         write_json(stage / "preflight.json", report)
@@ -374,8 +403,12 @@ def verify_freeze(config_path: Path):
     verify(root)
     report = read_json(root / "preflight.json")
     if (
-        report["configuration_sha256"] != file_sha256(config_path)
+        report.get("protocol") != PROTOCOL
+        or report["configuration_sha256"] != file_sha256(config_path)
         or report["code"] != code_hashes()
+        or report["scientific_authorization"]
+        != communicated_authorization(config_path, cfg)
+        or read_json(root / "authorization.json") != report["scientific_authorization"]
     ):
         raise ValueError(
             "Frozen config/code changed; use a new immutable operation root"
@@ -412,19 +445,28 @@ def verify_freeze(config_path: Path):
 
 
 def authorize(config_path: Path, phase: str):
-    from flir_pipeline.detection.admission import authorized
-
+    if phase not in ("train", "evaluate"):
+        raise ValueError("Unknown OE4 phase")
     cfg = load_config(config_path)
     freeze = verify_freeze(config_path)
     if freeze["state"] != "READY":
         raise ValueError(f"BLOCKED: {freeze['blockers']}")
-    permission = authorized(
-        path(cfg[f"{phase}_admission"]), path(cfg[f"{phase}_signature"]), phase
-    )
-    if permission.get("protocol") != PROTOCOL or permission.get(
-        "freeze_sha256"
-    ) != file_sha256(path(cfg["freeze"]) / "receipt.json"):
-        raise ValueError("Admission does not bind this new OE4 protocol/freeze")
+    authorization = communicated_authorization(config_path, cfg)
+    if (
+        freeze.get("protocol") != PROTOCOL
+        or freeze.get("scientific_authorization") != authorization
+    ):
+        raise ValueError(
+            "Communicated authorization does not bind this protocol/freeze"
+        )
+    freeze_sha = file_sha256(path(cfg["freeze"]) / "receipt.json")
+    release = {
+        "state": "AUTHORIZED_BY_RECORDED_COMMUNICATION",
+        "protocol": PROTOCOL,
+        "phase": phase,
+        "freeze_sha256": freeze_sha,
+        "authorization": authorization,
+    }
     if phase == "evaluate":
         completed = {}
         for policy in POLICIES:
@@ -432,14 +474,38 @@ def authorize(config_path: Path, phase: str):
             receipt = verify(directory)
             if (
                 receipt["state"] != "COMPLETED_AUG_OFF"
-                or receipt["freeze_sha256"] != permission["freeze_sha256"]
+                or receipt.get("protocol") != PROTOCOL
+                or receipt.get("policy") != policy
+                or receipt.get("augmentation") != "AUG_OFF"
+                or receipt.get("test_used") is not False
+                or receipt["freeze_sha256"] != freeze_sha
+                or receipt.get("authorization_sha256") != authorization["sha256"]
+                or receipt.get("initial_weights_sha256")
+                != freeze["checks"]["initial_weights_sha256"]
+                or not {
+                    "train/results.csv",
+                    "train/args.yaml",
+                    "train/weights/last.pt",
+                    "train/weights/best.pt",
+                }
+                <= set(receipt["files"])
             ):
                 raise ValueError(
                     "All three matched AUG_OFF runs must complete before test"
                 )
             completed[policy] = file_sha256(directory / "receipt.json")
-        if permission.get("aug_off_receipts") != completed:
-            raise ValueError(
-                "Evaluation release does not bind completed AUG_OFF matrix"
+        release["aug_off_receipts"] = completed
+    destination = path(cfg["authorization_output"]) / phase
+    if destination.exists():
+        verify(destination)
+        if read_json(destination / "authorization.json") != release:
+            raise ValueError("Existing OE4 phase authorization binding changed")
+    else:
+        with transaction(
+            destination, path(cfg["freeze"]), path(cfg["aug_off_output"])
+        ) as stage:
+            write_json(stage / "authorization.json", release)
+            seal(
+                stage, {"state": release["state"], "protocol": PROTOCOL, "phase": phase}
             )
     return cfg, freeze

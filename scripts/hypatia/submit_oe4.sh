@@ -8,8 +8,8 @@ CONFIG="${FLIR_OE4_CONFIG:-$ROOT/configs/closeout/oe4_20261115.yaml}"
 export PYTHONPATH="$ROOT/src${PYTHONPATH:+:$PYTHONPATH}"
 cd "$ROOT"
 "$PYTHON" scripts/closeout/verify_bundle.py "$ROOT"
-"$PYTHON" -c 'from pathlib import Path; import sys; from flir_pipeline.closeout.oe4 import authorize; authorize(Path(sys.argv[1]), sys.argv[2])' "$CONFIG" "$PHASE"
-LOGS="$HOME/flir-oe4-closeout-20261121/logs"
+"$PYTHON" -m flir_pipeline.closeout oe4-authorize "$CONFIG" "$PHASE"
+LOGS="$HOME/flir-oe4-hotfix-20261122/logs"
 mkdir -p "$LOGS"
 sbatch --parsable --partition="${FLIR_GPU_PARTITION:-gpu}" --gres=gpu:1 \
   --cpus-per-task=4 --mem=32G --time="${FLIR_OE4_WALLTIME:-12:00:00}" \

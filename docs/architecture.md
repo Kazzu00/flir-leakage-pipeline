@@ -1,5 +1,14 @@
 # Architecture
 
+## OE4 authorization v2 (2026-11-22)
+
+`closeout/oe4.py` binds the communicated authorization YAML into the immutable
+preflight freeze. Submission CLI and both runtime workers use the same integrity
+gate. Phase records live outside the sealed freeze; evaluation records the exact
+three completed AUG_OFF receipts. No OE4 path invokes the historical OpenSSH
+authorization verifier. New operations use `flir-oe4-hotfix-20261122`; protected
+common-test data remains in its existing read-only location.
+
 ## Denoised / OE4 adapter (2026-11-21)
 
 `closeout/` isolates the external TAR version contract and the new OE4 closeout

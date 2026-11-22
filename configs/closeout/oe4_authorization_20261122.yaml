@@ -1,0 +1,16 @@
+schema: oe4_communicated_authorization_v1
+protocol: oe4_closeout_v2
+method: responsible_person_communication
+communication_date: '2026-11-22'
+communicated_authorizer: JP
+communicated_by: project_responsible_person
+authorized_phases: [train, evaluate]
+evaluation_requires_all_aug_off_completed: true
+cryptographically_verified: false
+documentary_approval_verified: false
+statement: >-
+  The project responsible person confirmed that JP authorized the three matched
+  OE4 AUG_OFF experiments and their subsequent common-test evaluation.
+  Recorded from the user's explicit communication on 2026-11-22.
+  This records communicated authorization; it is neither a cryptographic
+  signature nor independently verified documentary approval.

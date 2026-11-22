@@ -1,5 +1,11 @@
 # Trazabilidad con los cinco objetivos definitivos
 
+Hotfix OE4 2026-11-22: se registra la autorización de JP comunicada por el
+responsable para experimentos/evaluación; no se afirma verificación documental
+ni criptográfica. El cambio administrativo no modifica la comparación AUG_ON /
+AUG_OFF, los datos, la semilla, las 50 épocas ni la liberación de test después
+de completar los tres entrenamientos. [Contrato v2](runbooks/oe4_hotfix_20261122.md).
+
 Actualización local 2026-11-21: el [cierre denoised/OE4](runbooks/oe4_closeout_20261120.md)
 añade evidencia de ingesta de la variante externa (OE5), grafo/MILP candidato (OE3)
 y preparación verificable de test común y ablación AUG_OFF (OE4). Se ejecutaron

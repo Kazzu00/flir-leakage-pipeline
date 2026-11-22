@@ -225,6 +225,9 @@ def test_preflight_collects_independent_blockers_and_can_retry(tmp_path, monkeyp
     from flir_pipeline.closeout import oe4
 
     cfg = load_config(Path("configs/closeout/oe4_20261115.yaml"))
+    cfg["authorization_record"] = str(
+        Path("configs/closeout/oe4_authorization_20261122.yaml").resolve()
+    )
     for key in (
         "publication",
         "source_root",
@@ -249,11 +252,12 @@ def test_preflight_collects_independent_blockers_and_can_retry(tmp_path, monkeyp
 
 def test_wrong_protocol_authorization_never_reaches_gpu(tmp_path, monkeypatch):
     from flir_pipeline.closeout import oe4
-    from flir_pipeline.detection import admission
 
     cfg = load_config(Path("configs/closeout/oe4_20261115.yaml"))
+    cfg["authorization_record"] = str(
+        Path("configs/closeout/oe4_authorization_20261122.yaml").resolve()
+    )
     monkeypatch.setattr(oe4, "load_config", lambda *args: cfg)
     monkeypatch.setattr(oe4, "verify_freeze", lambda *args: {"state": "READY"})
-    monkeypatch.setattr(admission, "authorized", lambda *args: {"protocol": "wrong"})
     with pytest.raises(ValueError, match="protocol/freeze"):
         oe4.authorize(tmp_path / "config", "train")

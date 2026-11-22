@@ -17,9 +17,9 @@ from flir_pipeline.closeout.oe4 import (
     EVAL,
     OPERATIONAL,
     POLICIES,
+    PROTOCOL,
     authorize,
     check_last_checkpoint_metadata,
-    load_config,
     path,
     verify_freeze,
 )
@@ -136,6 +136,11 @@ def train(config_path: Path, index: int):
     output.mkdir(parents=True, exist_ok=False)
     state = {
         "state": "RUNNING_AUG_OFF",
+        "protocol": PROTOCOL,
+        "authorization_sha256": freeze["scientific_authorization"]["sha256"],
+        "phase_authorization_receipt_sha256": file_sha256(
+            path(cfg["authorization_output"]) / "train/receipt.json"
+        ),
         "policy": policy,
         "freeze_sha256": file_sha256(path(cfg["freeze"]) / "receipt.json"),
         "augmentation": "AUG_OFF",
@@ -229,6 +234,11 @@ def evaluate_policy(config_path: Path, index: int):
         output.mkdir(parents=True, exist_ok=False)
         state = {
             "state": "EVALUATING",
+            "protocol": PROTOCOL,
+            "authorization_sha256": freeze["scientific_authorization"]["sha256"],
+            "phase_authorization_receipt_sha256": file_sha256(
+                path(cfg["authorization_output"]) / "evaluate/receipt.json"
+            ),
             "policy": policy,
             "treatment": treatment,
             "freeze_sha256": file_sha256(path(cfg["freeze"]) / "receipt.json"),
@@ -302,10 +312,7 @@ def evaluate_policy(config_path: Path, index: int):
 
 
 def aggregate(config_path: Path):
-    cfg = load_config(config_path)
-    freeze = verify_freeze(config_path)
-    if freeze["state"] != "READY":
-        raise ValueError("Freeze blocked")
+    cfg, freeze = authorize(config_path, "evaluate")
     records, expected_test = [], None
     for treatment in ("AUG_ON", "AUG_OFF"):
         for policy in POLICIES:
@@ -313,6 +320,13 @@ def aggregate(config_path: Path):
             receipt = verify(directory)
             if (
                 receipt["state"] != "COMPLETED_EVALUATION"
+                or receipt.get("protocol") != PROTOCOL
+                or receipt.get("authorization_sha256")
+                != freeze["scientific_authorization"]["sha256"]
+                or receipt.get("phase_authorization_receipt_sha256")
+                != file_sha256(
+                    path(cfg["authorization_output"]) / "evaluate/receipt.json"
+                )
                 or receipt["evaluation"] != EVAL
                 or receipt["policy"] != policy
                 or receipt["treatment"] != treatment
@@ -347,6 +361,7 @@ def aggregate(config_path: Path):
         output,
         {
             "state": "AGGREGATED",
+            "protocol": PROTOCOL,
             "test": expected_test,
             "interpretation": "Descriptive one-seed internal comparison; no causal or independence claim",
         },

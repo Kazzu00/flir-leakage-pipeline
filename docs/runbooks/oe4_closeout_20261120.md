@@ -1,5 +1,11 @@
 # Cierre local denoised y OE4
 
+Actualización 2026-11-22: para ejecutar OE4 utilizar el
+[hotfix v2 y sus comandos](oe4_hotfix_20261122.md). Reemplaza el requisito de
+firmas descrito en este registro histórico por la autorización comunicada del
+responsable; conserva el freeze v1 y genera otro. Los comandos de despliegue v1
+de este documento quedan como historial, no como instrucciones vigentes.
+
 Este adaptador prepara datos y operaciones reproducibles. No acredita una ejecución
 en Hypatia ni otorga aprobación científica. `CODEX_TASK.md` no estaba en el checkout;
 se utilizó el brief adjunto `CODEX_BRIEF_FLIR_OE4_DENOISED_20261120.md`, contrastado
