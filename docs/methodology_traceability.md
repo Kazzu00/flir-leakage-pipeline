@@ -1,5 +1,11 @@
 # Trazabilidad con los cinco objetivos definitivos
 
+Recuperación 2026-11-22: conteos de etiquetas de la vista nativa, sin exigirlos
+al manifest fuente. Denoised avanza solo como exploración separada con grupos de
+riesgo nominal excluidos y test común prohibido; no se acredita efecto causal
+del denoising ni independencia de sus correspondencias no resueltas.
+[Evidencia y ejecución](runbooks/oe4_recovery_20261122.md).
+
 Hotfix OE4 2026-11-22: se registra la autorización de JP comunicada por el
 responsable para experimentos/evaluación; no se afirma verificación documental
 ni criptográfica. El cambio administrativo no modifica la comparación AUG_ON /

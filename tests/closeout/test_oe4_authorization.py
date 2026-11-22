@@ -7,6 +7,7 @@ from pathlib import Path
 import pandas as pd
 import pytest
 import yaml
+from PIL import Image
 
 from flir_pipeline.closeout import oe4, oe4_runtime
 from flir_pipeline.closeout.io import read_json, seal, write_json
@@ -50,8 +51,11 @@ def operation(tmp_path):
         baseline.mkdir()
         (baseline / "dataset.yaml").write_text("synthetic original development")
         image, label = baseline / "image.png", baseline / "label.txt"
-        image.write_bytes(b"original synthetic image")
-        label.write_bytes(b"original synthetic label")
+        Image.new("RGB", (32, 32), (10, 20, 30)).save(image)
+        label.write_text("0 .5 .5 .1 .1\n")
+        validation_image, validation_label = baseline / "val.png", baseline / "val.txt"
+        Image.new("RGB", (32, 32), (30, 20, 10)).save(validation_image)
+        validation_label.write_text("1 .5 .5 .1 .1\n")
         seal(baseline, {"state": "completed"})
         runs[policy] = {
             "root": str(baseline),
@@ -59,16 +63,37 @@ def operation(tmp_path):
             "dataset_yaml": str(baseline / "dataset.yaml"),
             "dataset_yaml_sha256": oe4.file_sha256(baseline / "dataset.yaml"),
         }
+        from test_oe4 import baseline as example_baseline
+
+        controls = example_baseline()
+        try:
+            from ultralytics.cfg import DEFAULT_CFG_DICT
+
+            controls = {**DEFAULT_CFG_DICT, **controls}
+        except ImportError:
+            pass
+        runs[policy]["baseline_args"] = controls
+        runs[policy]["aug_off_args"] = oe4.aug_off(controls)
         # Native receipt uses execution.json; fixture keeps the same immutable binding.
         shutil.copyfile(baseline / "receipt.json", baseline / "execution.json")
         pd.DataFrame(
             [
                 {
+                    "frame_id": "train_frame",
+                    "new_split": "train",
                     "image_path": str(image),
                     "label_path": str(label),
                     "image_sha256": oe4.file_sha256(image),
                     "label_sha256": oe4.file_sha256(label),
-                }
+                },
+                {
+                    "frame_id": "val_frame",
+                    "new_split": "val",
+                    "image_path": str(validation_image),
+                    "label_path": str(validation_label),
+                    "image_sha256": oe4.file_sha256(validation_image),
+                    "label_sha256": oe4.file_sha256(validation_label),
+                },
             ]
         ).to_parquet(freeze / f"development_{policy}.parquet")
     report = {
@@ -240,6 +265,7 @@ def test_report_cannot_claim_verified_signature_or_reuse_v1_config(tmp_path):
 
 def test_real_submission_without_gpu_or_ssh_signatures(operation, tmp_path):
     """Execute real Bash -> bundle verifier -> CLI -> authorize -> fake sbatch."""
+    pytest.importorskip("ultralytics")
     import hashlib
     import json
     import os
@@ -321,6 +347,8 @@ def test_real_submission_without_gpu_or_ssh_signatures(operation, tmp_path):
             env=env,
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
         )
 
     result = submit("train")

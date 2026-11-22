@@ -121,11 +121,46 @@ def oe4_authorize(config: Path, phase: str):
     )
 
 
+@app.command("oe4-prepare")
+def oe4_prepare(config: Path):
+    """Prepare all real views and exercise pinned YOLO loaders on CPU, no training."""
+    from flir_pipeline.closeout.oe4_runtime import prepare_cpu
+
+    result = prepare_cpu(config)
+    typer.echo(json.dumps({"state": result["state"], "checks": result["checks"]}))
+
+
 @app.command("oe4-evaluate")
 def oe4_evaluate(config: Path, index: int):
     from flir_pipeline.closeout.oe4_runtime import evaluate_policy
 
     typer.echo(json.dumps(evaluate_policy(config, index)))
+
+
+@app.command("denoised-materialize-training")
+def denoised_materialize_training(
+    candidate: Path, anchors: Path, publication: Path, output: Path
+):
+    from flir_pipeline.closeout.denoised_training import materialize
+
+    typer.echo(
+        json.dumps(materialize(candidate, anchors, publication, output), indent=2)
+    )
+
+
+@app.command("denoised-prepare-training")
+def denoised_prepare_training(config: Path, dataset: Path, work: Path):
+    from flir_pipeline.closeout.denoised_training import prepare_cpu
+
+    result = prepare_cpu(config, dataset, work / "cpu-preparation")
+    typer.echo(json.dumps({"state": result["state"], "checks": result["checks"]}))
+
+
+@app.command("denoised-train")
+def denoised_train(config: Path, dataset: Path, work: Path, index: int):
+    from flir_pipeline.closeout.denoised_training import train
+
+    typer.echo(json.dumps({"state": train(config, dataset, work, index)["state"]}))
 
 
 @app.command("oe4-aggregate")

@@ -1,5 +1,15 @@
 # Design decisions
 
+## Native training-view contract and denoised exploration (2026-11-22)
+
+Count-free source manifests remain valid. Reuse scientific write_view's parsed,
+hash-bound num_objects in its emitted records.parquet, as the original runtime
+does. Both lines share the invocation/loader guard. CPU preparation validates real
+labels and pinned Ultralytics before GPU submission. No occurrence deduplication.
+Denoised excludes whole known-risk groups but retains unresolved provenance only
+in an isolated exploratory protocol, forbidden from common-test evaluation.
+Existing split assignments are restricted, not refit or represented as original C10.
+
 ## OE4 communicated authorization (2026-11-22)
 
 The project responsible person explicitly reported JP's authorization for OE4

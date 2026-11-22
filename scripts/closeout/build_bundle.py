@@ -53,6 +53,8 @@ def build(root: Path, output: Path, bundle_name="flir-oe4-closeout-20261121-code
         root / name
         for name in (
             "scripts/hypatia/denoised_closeout.sbatch",
+            "scripts/hypatia/denoised_train.sbatch",
+            "scripts/hypatia/submit_denoised.sh",
             "scripts/hypatia/deploy_to_hypatia.ps1",
         )
     )

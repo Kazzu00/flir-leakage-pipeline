@@ -6,6 +6,7 @@ CONFIG="${FLIR_OE4_CONFIG:-$ROOT/configs/closeout/oe4_20261115.yaml}"
 export PYTHONPATH="$ROOT/src${PYTHONPATH:+:$PYTHONPATH}"
 cd "$ROOT"
 "$PYTHON" scripts/closeout/verify_bundle.py "$ROOT"
-mkdir -p "$HOME/flir-oe4-hotfix-20261122/logs"
+mkdir -p "$HOME/flir-oe4-recovery-20261122/logs"
 # CPU metadata/checksums only. Torch/CUDA checks run inside the GPU allocation.
 "$PYTHON" -m flir_pipeline.closeout oe4-preflight "$CONFIG"
+"$PYTHON" -m flir_pipeline.closeout oe4-prepare "$CONFIG"

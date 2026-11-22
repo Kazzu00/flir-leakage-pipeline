@@ -1,5 +1,9 @@
 # FLIR Leakage-Aware Clustering Pipeline
 
+Recuperación OE4 2026-11-22: conteos derivados de la vista histórica, preparación
+CPU completa antes de GPU y línea denoised exploratoria aislada.
+[Despliegue y comprobación de primera época](docs/runbooks/oe4_recovery_20261122.md).
+
 Hotfix OE4 2026-11-22: autorización comunicada registrada, sin infraestructura
 SSH de firmas; protocolo y freeze nuevos, controles de integridad conservados.
 [Transferencia y ejecución en Hypatia](docs/runbooks/oe4_hotfix_20261122.md).

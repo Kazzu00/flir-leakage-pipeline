@@ -9,7 +9,10 @@ export PYTHONPATH="$ROOT/src${PYTHONPATH:+:$PYTHONPATH}"
 cd "$ROOT"
 "$PYTHON" scripts/closeout/verify_bundle.py "$ROOT"
 "$PYTHON" -m flir_pipeline.closeout oe4-authorize "$CONFIG" "$PHASE"
-LOGS="$HOME/flir-oe4-hotfix-20261122/logs"
+if [[ "$PHASE" == train ]]; then
+  "$PYTHON" -m flir_pipeline.closeout oe4-prepare "$CONFIG"
+fi
+LOGS="$HOME/flir-oe4-recovery-20261122/logs"
 mkdir -p "$LOGS"
 sbatch --parsable --partition="${FLIR_GPU_PARTITION:-gpu}" --gres=gpu:1 \
   --cpus-per-task=4 --mem=32G --time="${FLIR_OE4_WALLTIME:-12:00:00}" \

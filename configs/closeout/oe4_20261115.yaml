@@ -3,13 +3,13 @@ publication: $HOME/flir-yolo11m-automatic-v1/publications/five-seeds-20261013-a
 source_root: $HOME/datasets/flir_raw/source
 initial_weights: $HOME/yolo11m.pt
 weights_receipt: $HOME/flir-yolo11m-automatic-v1/official-weights.json
-freeze: $HOME/flir-oe4-hotfix-20261122/freeze
+freeze: $HOME/flir-oe4-recovery-20261122/freeze
 common_test: $HOME/flir-oe4-closeout-20261121/common-test
-aug_off_output: $HOME/flir-oe4-hotfix-20261122/aug-off
-evaluation_output: $HOME/flir-oe4-hotfix-20261122/evaluations
-aggregate_output: $HOME/flir-oe4-hotfix-20261122/aggregate
+aug_off_output: $HOME/flir-oe4-recovery-20261122/aug-off
+evaluation_output: $HOME/flir-oe4-recovery-20261122/evaluations
+aggregate_output: $HOME/flir-oe4-recovery-20261122/aggregate
 authorization_record: oe4_authorization_20261122.yaml
-authorization_output: $HOME/flir-oe4-hotfix-20261122/authorizations
+authorization_output: $HOME/flir-oe4-recovery-20261122/authorizations
 temporal_window_frames: 60
 versions:
   ultralytics: 8.3.203

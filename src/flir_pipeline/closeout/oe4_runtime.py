@@ -13,7 +13,6 @@ import yaml
 from flir_pipeline.closeout.common_test import verify_test, write_test_view
 from flir_pipeline.closeout.io import read_json, seal, verify, write_csv, write_json
 from flir_pipeline.closeout.oe4 import (
-    AUG_ZERO,
     EVAL,
     OPERATIONAL,
     POLICIES,
@@ -107,33 +106,92 @@ def metric_exports(images):
     )
 
 
+def execute_prepared(prepared, state: dict, verify_after):
+    """Single shared YOLO11m invocation; native guard and completion semantics."""
+    from ultralytics import YOLO
+
+    from flir_pipeline.closeout.training import guard
+    from flir_pipeline.detection.runtime import (
+        configure_runtime,
+        parse_training_history,
+    )
+    from flir_pipeline.detection.scientific_runtime import offline_runtime
+
+    configure_runtime()
+    output, settings = prepared["output"], prepared["settings"]
+    write_json(output / "run_state.json", state)
+    try:
+        with offline_runtime():
+            model = YOLO(settings["model"])
+            if model.task != "detect" or model.model.yaml.get("scale") != "m":
+                raise ValueError("Expected YOLO11m detect initialization")
+            model.add_callback(
+                "on_train_start", lambda trainer: guard(trainer, prepared)
+            )
+            model.add_callback(
+                "on_train_batch_end",
+                lambda trainer: guard(trainer, prepared, check_membership=False),
+            )
+
+            def epoch_started(trainer):
+                guard(trainer, prepared)
+                write_json(
+                    output / "progress.json",
+                    {
+                        "state": "EPOCH_STARTED",
+                        "epoch": int(trainer.epoch) + 1,
+                        "policy": state["policy"],
+                        "slurm_job_id": os.environ.get("SLURM_JOB_ID"),
+                    },
+                )
+                print(
+                    f"FLIR_EPOCH_STARTED policy={state['policy']} epoch={int(trainer.epoch) + 1}",
+                    flush=True,
+                )
+
+            model.add_callback("on_train_epoch_start", epoch_started)
+            print(
+                f"FLIR_TRAIN_INVOKE policy={state['policy']} epochs=50 seed=42",
+                flush=True,
+            )
+            model.train(**settings)
+        state["history"] = parse_training_history(output / "train/results.csv", 50)
+        effective = yaml.safe_load(
+            (output / "train/args.yaml").read_text(encoding="utf-8")
+        )
+        for key, value in settings.items():
+            if key not in OPERATIONAL and effective.get(key) != value:
+                raise ValueError(f"Completed effective control changed: {key}")
+        for name in ("best.pt", "last.pt"):
+            file_sha256(output / "train/weights" / name)
+        verify_after()
+        state.update(
+            state="COMPLETED_EXPLORATORY"
+            if state.get("exploratory")
+            else "COMPLETED_AUG_OFF",
+            checkpoint_selection="last_epoch_50; best preserved but unused",
+        )
+    except BaseException as exc:
+        seal(output, {**state, "state": "FAILED_TRAINING", "error": str(exc)})
+        raise
+    return seal(output, state)
+
+
 def train(config_path: Path, index: int):
     if index not in range(3):
         raise ValueError("Array index must be 0..2")
     cfg, freeze = authorize(config_path, "train")
     policy = POLICIES[index]
     env = gpu_preflight()
-    from ultralytics import YOLO
-    from ultralytics.cfg import DEFAULT_CFG_DICT
+    from flir_pipeline.closeout.training import check_cpu, prepare
 
-    from flir_pipeline.detection.runtime import (
-        check_loader_annotations,
-        configure_runtime,
-        parse_training_history,
-    )
-    from flir_pipeline.detection.scientific_executor import write_view
-    from flir_pipeline.detection.scientific_runtime import offline_runtime
-
-    configure_runtime()
-    baseline = freeze["runs"][policy]
-    recorded = baseline["baseline_args"]
-    # Full recorded configuration is frozen. New/default keys cannot silently enter.
-    if set(DEFAULT_CFG_DICT) - set(recorded) or set(recorded) - set(
-        DEFAULT_CFG_DICT
-    ) - {"save_dir"}:
-        raise ValueError("Recorded args do not cover pinned runtime keys exactly")
     output = path(cfg["aug_off_output"]) / policy
-    output.mkdir(parents=True, exist_ok=False)
+    baseline = freeze["runs"][policy]
+    rows = pd.read_parquet(path(cfg["freeze"]) / f"development_{policy}.parquet")
+    prepared = prepare(
+        rows, output, baseline["aug_off_args"], path(cfg["initial_weights"])
+    )
+    check_cpu(prepared, baseline["baseline_args"])
     state = {
         "state": "RUNNING_AUG_OFF",
         "protocol": PROTOCOL,
@@ -148,66 +206,63 @@ def train(config_path: Path, index: int):
         "test_used": False,
         "initial_weights_sha256": freeze["checks"]["initial_weights_sha256"],
     }
-    try:
-        rows = pd.read_parquet(path(cfg["freeze"]) / f"development_{policy}.parquet")
-        dataset = write_view(rows, output / "development", strict_geometry=False)
-        settings = {
-            **baseline["aug_off_args"],
-            "data": str(dataset),
-            "model": str(path(cfg["initial_weights"])),
-            "device": "0",
-            "project": str(output),
-            "name": "train",
-            "exist_ok": False,
-            "resume": False,
-        }
-        write_json(output / "planned_arguments.json", settings)
-        counts = rows.set_index("frame_id").num_objects.to_dict()
+    return execute_prepared(prepared, state, lambda: verify_freeze(config_path))
 
-        def guard(trainer):
-            actual = vars(trainer.args)
-            for k, value in settings.items():
-                if k not in OPERATIONAL and actual.get(k) != value:
-                    raise ValueError(f"Effective AUG_OFF control changed: {k}")
-            if trainer.data.get("test") or int(trainer.batch_size) != 1:
-                raise ValueError("Test exposed or batch changed")
-            check_loader_annotations(trainer, counts)
-            for split, loader in (
-                ("train", trainer.train_loader),
-                ("val", trainer.test_loader),
-            ):
-                observed = sorted(
-                    Path(label["im_file"]).stem for label in loader.dataset.labels
-                )
-                if observed != sorted(rows.loc[rows.new_split == split, "frame_id"]):
-                    raise ValueError("Loader changed frozen development membership")
 
-        with offline_runtime():
-            model = YOLO(str(path(cfg["initial_weights"])))
-            if model.task != "detect" or model.model.yaml.get("scale") != "m":
-                raise ValueError("Expected YOLO11m detect initialization")
-            model.add_callback("on_train_start", guard)
-            model.train(**settings)
-        state["history"] = parse_training_history(output / "train/results.csv", 50)
-        effective = yaml.safe_load(
-            (output / "train/args.yaml").read_text(encoding="utf-8")
-        )
+def prepare_cpu(config_path: Path):
+    """Exercise all three real frozen manifests with the native pinned loader."""
+    from flir_pipeline.closeout.training import check_cpu, prepare
+
+    cfg, freeze = authorize(config_path, "train")
+    output = path(cfg["freeze"]).parent / "cpu-preparation"
+    binding = file_sha256(path(cfg["freeze"]) / "receipt.json")
+    if output.exists():
+        receipt = verify(output)
         if (
-            any(effective.get(k) != 0 for k in AUG_ZERO)
-            or effective.get("auto_augment") is not None
+            receipt["freeze_sha256"] != binding
+            or receipt["state"] != "READY_TO_INVOKE_TRAIN"
         ):
-            raise ValueError("Effective AUG_OFF augmentation changed")
-        for name in ("best.pt", "last.pt"):
-            file_sha256(output / "train/weights" / name)
+            raise ValueError("CPU preparation belongs to another freeze")
+        return receipt
+    checks = {}
+    output.mkdir(parents=True, exist_ok=False)
+    try:
+        for policy in POLICIES:
+            baseline = freeze["runs"][policy]
+            rows = pd.read_parquet(
+                path(cfg["freeze"]) / f"development_{policy}.parquet"
+            )
+            prepared = prepare(
+                rows,
+                output / policy,
+                baseline["aug_off_args"],
+                path(cfg["initial_weights"]),
+            )
+            checks[policy] = check_cpu(prepared, baseline["baseline_args"])
         verify_freeze(config_path)
-        state.update(
-            state="COMPLETED_AUG_OFF",
-            checkpoint_selection="last_epoch_50_for_common_test; best preserved but unused",
+        seal(
+            output,
+            {
+                "state": "READY_TO_INVOKE_TRAIN",
+                "protocol": PROTOCOL,
+                "freeze_sha256": binding,
+                "checks": checks,
+                "gpu_used": False,
+            },
         )
     except BaseException as exc:
-        seal(output, {**state, "state": "FAILED_AUG_OFF", "error": str(exc)})
+        seal(
+            output,
+            {
+                "state": "FAILED_CPU_PREPARATION",
+                "error": str(exc),
+                "freeze_sha256": binding,
+                "gpu_used": False,
+            },
+        )
         raise
-    return seal(output, state)
+
+    return verify(output)
 
 
 def evaluate_policy(config_path: Path, index: int):

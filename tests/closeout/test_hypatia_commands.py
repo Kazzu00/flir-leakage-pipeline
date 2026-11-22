@@ -21,6 +21,9 @@ def bash_path():
         "oe4.sbatch",
         "aggregate_oe4.sh",
         "denoised_closeout.sbatch",
+        "preflight_oe4.sbatch",
+        "denoised_train.sbatch",
+        "submit_denoised.sh",
     ],
 )
 def test_shell_syntax(name):
@@ -32,7 +35,8 @@ def test_shell_syntax(name):
     )
 
 
-def test_spooled_worker_uses_explicit_bundle_root(tmp_path):
+@pytest.mark.parametrize("index", [0, 1, 2])
+def test_spooled_worker_uses_explicit_bundle_root(tmp_path, index):
     bash = bash_path()
     if not bash:
         pytest.skip("Bash unavailable")
@@ -52,7 +56,7 @@ def test_spooled_worker_uses_explicit_bundle_root(tmp_path):
     log = tmp_path / "calls.txt"
     env = {
         **os.environ,
-        "SLURM_ARRAY_TASK_ID": "2",
+        "SLURM_ARRAY_TASK_ID": str(index),
         "SLURM_JOB_ID": "synthetic",
         "CALL_LOG": log.as_posix(),
     }
@@ -76,6 +80,6 @@ def test_spooled_worker_uses_explicit_bundle_root(tmp_path):
         "flir_pipeline.closeout",
         "oe4-train",
         "config.yaml",
-        "2",
+        str(index),
     ]
     assert "scripts/closeout/verify_bundle.py" in calls

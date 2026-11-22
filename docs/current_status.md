@@ -1,5 +1,15 @@
 # Estado actual
 
+## Recuperación de ejecución — 2026-11-22
+
+Corregido el contrato de conteos OE4: se lee el records.parquet enriquecido por
+el write_view histórico, sin exigir num_objects al manifiesto fuente. Preparación
+CPU con loader Ultralytics real antes de GPU. Replay local real: 1.144 registros,
+3.032 objetos, invocación interceptada sin entrenamiento. Ambos brazos denoised
+exploratorios preparados sobre 466 train / 47 val tras excluir grupos de riesgo
+nominal; 342 correspondencias no resueltas, evaluación común prohibida.
+No se ejecutó entrenamiento ni inferencia. [Comandos y límites](runbooks/oe4_recovery_20261122.md).
+
 ## Hotfix OE4 — 2026-11-22
 
 OE4 usa `oe4_closeout_v2` y registra la autorización de JP comunicada por el

@@ -222,6 +222,8 @@ def development_records(dataset_yaml: Path, manifest: pd.DataFrame):
     root = Path(cfg.get("path") or dataset_yaml.parent)
     if not root.is_absolute():
         root = dataset_yaml.parent / root
+    if manifest.frame_id.isna().any() or not manifest.frame_id.is_unique:
+        raise ValueError("Source frame_id is not a unique occurrence identity")
     lookup = manifest.set_index("frame_id")
     result = []
     for split in ("train", "val"):

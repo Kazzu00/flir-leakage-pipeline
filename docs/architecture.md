@@ -1,5 +1,13 @@
 # Architecture
 
+## Training recovery (2026-11-22)
+
+Both OE4 and isolated denoised exploration reuse scientific_executor.write_view,
+its emitted counts and the native loader check via closeout/training.py. CPU
+preparation runs actual pinned YOLO label loading before GPU submission. A single
+execute_prepared function owns the training invocation. Operations now use
+flir-oe4-recovery-20261122; earlier failed operations remain untouched.
+
 ## OE4 authorization v2 (2026-11-22)
 
 `closeout/oe4.py` binds the communicated authorization YAML into the immutable
