@@ -123,6 +123,17 @@ def guard(trainer, prepared, check_membership=True):
             )
 
 
+def verify_view_bytes(prepared):
+    """Native historical invariant: upstream must not rewrite copied input bytes."""
+    for row in prepared["rows"].itertuples():
+        label = prepared["dataset"].parent / "labels" / f"{row.frame_id}.txt"
+        if (
+            file_sha256(Path(row.image_path)) != row.image_sha256
+            or file_sha256(label) != row.label_sha256
+        ):
+            raise ValueError("Runtime changed frozen development image/label bytes")
+
+
 def check_cpu(prepared, recorded: dict):
     """Real pinned Ultralytics config and label loader; no model/forward/training."""
     import ultralytics
@@ -164,6 +175,7 @@ def check_cpu(prepared, recorded: dict):
         test_loader=loaders["val"],
     )
     guard(trainer, prepared)
+    verify_view_bytes(prepared)
     result = {
         "state": "READY_TO_INVOKE_TRAIN",
         "ultralytics": ultralytics.__version__,

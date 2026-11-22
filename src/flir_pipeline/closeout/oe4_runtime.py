@@ -110,7 +110,7 @@ def execute_prepared(prepared, state: dict, verify_after):
     """Single shared YOLO11m invocation; native guard and completion semantics."""
     from ultralytics import YOLO
 
-    from flir_pipeline.closeout.training import guard
+    from flir_pipeline.closeout.training import guard, verify_view_bytes
     from flir_pipeline.detection.runtime import (
         configure_runtime,
         parse_training_history,
@@ -164,6 +164,7 @@ def execute_prepared(prepared, state: dict, verify_after):
                 raise ValueError(f"Completed effective control changed: {key}")
         for name in ("best.pt", "last.pt"):
             file_sha256(output / "train/weights" / name)
+        verify_view_bytes(prepared)
         verify_after()
         state.update(
             state="COMPLETED_EXPLORATORY"
