@@ -298,6 +298,9 @@ def test_real_submission_without_gpu_or_ssh_signatures(operation, tmp_path):
         posix_bin = "/" + posix_bin[0].lower() + posix_bin[2:]
     env = {
         **os.environ,
+        # The simulated deployment must select its own source tree. Inherited
+        # Windows PYTHONPATH values break Git Bash's POSIX path-list conversion.
+        "PYTHONPATH": "",
         "FAKE_BIN": posix_bin,
         "FLIR_OE4_PYTHON": interpreter.as_posix(),
         "FLIR_OE4_CONFIG": config.as_posix(),
