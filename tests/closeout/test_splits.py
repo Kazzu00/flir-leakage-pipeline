@@ -89,7 +89,8 @@ def test_milp_balance_and_indivisibility():
         )
 
 
-def test_end_to_end_candidate_materialization(tmp_path, monkeypatch):
+@pytest.mark.parametrize("solver_fails", [False, True])
+def test_end_to_end_candidate_materialization(tmp_path, monkeypatch, solver_fails):
     import csv
     import io
 
@@ -149,6 +150,26 @@ def test_end_to_end_candidate_materialization(tmp_path, monkeypatch):
         ),
     )
     target = tmp_path / "split"
+    if solver_fails:
+
+        def fail(*args, **kwargs):
+            raise AssignmentFailure("Synthetic infeasible graph", {"status": 2})
+
+        monkeypatch.setattr(splits, "milp_assignment", fail)
+        with pytest.raises(AssignmentFailure, match="infeasible"):
+            splits.build(
+                dataset,
+                config_path,
+                target,
+                {"dinov2": tmp_path / "dino", "clip": tmp_path / "clip"},
+            )
+        assert not target.exists()
+        (stage,) = tmp_path.glob(".split.partial-*")
+        assert len(pd.read_csv(stage / "preassignment_groups.csv")) == 18
+        assert read_json(stage / "preassignment.json")["groups"] == 17
+        assert read_json(stage / "solver_failure.json")["evidence"] == {"status": 2}
+        assert not (stage / "dataset.yaml").exists()
+        return
     report = splits.build(
         dataset,
         config_path,

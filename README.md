@@ -5,8 +5,9 @@
 Disponible `flir-pipeline closeout`: importación TAR segura, auditoría de metadata,
 adaptador de features por contenido único, grafo/MILP candidato y preparación
 de test común/OE4. Se auditó el TAR real de 1.116 pares y se materializaron
-372 ocurrencias de test local sin liberar evaluación. Splits denoised y GPU
-siguen pendientes; no se atribuyen resultados científicos a infraestructura.
+372 ocurrencias de test local sin liberar evaluación. DINOv2/CLIP completos y
+split denoised candidato 777/172/167 materializados y verificados; sin freeze
+científico ni óptimo demostrado. Entrenamientos y evaluación GPU siguen pendientes.
 Véase el [runbook y comandos Hypatia](docs/runbooks/oe4_closeout_20261120.md).
 
 ## Referencia de integración local — 2026-11-14

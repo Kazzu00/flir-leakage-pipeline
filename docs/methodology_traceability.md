@@ -2,8 +2,10 @@
 
 Actualización local 2026-11-21: el [cierre denoised/OE4](runbooks/oe4_closeout_20261120.md)
 añade evidencia de ingesta de la variante externa (OE5), grafo/MILP candidato (OE3)
-y preparación verificable de test común y ablación AUG_OFF (OE4). No acredita un
-split denoised terminado, independencia temporal ni ejecución detector nueva.
+y preparación verificable de test común y ablación AUG_OFF (OE4). Se ejecutaron
+ambos encoders completos y el MILP denoised: candidato 777/172/167 con 93 grupos
+indivisibles y cero cruces registrados. No acredita freeze científico,
+independencia temporal absoluta, óptimo del solver ni ejecución detector nueva.
 El algoritmo C10 original permanece separado de las sensibilidades de la variante.
 
 Referencia: `ppg_j.solorzanod_202620.pdf`, objetivos en su página impresa 2.

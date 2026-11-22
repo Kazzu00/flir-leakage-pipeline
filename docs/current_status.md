@@ -4,8 +4,10 @@
 
 Auditoría real local del TAR: 1.116 pares y filas, imágenes decodificadas,
 metadatos originales preservados. Test común local: 372 ocurrencias verificadas,
-materializadas sin liberar evaluación. Splits denoised bloqueados por falta de
-features de esta variante; 93 grupos nominales/temporales candidatos, sin freeze.
+materializadas sin liberar evaluación. DINOv2/CLIP completos para 1.116 contenidos
+y split denoised candidato materializado: 777/172/167, 93 grupos, cero cruces de
+1.170 relaciones registradas. MILP factible, óptimo no demostrado; sin freeze
+científico ni anclaje verificado al test protegido. Replay de asignación exacto.
 Implementados adapters, tests y paquete de código para preflight/AUG_OFF/evaluación
 OE4; no GPU ni resultados remotos nuevos. Véanse
 [resultados, restricciones y comandos](runbooks/oe4_closeout_20261120.md).

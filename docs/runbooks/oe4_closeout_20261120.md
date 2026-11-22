@@ -49,19 +49,33 @@ es una unidad de entrada; el cierre transitivo puede formar componentes grandes.
 
 Configuración propuesta `denoised_dependency_candidate_v1`: 2 s, targets
 70/15/15, seed 42 y sensibilidades de coseno 0.983503/0.988371 heredadas del kit.
-Son umbrales propuestos, no calibrados para denoised. La información disponible
-forma 93 componentes y 1.158 aristas temporales/nominales (1.002/156), sin
-conflictos detectados en esta etapa. Son relaciones conservadoras reportadas o
-heurísticas; no ground truth de escenas.
+Son umbrales propuestos, no calibrados para denoised. La extracción completa se
+ejecutó localmente en CPU, offline, en un entorno externo instalado desde
+`uv.lock`: DINOv2 1.116 × 384 y CLIP 1.116 × 512. Ambos stores tienen cobertura
+completa, raw/L2, índices verificados y revisiones resueltas; no presentan
+NaN, Inf ni normas cero. Se reutilizaron los wrappers y storage originales,
+sin reutilizar embeddings históricos ni alterar los pesos cacheados.
 
-**Salida real de split bloqueada**: no hay stores DINOv2/CLIP para esta variante
-y el entorno local no dispone de las dependencias vision. No se reutilizan
-embeddings del dataset histórico. `split-eligibility/` contiene membresías
-UNASSIGNED y razones, sin `dataset.yaml`. No se declara MILP real ejecutado.
-La extracción nueva reutiliza los wrappers y storage originales, opera por
-contenido único, conserva raw/L2 y requiere revisión de modelo resuelta.
-El job posterior publica `Dataset Con Splits/` solamente como candidato,
-con asignaciones, cuarentena, metadata, hashes, solver e invariantes.
+El grafo completo forma 93 componentes y 1.170 relaciones: 1.002 temporales,
+156 nominales y 12 visuales; el componente mayor contiene 229 registros.
+No se detectaron grupos para cuarentena. Son relaciones conservadoras
+reportadas o heurísticas; no ground truth de escenas.
+
+**Split real materializado como CANDIDATE_NOT_FROZEN**: train 777, val 172,
+test 167. Las cinco clases están presentes en las tres particiones. Hay cero
+cruces de contenido exacto, frame de origen, grupos o relaciones registradas.
+El MILP verificó factibilidad primal y alcanzó el límite de 128 nodos:
+gap 0.2661, sin prueba de optimalidad ni de óptimo único. No se sustituyó por
+una heurística. Una segunda ejecución reprodujo exactamente las asignaciones.
+`Dataset Con Splits/` contiene imágenes, labels, YAML, membresías, grafo,
+metadata, procedencia, checksums y evidencia del solver. La salida inicial
+`split-eligibility/` sin features se conserva como intento histórico sustituido.
+
+El replay independiente volvió a decodificar las 1.116 imágenes del TAR,
+comparó los bytes de cada copia materializada y reconstruyó las 1.170 relaciones
+y los 93 componentes sin importar el constructor de producción. Verificó
+raw/L2 y hashes de ambos stores. Todas las comprobaciones pasaron. La auditoría
+independiente del test común también confirmó las 372 ocurrencias y sus bytes.
 
 C10 permanece como referencia: DINOv2-small CLS 384d/L2, PaCMAP 2D seed 0,
 DBSCAN min_samples 10, eps 0.598 en su espacio/protocolo original. El q85 del kit
@@ -195,7 +209,10 @@ sacct --format=JobID,State,ExitCode,Elapsed
 No usar `sacct --format=StdOut`. Los logs se crean antes del submit. No se borra,
 reutiliza ni reanuda automáticamente una operación fallida; su evidencia se conserva.
 
-La fase denoised es independiente de OE4. Después de transferir la carpeta
+La fase denoised es independiente de OE4 y ya tiene features y split candidato
+materializados localmente. No requiere repetir extracción para usar esa copia.
+El siguiente comando es solo para una reproducción nueva en GPU, en una raíz
+de trabajo sin salidas finales previas. Después de transferir la carpeta
 auditada `Dataset Sin Split` a `$HOME/flir-denoised-20261121/`, y con modelos
 oficiales cacheados y dependencias vision en `FLIR_DENOISED_PYTHON`:
 
@@ -223,7 +240,16 @@ independiente `scripts/closeout/audit_outputs.py` vuelve al TAR y las copias sin
 importar el importador de producción; verifica bytes, labels, soporte y constraints.
 Las salidas de tests, auditoría, historial de errores y hashes reales se conservan
 fuera de Git. El informe final distingue resultados de suite focalizada/global y
-fallos preexistentes; este documento no declara de antemano CI verde.
+fallos observados; no se atribuyen automáticamente al código previo.
+
+La suite global ejecutada produjo 1.629 aprobadas y tres fallos: dos por rutas
+temporales largas en Windows y uno por identidad de source/gate durante la
+ejecución. Los tres pasaron juntos al repetir con checkout estable y ruta corta
+(46,69 s); no se presenta la primera ejecución como verde. La suite final del
+adaptador tiene 49 pruebas aprobadas, incluye replay independiente que detecta
+relaciones omitidas y conserva evidencia de un solver inviable. Ruff global
+aprobado. Los scripts Bash se verifican también con ejecución simulada desde el
+spool de Slurm y rutas con espacios; no equivale a una ejecución en Hypatia.
 
 La auditoría real de preflight local verificó publicación/test y reportó BLOCKED
 por ausencia local de los tres recibos remotos, del recibo de pesos oficiales y
