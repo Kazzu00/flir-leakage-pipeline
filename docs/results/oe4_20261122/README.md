@@ -11,7 +11,7 @@ Su identidad es el par de hashes del campo `test`
 del [recibo original](receipt.json): primero `test_receipt_sha256`, después
 `test_records_sha256`. La coincidencia de los seis tests se exige en
 [`aggregate()`](../../../src/flir_pipeline/closeout/oe4_runtime.py).
-El recibo agregado local no contiene los conteos ni los seis recibos nativos.
+El recibo agregado local no contiene los conteos ni enumera los seis recibos nativos.
 El recibo local anterior del test tiene bytes distintos al remoto; se acredita
 la igualdad del `records.csv`, no la del recibo de liberación. No se volvió a
 auditar el payload de imágenes/GT ni los checkpoints.
@@ -31,6 +31,9 @@ se mezclan con este test. [Entrega de datasets](../../final_datasets_20261122.md
   identidad del test, checksum e interpretación.
 - [oe4_final_metrics_20261122.csv](oe4_final_metrics_20261122.csv): seis registros,
   orden histórica ON/OFF, aleatoria ON/OFF, C10 ON/OFF; diez columnas, ocho métricas.
+- [evaluation_receipts.public.json](evaluation_receipts.public.json): proyección
+  publicable de los seis recibos nativos recuperados, con los seis `weights_sha256`,
+  hashes de recibos originales, procedencia y bindings de tres archivos agregados.
 
 Las métricas permanecen en escala 0–1. El exportador conserva **cada token decimal
 como texto**, sin convertirlo a float ni redondearlo, y comprueba la proyección
@@ -106,12 +109,38 @@ en [`configs/closeout/oe4_20261115.yaml`](../../../configs/closeout/oe4_20261115
 campo `runs`, bajo `~/flir-oe4-minimal-20261115/scientific-runs/`. AUG_OFF procede
 de `~/flir-oe4-recovery-20261122/aug-off/{policy}/train/weights/last.pt`.
 
-Cada recibo nativo de evaluación, en
+Los seis recibos nativos de evaluación se recuperaron en la copia externa local
+`00_ENTREGABLES/Resultados_OE4/evaluations/{AUG_ON|AUG_OFF}/{policy}/receipt.json`.
+Su procedencia remota informada es
 `~/flir-oe4-recovery-20261122/evaluations/{AUG_ON|AUG_OFF}/{policy}/receipt.json`,
-registra `weights_sha256`, `training_receipt_sha256`, `freeze_sha256` y la identidad
-del test. El ejecutor valida metadatos/history de 50 épocas, argumentos y hashes.
-**Estos seis recibos y hashes de pesos no están en los originales locales
-entregados para este cierre**: no se inventan ni se afirma su verificación local.
-El SHA verificable publicado aquí acredita el CSV, no por sí solo los checkpoints.
-Recuperar sus recibos publicables sigue pendiente si se necesita esa auditoría
-independiente; no requiere volver a evaluar. Pesos e imágenes permanecen privados.
+con `weights_sha256`, `training_receipt_sha256`, `freeze_sha256` e identidad de test.
+Se comprobó localmente que existen las seis celdas, declaran `COMPLETED_EVALUATION`,
+seleccionan `last_epoch_50` sin tuning de test, usan versiones/configuración fijadas
+y comparten test, freeze y autorización. Los valores de pesos publicados proceden
+únicamente de esos campos; no se calculan ni se infieren desde las métricas.
+
+Cada original contiene 753 bindings, incluidos nombres/hashes privados por imagen.
+Se conserva intacto fuera de Git y se publica una proyección por allowlist, ligada
+por el SHA-256 observado del recibo completo. No se publican sus mapas por imagen.
+El recibo agregado no enumera los hashes de los seis recibos: la comprobación local
+enlaza sus identidades declaradas de política, tratamiento, test y freeze; no añade
+retroactivamente un sellado criptográfico al agregado original.
+
+**Límite preciso:** no se recibieron los `.pt`, los seis recibos de entrenamiento,
+el freeze original, ni los payloads vinculados (`metrics.json`, estadísticas,
+predicciones/tablas por clase). Sus hashes declarados se conservan, pero no se
+rehasharon sus bytes ni se reprodujeron las métricas desde las estadísticas.
+Los recibos de evaluación no contienen directamente el modelo, semilla, número
+de épocas o commit del entrenamiento: esos controles proceden del protocolo y
+ejecutor documentados; comprobarlos otra vez requiere los originales de entrenamiento.
+La integridad de los recibos no equivale a una firma de autenticidad ni a una nueva
+auditoría completa de checkpoints. El CSV oficial sigue siendo la única fuente
+numérica; su contenido permanece intacto después de recuperar la procedencia.
+
+Para reconstruir/verificar la proyección, definir `$evaluations` con la raíz local
+de los seis originales y usar un archivo nuevo de salida (o `--check` para el
+publicado):
+
+```powershell
+uv run --no-sync python -m flir_pipeline.closeout.final_provenance docs/results/oe4_20261122 $evaluations docs/results/oe4_20261122/evaluation_receipts.public.json --check
+```

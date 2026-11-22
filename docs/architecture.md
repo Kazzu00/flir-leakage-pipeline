@@ -5,6 +5,9 @@ projection downstream of the existing OE4 aggregator. It validates receipt/sourc
 integrity and preserves decimal tokens; it does not invoke evaluation, scientific
 gates, data access or Hypatia. The public results package is
 `docs/results/oe4_20261122/`; private native artifacts remain external.
+`closeout.final_provenance` projects six recovered evaluation receipts into a
+public allowlist, with metadata consistency checks and explicit unverified payload
+flags. It removes native per-image file maps without changing the external originals.
 
 ## Training recovery (2026-11-22)
 

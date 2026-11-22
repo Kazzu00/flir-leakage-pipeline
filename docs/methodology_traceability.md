@@ -3,8 +3,9 @@
 Cierre OE4 2026-11-22: recibidos CSV/recibo agregados del test común; SHA validado,
 tabla final reproducida sin alterar valores. Se acredita la publicación de esos
 resultados recibidos para seis configuraciones (una semilla), no una nueva
-auditoría local de los seis checkpoints. Recibos nativos pendientes en la copia
-local. [Definiciones, procedencia y límites](results/oe4_20261122/README.md).
+auditoría local de los seis checkpoints. Recuperados los seis recibos de evaluación
+y comprobadas sus identidades/metadatos; pesos, recibos de entrenamiento/freeze
+y payloads estadísticos no se rehasharon. [Definiciones, procedencia y límites](results/oe4_20261122/README.md).
 
 Recuperación 2026-11-22: conteos de etiquetas de la vista nativa, sin exigirlos
 al manifest fuente. Denoised avanza solo como exploración separada con grupos de
@@ -35,7 +36,7 @@ separa infraestructura y evidencia; no sustituye la revisión académica de JP.
 | OE1. Caracterizar correlación espaciotemporal | `features/`, `similarity/`; `configs/embeddings/`, `configs/similarity/` | Stores raw/L2 e índices → extracción completa y coseno → QA y caracterización → análisis features/similarity | Visual ejecutado; temporalidad canónica limitada. Bhattacharyya no ejecutada: metodología la condiciona a distribuciones definidas; justificación y límite deben quedar explícitos. |
 | OE2. Comparar reducción y clustering de densidad | `reduction/`, `clustering/`; configs t-SNE/PaCMAP/DBSCAN/OPTICS/HDBSCAN | 36 reducciones y 414 runs → shortlist/estabilidad → ARI/AMI, ruido y coherencia con cobertura → análisis clustering | Comparación técnica acreditada; no hay ground truth exhaustivo de escenas ni continuidad temporal. No requiere SIFT/RANSAC. |
 | OE3. Particionar por clústeres indivisibles y cobertura | `splitting/`; `cluster_aware_research.yaml` | source_groups y asignaciones → 60 splits cluster-aware → atomicidad/cobertura/solver → análisis splitting | Implementación y salidas verificadas. C10 documentado; nueva admisión bajo test fijo actual pendiente. No confundir B-S2/S3 con C10. |
-| OE4. Comparar histórica, aleatoria y clústeres con coseno y detector | `splitting/metrics.py`, `detection/`, `closeout/`; protocolos separados | Comparación residual; contrato histórico de 48 corridas; B de 75 YOLO11m separado; OE4 v2: CSV/recibo de seis configuraciones con test común → tabla final verificable | Resultados agregados OE4 recibidos y SHA validado. Comparación descriptiva seed 42, sin causalidad/independencia; auditoría local de seis recibos nativos/checkpoints pendiente. B y contrato histórico conservan identidades separadas. |
+| OE4. Comparar histórica, aleatoria y clústeres con coseno y detector | `splitting/metrics.py`, `detection/`, `closeout/`; protocolos separados | Comparación residual; contrato histórico de 48 corridas; B de 75 YOLO11m separado; OE4 v2: CSV/recibo y seis recibos nativos → tabla final y procedencia publicable | SHA del CSV y metadatos/identidades de seis recibos de evaluación comprobados. Comparación descriptiva seed 42, sin causalidad/independencia; bytes de checkpoints/payloads y recibos de entrenamiento/freeze no verificados localmente. B y contrato histórico permanecen separados. |
 | OE5. Ensamblar limpieza, partición y panóptica | Ingesta de variantes y fuentes de imagen; contratos externos; `apps/explorer` como consumidor | Fuente externa versionada → identidad padre/hijo, geometría, catálogo y split → consumidor de Manuela → recibo integrado | Interfaces parciales; falta acreditar recorrido conjunto sobre una población admitida. Reutilizar Laura/Manuela sin atribuir sus algoritmos al desarrollo individual. |
 
 Los módulos y comandos de reproducción existentes están en

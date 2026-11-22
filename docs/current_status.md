@@ -8,8 +8,11 @@ ocho métricas por configuración, sin recalcular resultados. El responsable rep
 array de evaluación 809088 y agregación 809094: seis YOLO11m, 50 épocas, seed 42,
 test común 372 imágenes/983 objetos. Comparación interna descriptiva, sin causalidad
 ni independencia. No se ejecutaron entrenamientos/evaluaciones en este cierre.
-Los seis recibos nativos/hashes de checkpoints no acompañan la copia local;
-su verificación independiente permanece pendiente. Véanse [resultados y límites](results/oe4_20261122/README.md).
+Recuperados los seis recibos nativos: comprobadas sus celdas, hashes de pesos
+declarados, test/freeze/autorización comunes y configuración. Se publica una
+proyección sin identidades por imagen. Pesos, recibos de entrenamiento/freeze
+y payloads estadísticos no se recibieron ni se rehasharon localmente.
+Véanse [resultados y límites](results/oe4_20261122/README.md).
 
 Los [tres datasets entregados](final_datasets_20261122.md) conservan dominios
 distintos: histórico con leakage conocido, Sin HUD visual no listo para YOLO,

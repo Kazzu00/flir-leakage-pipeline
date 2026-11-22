@@ -6,8 +6,12 @@ Publish only the explicitly requested aggregate metrics/original receipt and the
 aggregate dataset packaging receipt. Preserve original bytes through Git attributes.
 The standard-library `closeout.final_metrics` projection retains decimal strings,
 requires complete unique cells and verifies the inverse mapping. It never loads
-models or recomputes science. Native checkpoint receipts remain unavailable in
-the local results package; their hashes must not be inferred from the aggregate.
+models or recomputes science. Six native evaluation receipts were subsequently
+recovered. `closeout.final_provenance` checks their metadata and publishes only
+allowlisted aggregate fields, original receipt hashes and declared checkpoint
+hashes. Private per-image file maps stay external. Weights, training/freeze receipts
+and bound statistical payloads were not rehashed locally; receipt integrity must
+not be presented as checkpoint validation or authenticity verification.
 See [results](results/oe4_20261122/README.md) and [dataset boundaries](final_datasets_20261122.md).
 
 ## Native training-view contract and denoised exploration (2026-11-22)

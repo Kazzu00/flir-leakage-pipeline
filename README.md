@@ -6,6 +6,7 @@ semilla, sin afirmación causal ni de independencia. [Tres datasets de entrega y
 sus limitaciones](docs/final_datasets_20261122.md). El cierre publica evidencia
 recibida; no repite entrenamientos ni evaluaciones. Los registros siguientes
 conservan el estado observado en sus respectivas fechas.
+[Auditoría de publicación y verificaciones](docs/publication_closeout_20261122.md).
 
 Recuperación OE4 2026-11-22: conteos derivados de la vista histórica, preparación
 CPU completa antes de GPU y línea denoised exploratoria aislada.

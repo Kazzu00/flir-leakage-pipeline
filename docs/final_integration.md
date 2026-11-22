@@ -1,5 +1,9 @@
 # Integración final del código de tesis
 
+Actualización de publicación 2026-11-22: véase el [cierre para revisión](publication_closeout_20261122.md).
+El texto siguiente conserva el registro de integración del 14 de noviembre;
+sus referencias a commits locales/no publicados describen ese momento.
+
 Estado documental: 14 de noviembre de 2026. Esta rama es una candidata local de
 integración; no modifica `main`, publicaciones, datasets, checkpoints ni freezes.
 La propuesta académica de referencia es `ppg_j.solorzanod_202620.pdf`, confirmada
